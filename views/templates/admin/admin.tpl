@@ -57,7 +57,7 @@
                         <select name="callback_mode" style="width:130px;" id="callback_mode">
                                 <option value="0"{if $callback_mode == 0} selected="selected"{/if}>Server-to-server</option>
                                 <option value="1"{if $callback_mode == 1} selected="selected"{/if}>Redirection automatique</option>
-                                <option value="2"{if $callback_mode == 2} selected="selected"{/if}>Hybride</option>
+                                <!--<option value="2"{if $callback_mode == 2} selected="selected"{/if}>Hybride</option>-->
                         </select>
                     </div> 
 				   <div class="form-group">

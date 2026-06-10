@@ -69,13 +69,14 @@ class CmiValidationModuleFrontController extends ModuleFrontController
 		$amount = $data['amount'];
 	}
 
-		@$payment->validateOrderMtc((int)$cart ->id, Configuration::get('BPI_ID_ORDERSTATE'), floatval($amount), $paymentMethod, $message, $extraVars, $currency_special, $dont_touch_amount, $customer->secure_key);
-		$order_id = Order::getOrderByCartId((int)($cart->id));
-		$order = new Order($order_id);
+		// @$payment->validateOrderMtc((int)$cart ->id, Configuration::get('BPI_ID_ORDERSTATE'), floatval($amount), $paymentMethod, $message, $extraVars, $currency_special, $dont_touch_amount, $customer->secure_key);
+		// $order_id = Order::getOrderByCartId((int)($cart->id));
+		// $order = new Order($order_id);
+		// $data['oid'] = $order_id;
 		$actionslk = Configuration::get('actionslk');
+		$data['oid'] = (int)$cart->id;
 		
 		$cmi_args_array = array();
-		$data['oid'] = $order_id;
 		$postParams = array();
 			foreach ($data as $key => $value){
 				array_push($postParams	, $key);

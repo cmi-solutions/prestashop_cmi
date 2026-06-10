@@ -6,7 +6,8 @@
     public function postProcess()
     {
 		
-$cart = new Cart((int)$_POST["cartid"]);
+$cartId = isset($_POST['oid']) ? (int)$_POST['oid'] : (int)$_POST['cartid'];
+$cart = new Cart($cartId);
 $cartAmount = $cart->getordertotal(false);	
 $customer = new Customer((int)$cart->id_customer);
 $currency = new CurrencyCore(CurrencyCore::getIdByIsoCode($_POST["currIsoCode"]));
@@ -79,16 +80,87 @@ $postParams = array();
 
 if($_POST["ProcReturnCode"] == "00")
 {
-	$objOrder = new Order($_POST['oid']); 
-	$idstate = (int)Configuration::get('PS_OS_PAYMENT');
-	@$objOrder->setCurrentState($idstate);
-    $payments = $objOrder->getOrderPaymentCollection();
-        if ($payments->count() > 0) {
-            $payments[0]->transaction_id = $_POST['TransId'];
-            $payments[0]->card_number = substr_replace($_POST['MaskedPan'],'******',0,6);
-            $payments[0]->card_brand = $_POST['EXTRA_CARDBRAND'];
-            $payments[0]->update();
+	// $objOrder = new Order($_POST['oid']); 
+	// $idstate = (int)Configuration::get('PS_OS_PAYMENT');
+	// @$objOrder->setCurrentState($idstate);
+	$cartId = (int)$_POST['oid']; // ici oid = cart id
+    $cart = new Cart($cartId);
+
+    if (!Validate::isLoadedObject($cart)) {
+        echo "FAILURE";
+        exit;
+    }
+
+    $customer = new Customer((int)$cart->id_customer);
+    if (!Validate::isLoadedObject($customer)) {
+        echo "FAILURE";
+        exit;
+    }
+
+    // Vérifier si une commande existe déjà pour ce panier
+    $order = Order::getByCartId((int)$cart->id);
+
+    // Si aucune commande n'existe encore, on la crée maintenant
+    if (!Validate::isLoadedObject($order)) {
+        $currency_special = null;
+        $dont_touch_amount = false;
+        $paymentMethod = 'cmi';
+        $message = 'Paiement avec CMI';
+
+        if (isset($_POST['amountCur']) && $_POST['amountCur']) {
+            $amount = (float)$_POST['amountCur'];
+        } else {
+            $amount = (float)$_POST['amount'];
         }
+
+        // Créer la commande après succès CMI
+        if (method_exists($payment, 'validateOrderMtc')) {
+            $payment->validateOrderMtc(
+                (int)$cart->id,
+                (int)Configuration::get('PS_OS_PAYMENT'),
+                (float)$amount,
+                $paymentMethod,
+                $message,
+                array(),
+                $currency_special,
+                $dont_touch_amount,
+                $customer->secure_key
+            );
+        } else {
+            $payment->validateOrder(
+                (int)$cart->id,
+                (int)Configuration::get('PS_OS_PAYMENT'),
+                (float)$amount,
+                $paymentMethod,
+                $message,
+                array(),
+                null,
+                false,
+                $customer->secure_key
+            );
+        }
+
+        $order = Order::getByCartId((int)$cart->id);
+    }
+
+    if (!Validate::isLoadedObject($order)) {
+        echo "FAILURE";
+        exit;
+    }
+
+    $idstate = (int)Configuration::get('PS_OS_PAYMENT');
+
+    if ((int)$order->current_state !== $idstate) {
+        $order->setCurrentState($idstate);
+    }
+
+    $payments = $order->getOrderPaymentCollection();
+    if ($payments->count() > 0) {
+        $payments[0]->transaction_id = isset($_POST['TransId']) ? pSQL($_POST['TransId']) : '';
+        $payments[0]->card_number = isset($_POST['MaskedPan']) ? substr_replace($_POST['MaskedPan'], '******', 0, 6) : '';
+        $payments[0]->card_brand = isset($_POST['EXTRA_CARDBRAND']) ? pSQL($_POST['EXTRA_CARDBRAND']) : '';
+        $payments[0]->update();
+    }
 $callback_mode = Configuration::get("callback_mode");
 
 if($callback_mode == "0" || $callback_mode== "2"){
@@ -137,10 +209,17 @@ $apigateway = Configuration::get("actionslkapi");
 }
 else
 {
-	$objOrder = new Order($_POST['oid']); 
-	$history = new OrderHistory();
-	$history->id_order = (int)$objOrder->id;
-	$history->changeIdOrderState(_PS_OS_ERROR_, (int)($objOrder->id));
+    $cartId = (int)$_POST['oid'];
+    $order = Order::getByCartId($cartId);
+
+    if (Validate::isLoadedObject($order)) {
+        $history = new OrderHistory();
+        $history->id_order = (int)$order->id;
+        $history->changeIdOrderState((int)_PS_OS_ERROR_, (int)$order->id);
+    }
+
+    echo "FAILURE";
+    exit;
 }
 
 
@@ -157,12 +236,15 @@ else
     $message = null;
 
     $extraVars = array();
-	$objOrder = new Order($_POST['oid']); 
-	$history = new OrderHistory();
-	$history->id_order = (int)$objOrder->id;
-	$history->changeIdOrderState(_PS_OS_ERROR_, (int)($objOrder->id));
+	$order = Order::getByCartId((int)$_POST['oid']);
 
-    echo "FAILURE";
+	if (Validate::isLoadedObject($order)) {
+		$history = new OrderHistory();
+		$history->id_order = (int)$order->id;
+		$history->changeIdOrderState((int)_PS_OS_ERROR_, (int)$order->id);
+	}
+
+	echo "FAILURE";
 
 }
 exit;

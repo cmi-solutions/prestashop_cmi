@@ -148,6 +148,7 @@
 		$merchid_offshore = Configuration::get('merchid_offshore');
 		$actionslk = Configuration::get('actionslk');	
 		$secretkey = Configuration::get('secretkey');
+		$redirection_mode = Configuration::get('redirection_mode');
 		$confirmation_mode = Configuration::get('confirmation_mode');
 		$cardholder_authentication = Configuration::get('cardholder_authentication');
 		$currency_store = Configuration::get('currency_store');
@@ -251,17 +252,27 @@
 		 $urlConfirmation = $this->getBackUrl($this->context->cart);
 		
 		
-			$query = 'SELECT * FROM `' . _DB_PREFIX_ . 'address` WHERE `id_customer`= "' . $params['cookie']->id_customer . '"';
-            $guest_user_detail = Db::getInstance()->ExecuteS($query);
-			$billing_detail = new Address((int) ($params['cart']->id_address_invoice));
-			$city = !empty($guest_user_detail[0]['city']) ? $guest_user_detail[0]['city'] : '';
-            $country = !empty($guest_country[0]['name']) ? $guest_country[0]['name'] : '';
-            $postcode = !empty($guest_user_detail[0]['postcode']) ? $guest_user_detail[0]['postcode'] : '';
+			$query = 'SELECT * FROM `' . _DB_PREFIX_ . 'address` WHERE `id_customer` = "' . (int)$params['cookie']->id_customer . '" ORDER BY id_address DESC LIMIT 1';
+			$guest_user_detail = Db::getInstance()->executeS($query);
+			$guest_address = (!empty($guest_user_detail) && isset($guest_user_detail[0])) ? $guest_user_detail[0] : array();
+
+			$billing_detail = new Address((int)$params['cart']->id_address_invoice);
+
+			$city = !empty($guest_address['city']) ? $guest_address['city'] : '';
+			$country = !empty($guest_country[0]['name']) ? $guest_country[0]['name'] : '';
+			$postcode = !empty($guest_address['postcode']) ? $guest_address['postcode'] : '';
+
 			$billing_city = !empty($billing_detail->city) ? $billing_detail->city : '';
-            $billing_country = !empty($billing_detail->country) ? $billing_detail->country : '';
-            $billing_postcode = !empty($billing_detail->postcode) ? $billing_detail->postcode : '';
-			$address =  $guest_user_detail[0]['address1'] . ' ' . $guest_user_detail[0]['address2'];
-			 $phone_mobile = !empty($guest_user_detail[0]['phone']) ? $guest_user_detail[0]['phone'] : '';
+			$billing_country = !empty($billing_detail->country) ? $billing_detail->country : '';
+			$billing_postcode = !empty($billing_detail->postcode) ? $billing_detail->postcode : '';
+
+			$address1 = !empty($guest_address['address1']) ? $guest_address['address1'] : '';
+			$address2 = !empty($guest_address['address2']) ? $guest_address['address2'] : '';
+			$address = trim($address1 . ' ' . $address2);
+
+			$phone_mobile = !empty($guest_address['phone_mobile'])
+				? $guest_address['phone_mobile']
+				: (!empty($guest_address['phone']) ? $guest_address['phone'] : '');
 			
 			
 			$conf_uri = $this->context->link->getModuleLink($this->name, 'confirm');
