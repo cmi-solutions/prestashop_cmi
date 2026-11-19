@@ -2,12 +2,12 @@
 <module>
     <name>cmi</name>
     <displayName><![CDATA[CMI]]></displayName>
-    <version><![CDATA[1.1.0]]></version>
-    <description><![CDATA[Paiements par carte bancaire avec le CMI]]></description>
+    <version><![CDATA[2.0.0]]></version>
+    <description><![CDATA[Card payments with CMI (Morocco): hosted payment page, and confirm, void, refund and check payments from the order page.]]></description>
     <author><![CDATA[CMI]]></author>
     <tab><![CDATA[payments_gateways]]></tab>
-	<confirmUninstall><![CDATA[Êtes-vous sur de vouloir désinstaller?]]></confirmUninstall>
+    <confirmUninstall><![CDATA[Uninstall the CMI module? Your CMI connection settings will be deleted; orders and their payment history are kept.]]></confirmUninstall>
     <is_configurable>1</is_configurable>
-    <need_instance>1</need_instance>
-	<limited_countries></limited_countries>
+    <need_instance>0</need_instance>
+    <limited_countries></limited_countries>
 </module>

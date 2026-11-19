@@ -1,0 +1,29 @@
+# Syntax check on every PHP version PrestaShop 8 and 9 support, unit tests, and translation check.
+name: CI
+
+on:
+  push:
+  pull_request:
+
+permissions:
+  contents: read
+
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    strategy:
+      matrix:
+        php: ['8.1', '8.2', '8.3', '8.4']
+    steps:
+      - uses: actions/checkout@v4
+      - uses: shivammathur/setup-php@v2
+        with:
+          php-version: ${{ matrix.php }}
+          extensions: curl, simplexml, mbstring
+          coverage: none
+      - name: Syntax
+        run: find . -name '*.php' -not -path './vendor/*' -print0 | xargs -0 -n1 php -l > /dev/null
+      - name: Unit tests
+        run: php tests/run-tests.php
+      - name: Translations
+        run: php tools/i18n-check.php

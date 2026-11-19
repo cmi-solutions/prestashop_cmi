@@ -1,670 +1,297 @@
 <?php
-	class Cmi extends PaymentModule
+/**
+ * CMI payment module for PrestaShop.
+ *
+ * Card payments on the hosted payment page of CMI (Centre Monétique Interbancaire, Morocco),
+ * with payment management (confirm, void, refund, status check) from the order page.
+ *
+ * @author    CMI
+ * @license   https://opensource.org/licenses/AFL-3.0 Academic Free License 3.0 (AFL-3.0)
+ */
+if (!defined('_PS_VERSION_')) {
+    exit;
+}
+
+// Classes of src/ (namespace Cmi\PrestaShop), without requiring Composer on the shop.
+spl_autoload_register(static function (string $class): void {
+    $prefix = 'Cmi\\PrestaShop\\';
+    if (strpos($class, $prefix) !== 0) {
+        return;
+    }
+    $file = __DIR__ . '/src/' . str_replace('\\', '/', substr($class, strlen($prefix))) . '.php';
+    if (is_file($file)) {
+        require_once $file;
+    }
+});
+
+use Cmi\PrestaShop\Admin\OrderGrid;
+use Cmi\PrestaShop\Admin\OrderPanel;
+use Cmi\PrestaShop\Admin\SettingsForm;
+use Cmi\PrestaShop\Config\Settings;
+use Cmi\PrestaShop\Install\Installer;
+use Cmi\PrestaShop\Payment\AccountResolver;
+use Cmi\PrestaShop\Payment\PaymentState;
+use Cmi\PrestaShop\Services;
+use PrestaShop\PrestaShop\Core\Payment\PaymentOption;
+
+class Cmi extends PaymentModule
 {
-	private	$_html = '';
-	private $_postErrors = array();
-	private $_postWarnings = array();
+    /** @var Services|null */
+    private $services;
 
-	public function __construct()
-	{
-		$this->name = 'cmi';
-		$this->version = '1.1.0';
-		$this->tab = 'payments_gateways';
-		$this->need_instance = 1;
-		$this->controllers = array('payment', 'validation');
-		$this->bootstrap = true;
-		$this->module_key = '3a6587e8877a665f590245c45874f65';
-		
-		parent::__construct();
-
-		$this->author = 'CMI';
-		
-		$this->displayName = $this->l('CMI');
-		$this->description = $this->l('Paiements par carte bancaire avec le CMI');
-
-		$this->confirmUninstall = $this->l('Êtes-vous sur de vouloir désinstaller?');
-
-	}
-
-	/*
-	 *
-	 * INSTALL / UNINSTALL
-	 *
-	*/
-	public function install()
-	{
-		Db::getInstance()->execute('
-			CREATE TABLE IF NOT EXISTS `'._DB_PREFIX_.'bpi_secuaccess` (
-			`id_user` varchar(20) NOT NULL, `date_creation` datetime) ENGINE=MyISAM  DEFAULT CHARSET=utf8');
-			
-		if (!Configuration::get('BPI_TYPE_DISPLAY')) {
-			Configuration::updateValue('BPI_TYPE_DISPLAY', 1);
-		}
-		
-		if (!parent::install() OR !$this->registerHook('paymentOptions') OR !$this->registerHook('paymentReturn') OR !$this->registerHook('adminOrder') OR !$this->registerHook('rightColumn')) {
-			return false;
-		}
-		
-		
-		$orderState = new OrderState();
-		$langs = Language::getLanguages();
-		foreach ($langs AS $lang)
-			$orderState->name[$lang['id_lang']] = 'Waiting for CMI validation';
-		$orderState->name[2] = 'Attente de validation CMI';
-		$orderState->invoice = true;
-		$orderState->send_email = false;
-		$orderState->logable = true;
-		$orderState->color = '#3333FF';
-		$orderState->save();
-		Configuration::updateValue('BPI_ID_ORDERSTATE', intval($orderState->id));
-		
-	
-		return true;
-	}
-
-	public function uninstall() {
-		
-		Configuration::deleteByName('merchid');
-		Configuration::deleteByName('merchid_offshore');
-		Configuration::deleteByName('actionslk');
-		Configuration::deleteByName('secretkey');
-		Configuration::deleteByName('confirmation_mode');
-		Configuration::deleteByName('redirection_mode');
-		Configuration::deleteByName('cardholder_authentication');
-		Configuration::deleteByName('callback_mode');
-		Configuration::deleteByName('actionslkapi');
-		Configuration::deleteByName('usernameapi');
-		Configuration::deleteByName('passwordapi');
-		Configuration::deleteByName('currency_store');
-		
-		Db::getInstance()->Execute('DROP TABLE IF EXISTS '._DB_PREFIX_.'bpi_secuaccess');
-		return parent::uninstall();
-	}
-	
-
-	
-	/*
-	 *
-	 * HOOKS
-	 *
-	*/
-	public function hookRightColumn($params) {
-		
-		global $cookie;		
-		$context = $this->context;
-		
-		
-		$context->smarty->assign('path', 'modules/'.$this->name);
-		return $this->display(__FILE__, 'views/templates/front/logo.tpl');
-	}
-	
-	public function hookLeftColumn($params) {
-		
-		return $this->hookRightColumn($params);
-	}
-	
-	public function getContent() {
-		
-		global $cookie;
-		$messages = '';
-		$ht = '';
-		if (isset($_POST['submitCmi_config'])) {
-			if (!sizeof($this->_postErrors)) {
-				if (isset($_POST['currency_store']) && $_POST['currency_store']){
-				$currency_store = implode('|', $_POST['currency_store']);
-				}
-					
-				Configuration::updateValue('merchid', trim($_POST['merchid']));
-				Configuration::updateValue('merchid_offshore', trim($_POST['merchid_offshore']));
-				Configuration::updateValue('actionslk', trim($_POST['actionslk']));
-				Configuration::updateValue('secretkey', trim($_POST['secretkey']));
-				Configuration::updateValue('currency_store', $currency_store);
-				Configuration::updateValue('confirmation_mode', $_POST['confirmation_mode']);
-				Configuration::updateValue('redirection_mode', $_POST['redirection_mode']);
-				Configuration::updateValue('cardholder_authentication', $_POST['cardholder_authentication']);
-				Configuration::updateValue('callback_mode', $_POST['callback_mode']);
-				Configuration::updateValue('actionslkapi', $_POST['actionslkapi']);
-				Configuration::updateValue('usernameapi', $_POST['usernameapi']);
-				Configuration::updateValue('passwordapi', $_POST['passwordapi']);
-				
-		$messages = $this->l('Settings have been saved.');
-			}
-			else
-			$ht = $this->l('Please fill the required fields');
-			
-
-		}
-		
-		$smarty = false;
-		$context = $this->context;
-				
-		
-		
-		$base_url = __PS_BASE_URI__;
-		$bp_img = '//'.htmlspecialchars($_SERVER['HTTP_HOST'], ENT_COMPAT, 'UTF-8').$base_url.'modules/cmi/';
-		
-		
-		$merchid = Configuration::get('merchid');
-		$merchid_offshore = Configuration::get('merchid_offshore');
-		$actionslk = Configuration::get('actionslk');	
-		$secretkey = Configuration::get('secretkey');
-		$redirection_mode = Configuration::get('redirection_mode');
-		$confirmation_mode = Configuration::get('confirmation_mode');
-		$cardholder_authentication = Configuration::get('cardholder_authentication');
-		$currency_store = Configuration::get('currency_store');
-		$callback_mode = Configuration::get('callback_mode');
-		$actionslkapi = Configuration::get('actionslkapi');
-		$usernameapi = Configuration::get('usernameapi');
-		$passwordapi = Configuration::get('passwordapi');
-		$postErrors = $this->_postErrors;
-		$context->smarty->assign(array(
-			'legend' => $this->l('Configurer votre Module CMI'),
-			'merchid' => $merchid,
-			'merchid_offshore' => $merchid_offshore,
-			'cmi_form' => $_SERVER['REQUEST_URI'],
-			'actionslk' => $actionslk,
-			'secretkey' => $secretkey,
-			'callback_mode' => $callback_mode,
-			'actionslkapi' => $actionslkapi,
-			'usernameapi' => $usernameapi,
-			'passwordapi' => $passwordapi,
-			'confirmation_mode' => $confirmation_mode,
-			'redirection_mode' => $redirection_mode,
-			'cardholder_authentication' => $cardholder_authentication,
-			'postErrors' => $postErrors,
-			'successMsg' => $messages,
-			'bp_img' => $bp_img
-			));
-			$currencies_store =  explode('|', $currency_store);
-			$new_currencies_store =  array();
-			foreach ($currencies_store as $currency_store){
-				$new_currencies_store[$currency_store] = $currency_store;
-			}
-		$context->smarty->assign(array(
-			'currencies_store' => $new_currencies_store
-			));
-		
-		$context->controller->addCSS($this->_path.'views/css/cmi.css', 'all');
-		$context->controller->addCSS($this->_path.'views/css/font-awesome.min.css', 'all');
-		return $this->display(__FILE__, 'views/templates/admin/admin.tpl');
-	}
-
-	
-	
- public function validateOrderMtc($id_cart, $id_order_state, $amountPaid, $paymentMethod = 'Unknown', $message = NULL, $extraVars = array(), $currency_special = NULL, $dont_touch_amount = false, $secure_key = false)
-
-	{
-
-		if (!$this->active)
-
-			return ;
-
-
-
-		$this->context->country->active = true;
-		@$this->validateOrder($id_cart, $id_order_state, $amountPaid, $paymentMethod, $message, $extraVars, (int)$currency_special, false, $secure_key);	
-
-
-	}	
-	
- 
-	public function hookPaymentOptions($params)
-	{
-		
-		$options = array();
-		
-		$amount = $this->context->cart->getOrderTotal(true, Cart::BOTH);
-		$totalAmountTx = floatval($amount);
-		$OrderTotal = $totalAmountTx;
-				
-		
-		$currency_order = new Currency(intval($this->context->cart->id_currency));
-		$currency_mad = new CurrencyCore(CurrencyCore::getIdByIsoCode("MAD"));
-
-		if(empty($currency_mad) || $currency_mad->active != 1)
-			return ;
-
-		// check currency of payment with default MAD currency for the module
-		$symbolCurrency = "";
-		$totalAmountTxCurrency = "";
-		
-		$redirection_mode = Configuration::get('redirection_mode');
-		
-		$order = new Order();		
-		$cardholder_authentication = trim(Configuration::get('cardholder_authentication'));
-		if($cardholder_authentication == "1"){
-			$storetype = "3DPAYHOSTING";
-		} else {
-			$storetype = "PAYHOSTING";
-		}
-		
-					$url_retour_ok = $this->context->link->getPageLink('order-confirmation', true, null, 'id_cart=' . (int)$this->context->cart->id . '&id_module=' . $this->id . '&key=' . $this->context->customer->secure_key);
-        $url_retour_ko = $this->context->link->getPageLink('order', true, null, 'step=3');
-		
-		
-			if (strpos($url_retour_ok, 'https://') !== false || strpos($url_retour_ko, 'https://') !== false) {
-			$set_secure_return = true;
-			$set_secure_conf = true;
-		} else {
-			$set_secure_return = false;
-			$set_secure_conf = false;
-		}
-		 $urlConfirmation = $this->getBackUrl($this->context->cart);
-		
-		
-			$query = 'SELECT * FROM `' . _DB_PREFIX_ . 'address` WHERE `id_customer` = "' . (int)$params['cookie']->id_customer . '" ORDER BY id_address DESC LIMIT 1';
-			$guest_user_detail = Db::getInstance()->executeS($query);
-			$guest_address = (!empty($guest_user_detail) && isset($guest_user_detail[0])) ? $guest_user_detail[0] : array();
-
-			$billing_detail = new Address((int)$params['cart']->id_address_invoice);
-
-			$city = !empty($guest_address['city']) ? $guest_address['city'] : '';
-			$country = !empty($guest_country[0]['name']) ? $guest_country[0]['name'] : '';
-			$postcode = !empty($guest_address['postcode']) ? $guest_address['postcode'] : '';
-
-			$billing_city = !empty($billing_detail->city) ? $billing_detail->city : '';
-			$billing_country = !empty($billing_detail->country) ? $billing_detail->country : '';
-			$billing_postcode = !empty($billing_detail->postcode) ? $billing_detail->postcode : '';
-
-			$address1 = !empty($guest_address['address1']) ? $guest_address['address1'] : '';
-			$address2 = !empty($guest_address['address2']) ? $guest_address['address2'] : '';
-			$address = trim($address1 . ' ' . $address2);
-
-			$phone_mobile = !empty($guest_address['phone_mobile'])
-				? $guest_address['phone_mobile']
-				: (!empty($guest_address['phone']) ? $guest_address['phone'] : '');
-			
-			
-			$conf_uri = $this->context->link->getModuleLink($this->name, 'confirm');
-			
-			$currency_special = NULL;
-			$dont_touch_amount = false;
-			$paymentMethod = 'cmi';
-			$message = "Paiement avec CMI";
-			$extraVars = array();
-
-
-			$config = require _PS_CACHE_DIR_ . 'appParameters.php';
-			$dbName = $config['parameters']["database_name"];
-			
-			$base_url = __PS_BASE_URI__;
-			$shopUrl = $this->context->shop->getBaseURL(true);;
-		$data = array(
-			'rnd' => microtime(),
-			'storetype' => $storetype,
-			'hashAlgorithm' => "ver3",
-			'TranType' => "PreAuth",
-			'email' => trim($this->context->customer->email),
-			'BillToName' => $this->str_without_accents(trim($this->context->customer->firstname .' '.$this->context->customer->lastname)),
-			'BillToStreet1' => $this->str_without_accents(trim($address)),
-			'BillToCity' => $this->str_without_accents(trim($city)),
-			'BillToStateProv' => "",
-			'BillToCountry' => $this->str_without_accents(trim($country)),
-			'BillToPostalCode' =>  $this->str_without_accents(trim($postcode)),
-			'tel' =>  $this->str_without_accents(trim($phone_mobile)),
-			'cartid' => $this->context->cart->id,
-			'refreshtime' => "5",
-			'currIsoCode' => $currency_order->iso_code,
-			'shopUrl' => $shopUrl,
-			'failUrl' => $shopUrl,
-			'set_secure_return' => ($set_secure_return ? 'true' : 'false'),
-			'encoding' => "UTF-8"
-			);		
-			$currency_store = Configuration::get('currency_store');
-			$acurrency_store =  explode('|', $currency_store);
-			if(in_array("504", $acurrency_store) && count($acurrency_store) == 1){
-				$data['clientid'] = Configuration::get('merchid');
-				$data['currency'] = "504";
-				if ($currency_order->id != $currency_mad->id){
-					$this->context->cart->id_currency = (int)$currency_order->id;
-					$this->context->cart->update();
-					
-					$context = $this->context;
-					
-					$symbolCurrency = $currency_order->iso_code;
-					$totalAmountTxCurrency = $totalAmountTx;
-					$totalAmountTx = floatval(($this->context->cart->getOrderTotal(true, Cart::BOTH)*$currency_mad->conversion_rate) / $currency_order->conversion_rate) ;
-					$data['amountCur'] = $OrderTotal;
-					$data['symbolCur'] = $currency_order->iso_code;
-				}
-			} else if(!in_array("504", $acurrency_store) && count($acurrency_store) > 0){
-				$data['clientid'] = Configuration::get('merchid_offshore');
-				$data['currency'] = $currency_order->iso_code_num;
-			} else if(in_array("504", $acurrency_store) && count($acurrency_store) > 1){
-				if ($currency_order->id == $currency_mad->id){
-					$data['clientid'] = Configuration::get('merchid');
-				} else {
-					$data['clientid'] = Configuration::get('merchid_offshore');
-				}
-				$data['currency'] = $currency_order->iso_code_num;
-			}
-			$data['amount'] = number_format($totalAmountTx, 2, '.', '');
-			$callback_mode = Configuration::get("callback_mode");
-			if($callback_mode == "1"){ 
-				$data['AutoRedirect'] = "true";
-				$data['okUrl'] = $conf_uri; 
-				$data['CallbackResponse'] = "false";
-				$data['callbackUrl'] = ""; 
-			} else {
-				if($redirection_mode == "1"){
-					$data['AutoRedirect'] = "true";
-				} else {
-					$data['AutoRedirect'] = "false";
-				}
-				$data['okUrl'] = $urlConfirmation;
-				$data['CallbackResponse'] = "true";
-				$data['callbackUrl'] = $conf_uri;
-			}
-			$lang = $this->context->language->iso_code;
-		switch ($lang) {
-			case "en":
-			case "fr":
-			case "ar":
-				 $data['lang'] = $lang;
-			break;
-			default:
-				 $data['lang'] = "en";
-		}
-			$datas = array(
-            'action' => Configuration::get('actionslk'),
-            'inputs' => [
-                'clientid' => array(
-                    'name' => 'clientid',
-                    'type' => 'hidden',
-                    'value' => $data['clientid']
-                ),
-				 'lang' => array(
-                    'name' => 'lang',
-                    'type' => 'hidden',
-                    'value' => $data['lang'],
-                ),
-				'rnd' => array(
-                    'name' => 'rnd',
-                    'type' => 'hidden',
-                    'value' => $data['rnd'],
-                ),
-				'storetype' => array(
-                    'name' => 'storetype',
-                    'type' => 'hidden',
-                    'value' => $data['storetype'],
-                ),
-				'hashAlgorithm' => array(
-                    'name' => 'hashAlgorithm',
-                    'type' => 'hidden',
-                    'value' => $data['hashAlgorithm'],
-                ),
-				'TranType' => array(
-                    'name' => 'TranType',
-                    'type' => 'hidden',
-                    'value' => $data['TranType'],
-                ),
-				'email' => array(
-                    'name' => 'email',
-                    'type' => 'hidden',
-                    'value' => $data['email'],
-                ),
-				'BillToName' => array(
-                    'name' => 'BillToName',
-                    'type' => 'hidden',
-                    'value' => $data['BillToName'],
-                ),
-				'BillToStreet1' => array(
-                    'name' => 'BillToStreet1',
-                    'type' => 'hidden',
-                    'value' => $data['BillToStreet1'],
-                ),
-				'BillToCity' => array(
-                    'name' => 'BillToCity',
-                    'type' => 'hidden',
-                    'value' => $data['BillToCity'],
-                ),
-				'BillToStateProv' => array(
-                    'name' => 'BillToStateProv',
-                    'type' => 'hidden',
-                    'value' => $data['BillToStateProv'],
-                ),
-				'BillToCountry' => array(
-                    'name' => 'BillToCountry',
-                    'type' => 'hidden',
-                    'value' => $data['BillToCountry'],
-                ),
-				'BillToPostalCode' => array(
-                    'name' => 'BillToPostalCode',
-                    'type' => 'hidden',
-                    'value' => $data['BillToPostalCode'],
-                ),
-				'tel' => array(
-                    'name' => 'tel',
-                    'type' => 'hidden',
-                    'value' => $data['tel'],
-                ),
-				'cartid' => array(
-                    'name' => 'cartid',
-                    'type' => 'hidden',
-                    'value' => $data['cartid'],
-                ),
-				'refreshtime' => array(
-                    'name' => 'refreshtime',
-                    'type' => 'hidden',
-                    'value' => $data['refreshtime'],
-                ),
-				'amount' => array(
-                    'name' => 'amount',
-                    'type' => 'hidden',
-                    'value' => $data['amount'],
-                ),
-				'currency' => array(
-                    'name' => 'currency',
-                    'type' => 'hidden',
-                    'value' => $data['currency'],
-                ),
-				'failUrl' => array(
-                    'name' => 'failUrl',
-                    'type' => 'hidden',
-                    'value' => $data['failUrl'],
-                ),
-				'shopUrl' => array(
-                    'name' => 'shopUrl',
-                    'type' => 'hidden',
-                    'value' => $data['shopUrl'],
-                ),
-				'okurl' => array(
-                    'name' => 'okUrl',
-                    'type' => 'hidden',
-                    'value' => $data['okUrl'],
-                ),
-				'callbackUrl' => array(
-                    'name' => 'callbackUrl',
-                    'type' => 'hidden',
-                    'value' => $data['callbackUrl'],
-                ),
-				'encoding' => array(
-                    'name' => 'encoding',
-                    'type' => 'hidden',
-                    'value' => $data['encoding'],
-                ),
-				'CallbackResponse' => array(
-                    'name' => 'CallbackResponse',
-                    'type' => 'hidden',
-                    'value' => $data['CallbackResponse'],
-                ),
-				'AutoRedirect' => array(
-                    'name' => 'AutoRedirect',
-                    'type' => 'hidden',
-                    'value' => $data['AutoRedirect'],
-                ),
-				'currIsoCode' => array(
-                    'name' => 'currIsoCode',
-                    'type' => 'hidden',
-                    'value' => $data['currIsoCode'],
-                ),
-				'set_secure_return' => array(
-                	'name' => 'set_secure_return',
-                	'type' => 'hidden',
-                	'value' => ($set_secure_return ? 'true' : 'false')
-                )
-				]
-			);
-			if($currency_store == "504"){
-				if ($currency_order->id != $currency_mad->id){				
-					$datas['inputs']['amountCur'] = array(
-							'name' => 'amountCur',
-							'type' => 'hidden',
-							'value' => $data['amountCur']	
-					);			
-					$datas['inputs']['symbolCur'] = array(
-							'name' => 'symbolCur',
-							'type' => 'hidden',
-							'value' => $data['symbolCur']	
-					);							
-				}
-			}
-			$cart = $this->context->cart;
-			 $id_customer = (int)$cart->id_customer;
-			$secure_key = "";
-			if ($id_customer) {
-				$customer = new Customer($id_customer);
-				if (Validate::isLoadedObject($customer)) {
-					$secure_key = $customer->secure_key;
-				}
-			}
-			$currency_special = NULL;
-
-
-			$dont_touch_amount = false;
-
-			$paymentMethod = 'cmi';
-
-			$message = "Paiement avec CMI";
-
-			$extraVars = array();
-
-			
-        $option = new PrestaShop\PrestaShop\Core\Payment\PaymentOption();
-        $option->setCallToActionText($this->l('CMI, Payer en toute sécurité avec votre carte bancaire.'))
-            ->setLogo(_MODULE_DIR_.'cmi/views/img/cb.png')
-            ->setAction($this->context->link->getModuleLink($this->name, 'validation', array(), true))
-            ->setInputs($datas['inputs']);
-        $options[] = $option;
-        
-
-        
-        return $options;
-	} 
-	
-	
-	
-	public function postProcess()
+    public function __construct()
     {
-		echo'test';exit;
-	}
+        $this->name = 'cmi';
+        $this->tab = 'payments_gateways';
+        $this->version = '2.0.0';
+        $this->author = 'CMI';
+        $this->need_instance = 0;
+        $this->bootstrap = true;
+        $this->ps_versions_compliancy = ['min' => '8.0.0', 'max' => '9.99.99'];
+        $this->controllers = ['validation', 'callback', 'return', 'cancel', 'cron'];
+        $this->currencies = true;
+        $this->currencies_mode = 'checkbox';
 
-	
-	public function hookPaymentReturn() {
-		
-		$smarty = false;
-		$context = $this->context;	
-		
-		if (@$params['objOrder']->module != $this->name)
-			return;
-		
-		if (Tools::getValue('error'))
-			$context->smarty->assign('status', 'failed');
-		else
-			$context->smarty->assign('status', 'ok');
-		return $this->display(__FILE__, 'payment_return.tpl');
-	}
-	
-	
-    /**
-	 *
-	 * CMI FUNCTIONS
-	 *
-	 */	
-	public function displayWarnings() {
-		
-		$nbWarnings = sizeof($this->_postWarning);
-		$this->_html .= '
-		<div class="warn">
-			<h3>'.($nbWarnings > 1 ? $this->l('There are') : $this->l('There is')).' '.$nbWarnings.' '.($nbWarnings > 1 ? $this->l('warnings') : $this->l('warning')).'</h3>
-			<ul>';
-		foreach ($this->_postWarning AS $warning)
-			$this->_html .= '<li>'.$warning.'</li>';
-		$this->_html .= '
-			</ul>
-		</div>';
-	}
-  	
+        parent::__construct();
 
+        $this->displayName = $this->trans('CMI', [], 'Modules.Cmi.Admin');
+        $this->description = $this->trans('Card payments with CMI (Morocco): hosted payment page, and confirm, void, refund and check payments from the order page.', [], 'Modules.Cmi.Admin');
+        $this->confirmUninstall = $this->trans('Uninstall the CMI module? Your CMI connection settings will be deleted; orders and their payment history are kept.', [], 'Modules.Cmi.Admin');
+    }
 
-
-
-
-	public function isSecure(&$fp_POU_requestProtocol)
-	{
-		$isSecure = false;
-		$HTTPS = getenv('HTTPS');
-		$HTTP_X_FORWARDED_PROTO = getenv('HTTP_X_FORWARDED_PROTO');
-		$HTTP_X_FORWARDED_SSL = getenv('HTTP_X_FORWARDED_SSL');
-		if (getenv('HTTPS') == 'on') {
-			$isSecure = true;
-		}
-		elseif (!empty($HTTP_X_FORWARDED_PROTO) && $HTTP_X_FORWARDED_PROTO == 'https' || !empty($HTTP_X_FORWARDED_SSL) && $HTTP_X_FORWARDED_SSL == 'on') {
-			$isSecure = true;
-		}
-		$fp_POU_requestProtocol = $isSecure ? 'https' : 'http';
-		return $isSecure;
-	}
-	
-	public function str_without_accents($str, $charset='utf-8')
-	{
-		$str = htmlentities($str, ENT_NOQUOTES, $charset);
-		$str = preg_replace('#&([A-za-z])(?:acute|cedil|caron|circ|grave|orn|ring|slash|th|tilde|uml);#', '\1', $str);
-		$str = preg_replace('#&([A-za-z]{2})(?:lig);#', '\1', $str);
-		$str = preg_replace('#&[^;]+;#', '', $str); 
-		$str = preg_replace('/[^a-zA-Z0-9_ -]/s','',$str);
-		$str = preg_replace('!\s+!', ' ', $str);
-		return $str;   
-	}
-	 public function hookDisplayPaymentReturn($params)
+    public function isUsingNewTranslationSystem()
     {
-        if (Tools::version_compare(_PS_VERSION_, '1.7', '>')) {
+        return true;
+    }
+
+    public function install()
+    {
+        if (!extension_loaded('curl')) {
+            $this->_errors[] = $this->trans('The PHP cURL extension is required.', [], 'Modules.Cmi.Admin');
+
             return false;
         }
-        if ($this->active == false) {
-            return;
-        }
-        $order = $params['objOrder'];
 
-        if ($order->getCurrentOrderState()->id != Configuration::get('PS_OS_ERROR')) {
-            $this->smarty->assign('status', 'ok');
-        }
-        $this->smarty->assign(array(
-            'id_order' => $order->id,
-            'reference' => $order->reference,
-            'params' => $params,
-            'total' => Tools::displayPrice($params['total_to_pay'], $params['currencyObj'], false),
-        ));
-
-        return $this->display(__FILE__, 'views/templates/hook/confirmation.tpl');
+        return parent::install() && (new Installer($this))->install();
     }
-    
-	public function getBackUrl($cart)
+
+    public function uninstall()
     {
-        $id_customer = (int)$cart->id_customer;
-        $secure_key = "";
-        if ($id_customer) {
-            $customer = new Customer($id_customer);
-            if (Validate::isLoadedObject($customer)) {
-                $secure_key = $customer->secure_key;
+        return (new Installer($this))->uninstall() && parent::uninstall();
+    }
+
+    public function services(): Services
+    {
+        if ($this->services === null) {
+            $this->services = new Services($this);
+        }
+
+        return $this->services;
+    }
+
+    // ── Configuration page ───────────────────────────────────────────────────
+
+    public function getContent()
+    {
+        $form = new SettingsForm($this, $this->context);
+        $output = '';
+        if (Tools::isSubmit(SettingsForm::SUBMIT)) {
+            $errors = $form->process();
+            $output .= $errors
+                ? $this->displayError(implode('<br>', array_map(static function (string $error): string {
+                    return htmlspecialchars($error, ENT_QUOTES, 'UTF-8');
+                }, $errors)))
+                : $this->displayConfirmation($this->trans('Settings saved.', [], 'Modules.Cmi.Admin'));
+        }
+        foreach ($this->configurationWarnings() as $warning) {
+            $output .= $this->displayWarning(htmlspecialchars($warning, ENT_QUOTES, 'UTF-8'));
+        }
+
+        return $output . $form->render();
+    }
+
+    /** @return string[] */
+    private function configurationWarnings(): array
+    {
+        $settings = new Settings();
+        $warnings = [];
+        if (in_array(AccountResolver::MAD_NUMERIC, $settings->storeCurrencies(), true) && !Currency::getIdByIsoCode(AccountResolver::MAD)) {
+            $warnings[] = $this->trans('The Moroccan dirham (MAD) is not installed in Localization > Currencies: orders in other currencies cannot be converted, so CMI is not offered for them.', [], 'Modules.Cmi.Admin');
+        }
+        if (!Configuration::get('PS_SSL_ENABLED')) {
+            $warnings[] = $this->trans('HTTPS is not enabled on this shop. CMI requires https:// addresses for the payment return and callback.', [], 'Modules.Cmi.Admin');
+        }
+        if (Configuration::get(Settings::KIT) === Settings::KIT_COMPLETE && !$settings->hasApiCredentials()) {
+            $warnings[] = $this->trans('The Complete Kit is selected but the API credentials are missing: the module works like the Standard Kit until they are entered.', [], 'Modules.Cmi.Admin');
+        }
+
+        return $warnings;
+    }
+
+    // ── Checkout ─────────────────────────────────────────────────────────────
+
+    public function hookPaymentOptions($params)
+    {
+        if (!$this->active || empty($params['cart']) || !$this->checkCurrency($params['cart'])) {
+            return [];
+        }
+        /** @var Cart $cart */
+        $cart = $params['cart'];
+        $charge = $this->services()->paymentRequest()->charge(new Currency((int) $cart->id_currency), (float) $cart->getOrderTotal(true, Cart::BOTH));
+        if (!is_array($charge)) {
+            return [];
+        }
+        $settings = $this->services()->settings();
+        $idLang = (int) $this->context->language->id;
+        $title = $settings->getLang(Settings::TITLE, $idLang);
+        $description = $settings->getLang(Settings::DESCRIPTION, $idLang);
+        $this->context->smarty->assign([
+            'cmi_description' => $description,
+            'cmi_converted' => $charge['order_currency'] !== $charge['currency_iso'],
+            'cmi_charged' => $this->context->getCurrentLocale()->formatPrice($charge['amount_charged'], $charge['currency_iso']),
+            'cmi_charged_currency' => $charge['currency_iso'],
+        ]);
+
+        $option = new PaymentOption();
+        $option->setModuleName($this->name)
+            ->setCallToActionText($title !== '' ? $title : $this->trans('Pay securely by bank card with CMI', [], 'Modules.Cmi.Shop'))
+            ->setAction($this->context->link->getModuleLink($this->name, 'validation', [], true))
+            ->setInputs(['token' => ['name' => 'token', 'type' => 'hidden', 'value' => Tools::getToken(false)]])
+            ->setLogo(Media::getMediaPath(_PS_MODULE_DIR_ . $this->name . '/views/img/cb.png'))
+            ->setAdditionalInformation($this->fetch('module:cmi/views/templates/hook/payment_option.tpl'));
+
+        return [$option];
+    }
+
+    public function checkCurrency($cart)
+    {
+        $currency = new Currency((int) $cart->id_currency);
+        foreach ((array) $this->getCurrency((int) $cart->id_currency) as $allowed) {
+            if ((int) $currency->id === (int) $allowed['id_currency']) {
+                return true;
             }
         }
-        return $this->context->link->getModuleLink(
-            'cmi',
-            'confirmation',
-            array('cart_id' => $cart->id, 'secure_key' => $secure_key)
-        );
+
+        return false;
     }
-	
-	
+
+    /** Order confirmation page: the payment's result in plain words. */
+    public function hookDisplayPaymentReturn($params)
+    {
+        $order = $params['order'] ?? null;
+        if (!$this->active || !$order instanceof Order || $order->module !== $this->name) {
+            return '';
+        }
+        $transaction = $this->services()->repository()->findByOrder($order);
+        if (!$transaction) {
+            return '';
+        }
+        $this->context->smarty->assign($this->customerResult($transaction, $order));
+
+        return $this->fetch('module:cmi/views/templates/hook/payment_result.tpl');
+    }
+
+    /** Customer account, order details: the payment's result, and "Pay now" when still unpaid. */
+    public function hookDisplayOrderDetail($params)
+    {
+        $order = $params['order'] ?? null;
+        if (!$this->active || !$order instanceof Order || $order->module !== $this->name) {
+            return '';
+        }
+        $transaction = $this->services()->repository()->findByOrder($order);
+        if (!$transaction) {
+            return '';
+        }
+        $this->context->smarty->assign($this->customerResult($transaction, $order));
+
+        return $this->fetch('module:cmi/views/templates/hook/payment_result.tpl');
+    }
+
+    /** @return array<string, mixed> */
+    public function customerResult(Cmi\PrestaShop\Entity\CmiTransaction $transaction, Order $order): array
+    {
+        $texts = [
+            PaymentState::CONFIRMED => [$this->trans('Payment successful', [], 'Modules.Cmi.Shop'), $this->trans('Your card payment was accepted.', [], 'Modules.Cmi.Shop')],
+            PaymentState::PRE_CONFIRMATION_REQUIRED => [$this->trans('Payment authorized', [], 'Modules.Cmi.Shop'), $this->trans('Your payment was authorized. The amount will be charged when the shop confirms your order.', [], 'Modules.Cmi.Shop')],
+            PaymentState::VOIDED => [$this->trans('Payment cancelled', [], 'Modules.Cmi.Shop'), $this->trans('The shop cancelled this payment. You were not charged.', [], 'Modules.Cmi.Shop')],
+            PaymentState::CLIENT_CANCELLED => [$this->trans('Payment cancelled', [], 'Modules.Cmi.Shop'), $this->trans('You cancelled the payment.', [], 'Modules.Cmi.Shop')],
+            PaymentState::REFUNDED => [$this->trans('Payment refunded', [], 'Modules.Cmi.Shop'), $this->trans('This payment was refunded.', [], 'Modules.Cmi.Shop')],
+            PaymentState::FAILED => [$this->trans('Payment not completed', [], 'Modules.Cmi.Shop'), $this->trans('The card payment was not accepted. You can try again.', [], 'Modules.Cmi.Shop')],
+            PaymentState::INITIATED => [$this->trans('Awaiting payment', [], 'Modules.Cmi.Shop'), $this->trans('We have not received the result of your card payment yet.', [], 'Modules.Cmi.Shop')],
+        ];
+        $state = (string) $transaction->payment_state;
+        [$label, $message] = $texts[$state] ?? $texts[PaymentState::INITIATED];
+        $retry = PaymentState::isAwaitingPayment($state)
+            && in_array((int) $order->getCurrentState(), [$this->services()->settings()->awaitingStateId(), (int) Configuration::get('PS_OS_ERROR')], true);
+
+        return [
+            'cmi_state' => $state,
+            'cmi_label' => $label,
+            'cmi_message' => $message,
+            'cmi_oid' => (string) $transaction->oid,
+            'cmi_retry_url' => $retry ? $this->context->link->getModuleLink($this->name, 'validation', ['id_order' => (int) $order->id, 'key' => (string) $order->secure_key], true) : '',
+        ];
+    }
+
+    // ── Back office ──────────────────────────────────────────────────────────
+
+    public function hookDisplayAdminOrderMain($params)
+    {
+        $order = new Order((int) ($params['id_order'] ?? 0));
+        if (!Validate::isLoadedObject($order) || $order->module !== $this->name) {
+            return '';
+        }
+        $variables = (new OrderPanel($this, $this->services(), $this->context))->variables($order);
+        if ($variables === null) {
+            return '';
+        }
+        $this->context->smarty->assign(['cmi' => $variables]);
+
+        return $this->fetch('module:cmi/views/templates/admin/order_panel.tpl');
+    }
+
+    public function hookActionAdminControllerSetMedia()
+    {
+        $controller = $this->context->controller;
+        $name = isset($controller->controller_name) ? (string) $controller->controller_name : (string) Tools::getValue('controller');
+        if ($name === 'AdminOrders') {
+            $controller->addCSS($this->_path . 'views/css/admin.css');
+            $controller->addJS($this->_path . 'views/js/admin-order.js');
+        } elseif ($name === 'AdminModules' && Tools::getValue('configure') === $this->name) {
+            $controller->addCSS($this->_path . 'views/css/admin.css');
+            $controller->addJS($this->_path . 'views/js/admin-settings.js');
+        }
+    }
+
+    public function hookActionOrderGridDefinitionModifier($params)
+    {
+        if (isset($params['definition'])) {
+            OrderGrid::modifyDefinition($params['definition'], $this);
+        }
+    }
+
+    public function hookActionOrderGridQueryBuilderModifier($params)
+    {
+        if (isset($params['search_query_builder'])) {
+            OrderGrid::modifyQuery($params['search_query_builder'], $this);
+        }
+    }
+
+    // ── Front office ─────────────────────────────────────────────────────────
+
+    /** CMI logo in the side column (kept from version 1.x). */
+    public function hookDisplayRightColumn($params)
+    {
+        if (!$this->active) {
+            return '';
+        }
+        $this->context->smarty->assign('cmi_logo', Media::getMediaPath(_PS_MODULE_DIR_ . $this->name . '/views/img/logo_cmi.png'));
+
+        return $this->fetch('module:cmi/views/templates/front/logo.tpl');
+    }
+
+    public function hookDisplayLeftColumn($params)
+    {
+        return $this->hookDisplayRightColumn($params);
+    }
 }

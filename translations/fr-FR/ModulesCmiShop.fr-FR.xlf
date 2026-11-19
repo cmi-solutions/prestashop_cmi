@@ -1,0 +1,139 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<xliff xmlns="urn:oasis:names:tc:xliff:document:1.2" version="1.2">
+  <file original="modules/cmi" source-language="en-US" target-language="fr-FR" datatype="plaintext">
+    <body>
+      <trans-unit id="fe165795a83ef61843e63d4f07db0125">
+        <source>Amount charged by CMI: %amount%.</source>
+        <target>Montant débité par CMI : %amount%.</target>
+      </trans-unit>
+      <trans-unit id="ebb8d514f56157d7bd513eefdd9adb63">
+        <source>Awaiting payment</source>
+        <target>En attente de paiement</target>
+      </trans-unit>
+      <trans-unit id="b5499072316a366352f5e01353daf7a8">
+        <source>Cancel the order</source>
+        <target>Annuler la commande</target>
+      </trans-unit>
+      <trans-unit id="e6ab68d6a5fc3f7469ee4e25f7ba1fac">
+        <source>Card payment (CMI)</source>
+        <target>Paiement par carte (CMI)</target>
+      </trans-unit>
+      <trans-unit id="e90b40168cbde89b52cd93b12468b847">
+        <source>Card payment in %currency% is temporarily unavailable. Please choose another currency or contact the shop.</source>
+        <target>Le paiement par carte en %currency% est momentanément indisponible. Choisissez une autre devise ou contactez la boutique.</target>
+      </trans-unit>
+      <trans-unit id="cfad9bfc4a4276a6b827fdbc4b3fb4b7">
+        <source>Click the button to continue to the payment page.</source>
+        <target>Cliquez sur le bouton pour continuer vers la page de paiement.</target>
+      </trans-unit>
+      <trans-unit id="8cdc99a8a39dc80bf40066e98e5e5917">
+        <source>Contact the shop</source>
+        <target>Contacter la boutique</target>
+      </trans-unit>
+      <trans-unit id="00cd7d0890cd975da95799c32764c9ce">
+        <source>Order reference: %reference%</source>
+        <target>Référence de la commande : %reference%</target>
+      </trans-unit>
+      <trans-unit id="0c5235b40a3bd3ab41f86bfa784b738c">
+        <source>Pay again by card</source>
+        <target>Payer à nouveau par carte</target>
+      </trans-unit>
+      <trans-unit id="4d7aa1fd96d73f3818ac4030dc12fc24">
+        <source>Pay now by card</source>
+        <target>Payer maintenant par carte</target>
+      </trans-unit>
+      <trans-unit id="6c7b4bd8189c3230f4d2c43abd654416">
+        <source>Pay securely by bank card with CMI</source>
+        <target>Payer en toute sécurité par carte bancaire avec CMI</target>
+      </trans-unit>
+      <trans-unit id="856373a658d03c6795f4de20dffa2f5a">
+        <source>Pay with CMI</source>
+        <target>Payer avec CMI</target>
+      </trans-unit>
+      <trans-unit id="7e7faa3b1b620dd21b3886f46d36f1e6">
+        <source>Payment authorized</source>
+        <target>Paiement autorisé</target>
+      </trans-unit>
+      <trans-unit id="d27600e8af517a19b8f17713e91e4c8b">
+        <source>Payment cancelled</source>
+        <target>Paiement annulé</target>
+      </trans-unit>
+      <trans-unit id="f8fdac7d16330c74036ef848d4353376">
+        <source>Payment not completed</source>
+        <target>Paiement non abouti</target>
+      </trans-unit>
+      <trans-unit id="38a4d6de8ac44592dfe6e0138b8d28c1">
+        <source>Payment refunded</source>
+        <target>Paiement remboursé</target>
+      </trans-unit>
+      <trans-unit id="f95da1c548338c3b25654b98a1b9779f">
+        <source>Payment successful</source>
+        <target>Paiement réussi</target>
+      </trans-unit>
+      <trans-unit id="73599829475522b89e9f8266cbe73e0e">
+        <source>Redirecting to CMI</source>
+        <target>Redirection vers CMI</target>
+      </trans-unit>
+      <trans-unit id="61d1b29c63271fe171035c33f74ea7c4">
+        <source>See my orders</source>
+        <target>Voir mes commandes</target>
+      </trans-unit>
+      <trans-unit id="4db1eb44f13c863fceb895b49be2b9e7">
+        <source>Thank you for your order %reference%. You are being redirected to CMI&apos;s secure payment page.</source>
+        <target>Merci pour votre commande %reference%. Vous êtes redirigé vers la page de paiement sécurisée de CMI.</target>
+      </trans-unit>
+      <trans-unit id="7312f86d20265b0f242240283590295f">
+        <source>The card payment was not accepted. You can try again.</source>
+        <target>Le paiement par carte n&apos;a pas été accepté. Vous pouvez réessayer.</target>
+      </trans-unit>
+      <trans-unit id="b0a5f486d01f6f509a30cef8f92cd0f2">
+        <source>The shop cancelled this payment. You were not charged.</source>
+        <target>La boutique a annulé ce paiement. Vous n&apos;avez pas été débité.</target>
+      </trans-unit>
+      <trans-unit id="e2b7dec8fa4b498156dfee6e4c84b156">
+        <source>This payment method is not available.</source>
+        <target>Ce moyen de paiement n&apos;est pas disponible.</target>
+      </trans-unit>
+      <trans-unit id="7a1c1919346c8d9d1c3b2c4e2663dafe">
+        <source>This payment was refunded.</source>
+        <target>Ce paiement a été remboursé.</target>
+      </trans-unit>
+      <trans-unit id="d13f52e370a6b69f1d3394c213329ca3">
+        <source>To pay by card with CMI, please enter your first and last name in Latin letters in your invoice address (for example: Mohamed Alami).</source>
+        <target>Pour payer par carte avec CMI, saisissez vos prénom et nom en lettres latines dans votre adresse de facturation (par exemple : Mohamed Alami).</target>
+      </trans-unit>
+      <trans-unit id="de34a9d893285386dd49d7bcff74de5f">
+        <source>We have not received the result of your card payment yet.</source>
+        <target>Nous n&apos;avons pas encore reçu le résultat de votre paiement par carte.</target>
+      </trans-unit>
+      <trans-unit id="85f1df88582dc5620cecbe3109c42c8a">
+        <source>You cancelled the payment.</source>
+        <target>Vous avez annulé le paiement.</target>
+      </trans-unit>
+      <trans-unit id="774c11e95baae946138f0c974e6449a6">
+        <source>You will be redirected to the secure payment page of CMI to enter your card details.</source>
+        <target>Vous serez redirigé vers la page de paiement sécurisée de CMI pour saisir les données de votre carte.</target>
+      </trans-unit>
+      <trans-unit id="81c545584cd4593c46371fe0124007b6">
+        <source>Your card payment was accepted.</source>
+        <target>Votre paiement par carte a été accepté.</target>
+      </trans-unit>
+      <trans-unit id="0d5904e0f9dae86e54a9b2a599ad2e5d">
+        <source>Your order could not be created. Please try again.</source>
+        <target>Votre commande n&apos;a pas pu être créée. Veuillez réessayer.</target>
+      </trans-unit>
+      <trans-unit id="70e6d24aa1a23fc9cc2706ce6d73436e">
+        <source>Your payment result could not be read. If you paid, your order will be updated shortly; otherwise please contact the shop.</source>
+        <target>Le résultat de votre paiement n&apos;a pas pu être lu. Si vous avez payé, votre commande sera mise à jour sous peu ; sinon, contactez la boutique.</target>
+      </trans-unit>
+      <trans-unit id="4f87e521481ef26474d7c65d93f1cf5c">
+        <source>Your payment was authorized. The amount will be charged when the shop confirms your order.</source>
+        <target>Votre paiement a été autorisé. Le montant sera débité lorsque la boutique confirmera votre commande.</target>
+      </trans-unit>
+      <trans-unit id="63bd72685152f610bf27d50d03a88ea0">
+        <source>Your session has expired. Please choose the payment method again.</source>
+        <target>Votre session a expiré. Veuillez choisir à nouveau le moyen de paiement.</target>
+      </trans-unit>
+    </body>
+  </file>
+</xliff>

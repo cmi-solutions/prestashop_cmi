@@ -1,0 +1,6 @@
+/vendor/
+/tests/e2e/mock/caddy-data/
+/*.zip
+.DS_Store
+.idea/
+.vscode/

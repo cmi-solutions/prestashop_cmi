@@ -1,0 +1,27 @@
+{
+    "name": "cmi-solutions/prestashop-cmi",
+    "description": "CMI (Morocco) card payment module for PrestaShop 8 and 9",
+    "type": "prestashop-module",
+    "license": "AFL-3.0",
+    "authors": [
+        {
+            "name": "CMI"
+        }
+    ],
+    "require": {
+        "php": ">=8.1",
+        "ext-curl": "*",
+        "ext-simplexml": "*"
+    },
+    "autoload": {
+        "psr-4": {
+            "Cmi\\PrestaShop\\": "src/"
+        }
+    },
+    "config": {
+        "prepend-autoloader": false
+    },
+    "scripts": {
+        "test": "php tests/run-tests.php"
+    }
+}

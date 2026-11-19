@@ -1,0 +1,89 @@
+# Test bench: PrestaShop 8 (PHP 8.1) and PrestaShop 9 (PHP 8.3) with a mock of CMI
+# (payment page + XML API over HTTPS). See tests/e2e/README.md.
+name: cmi-e2e
+
+services:
+  mysql:
+    image: mysql:8.0
+    environment:
+      MYSQL_ROOT_PASSWORD: root
+    command: --default-authentication-plugin=mysql_native_password
+    volumes:
+      - ./mysql-init.sql:/docker-entrypoint-initdb.d/init.sql:ro
+    healthcheck:
+      test: ["CMD", "mysqladmin", "ping", "-proot"]
+      interval: 5s
+      retries: 30
+
+  ps8:
+    image: prestashop/prestashop:8.2.9-8.1-apache
+    depends_on:
+      mysql:
+        condition: service_healthy
+    environment: &ps-env
+      DB_SERVER: mysql
+      DB_USER: root
+      DB_PASSWD: root
+      DB_NAME: ps8
+      PS_INSTALL_AUTO: "1"
+      PS_DOMAIN: localhost:8081
+      PS_FOLDER_ADMIN: admin-dev
+      PS_FOLDER_INSTALL: install-dev
+      PS_COUNTRY: MA
+      PS_LANGUAGE: fr
+      PS_ENABLE_SSL: "0"
+      PS_DEV_MODE: "0"
+      ADMIN_MAIL: admin@example.test
+      ADMIN_PASSWD: Test-admin-2026
+    ports:
+      - "8081:80"
+    volumes:
+      - ./mock/caddy-data:/cmi-ca:ro
+
+  ps9:
+    image: prestashop/prestashop:9.2.1-8.3
+    depends_on:
+      mysql:
+        condition: service_healthy
+    environment:
+      <<: *ps-env
+      DB_NAME: ps9
+      PS_DOMAIN: localhost:8082
+    ports:
+      - "8082:80"
+    volumes:
+      - ./mock/caddy-data:/cmi-ca:ro
+
+  # Mock of CMI: payment page (/fim/est3Dgate) and XML API (/fim/api), plain HTTP inside.
+  cmi-app:
+    image: php:8.3-cli
+    working_dir: /app
+    command: php -S 0.0.0.0:8000 /app/mock/server.php
+    # The customer's browser opens the payment page here (http://localhost:8090/fim/est3Dgate).
+    ports:
+      - "8090:8000"
+    volumes:
+      - ./mock:/app/mock
+      - ../../src:/app/src:ro
+    environment:
+      PHP_CLI_SERVER_WORKERS: "4"
+      CMI_STORE_KEY: TEST_store_key_2026
+      CMI_API_USER: apiuser
+      CMI_API_PASSWORD: apipass
+      # The shops as seen from inside the network (callbacks).
+      SHOP_HOSTS: "localhost:8081=ps8:80,localhost:8082=ps9:80"
+
+  # HTTPS in front of the mock (the module only calls an https:// API).
+  cmi:
+    image: caddy:2
+    depends_on:
+      - cmi-app
+    command: caddy reverse-proxy --from cmi.test --to cmi-app:8000 --internal-certs
+    ports:
+      - "8443:443"
+    volumes:
+      - ./mock/caddy-data:/data
+    networks:
+      default:
+        aliases:
+          - cmi.test

@@ -1,0 +1,26 @@
+# Attaches the installable module zip (cmi_prestashop_<tag>.zip) to every published release.
+# GitHub's own "Source code" archives contain the whole repository, not an installable module.
+name: Attach module zip to release
+
+on:
+  release:
+    types: [published]
+
+permissions:
+  contents: write
+
+jobs:
+  zip:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      # PrestaShop expects the module in a cmi/ folder: cmi/cmi.php. Files marked export-ignore
+      # in .gitattributes (tests, tooling, docs) are left out.
+      - name: Build cmi_prestashop_<tag>.zip
+        run: git archive --format=zip --prefix=cmi/ -o "cmi_prestashop_${{ github.ref_name }}.zip" HEAD
+
+      - name: Attach it to the release
+        run: gh release upload "${{ github.ref_name }}" "cmi_prestashop_${{ github.ref_name }}.zip" --clobber
+        env:
+          GH_TOKEN: ${{ github.token }}
