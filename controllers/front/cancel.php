@@ -45,7 +45,7 @@ class CmiCancelModuleFrontController extends ModuleFrontController
         Tools::redirect($this->context->link->getModuleLink('cmi', 'return', ['id_order' => (int) $order->id, 'key' => (string) $order->secure_key], true));
     }
 
-    private function cancel(Cmi\PrestaShop\Entity\CmiTransaction $transaction): void
+    private function cancel(Cmi\PrestaShop\Model\CmiTransaction $transaction): void
     {
         $services = $this->module->services();
         $settings = $services->settings();

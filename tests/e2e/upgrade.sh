@@ -19,8 +19,15 @@ tar -C "$here" -cf - bootstrap.php upgrade-check.php | docker exec -i "$containe
 docker exec -u www-data "$container" php /cmi-tests/upgrade-check.php before
 
 # Upload of the new version over the old one (an upgrade by zip keeps the old files).
-tar -C "$root" --exclude=.git --exclude=tests --exclude=tools --exclude=docs --exclude=.github -cf - . \
-  | docker exec -i "$container" sh -c 'tar -C /var/www/html/modules/cmi -xf - && chown -R www-data:www-data /var/www/html/modules/cmi && rm -rf /var/www/html/var/cache/prod /var/www/html/var/cache/dev'
+# CMI_PACKAGE=path/to/release.zip uploads that zip; otherwise the working tree.
+if [ -n "${CMI_PACKAGE:-}" ]; then
+  docker exec -i "$container" sh -c 'cat > /tmp/cmi-package.zip' < "$CMI_PACKAGE"
+  docker exec "$container" php -r '$z = new ZipArchive(); if ($z->open("/tmp/cmi-package.zip") !== true || !$z->extractTo("/var/www/html/modules")) { exit(1); }'
+  docker exec "$container" sh -c 'chown -R www-data:www-data /var/www/html/modules/cmi && rm -rf /var/www/html/var/cache/prod /var/www/html/var/cache/dev'
+else
+  tar -C "$root" --exclude=.git --exclude=tests --exclude=tools --exclude=docs --exclude=.github -cf - . \
+    | docker exec -i "$container" sh -c 'tar -C /var/www/html/modules/cmi -xf - && chown -R www-data:www-data /var/www/html/modules/cmi && rm -rf /var/www/html/var/cache/prod /var/www/html/var/cache/dev'
+fi
 docker exec "$container" sh -c 'cp /cmi-ca/caddy/pki/authorities/local/root.crt /usr/local/share/ca-certificates/cmi-test.crt && update-ca-certificates >/dev/null 2>&1 || true'
 console upgrade
 docker exec -u www-data "$container" php /cmi-tests/upgrade-check.php after

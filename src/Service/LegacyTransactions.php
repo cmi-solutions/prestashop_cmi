@@ -9,7 +9,7 @@
 namespace Cmi\PrestaShop\Service;
 
 use Cmi\PrestaShop\Config\Settings;
-use Cmi\PrestaShop\Entity\CmiTransaction;
+use Cmi\PrestaShop\Model\CmiTransaction;
 use Cmi\PrestaShop\Payment\AccountResolver;
 use Cmi\PrestaShop\Payment\PaymentState;
 use Cmi\PrestaShop\Repository\TransactionRepository;

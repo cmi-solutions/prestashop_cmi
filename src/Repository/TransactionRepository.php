@@ -8,7 +8,7 @@
 
 namespace Cmi\PrestaShop\Repository;
 
-use Cmi\PrestaShop\Entity\CmiTransaction;
+use Cmi\PrestaShop\Model\CmiTransaction;
 use Db;
 
 if (!defined('_PS_VERSION_')) {

@@ -1,6 +1,9 @@
 #!/usr/bin/env bash
-# Copy the module (working tree) into a test shop, trust the mock CMI's HTTPS certificate,
-# and copy the bench scripts. Usage: tests/e2e/deploy.sh ps8|ps9
+# Copy the module into a test shop, trust the mock CMI's HTTPS certificate, and copy the
+# bench scripts. Usage: tests/e2e/deploy.sh ps8|ps9
+#   CMI_PACKAGE=path/to/cmi_prestashop_vX.Y.Z.zip  install that release zip, unpacked over the
+#                                                  module folder as "Upload a module" does
+#   (otherwise)                                    copy the working tree
 set -euo pipefail
 # Git Bash on Windows would rewrite the container paths below.
 export MSYS_NO_PATHCONV=1
@@ -9,9 +12,16 @@ here="$(cd "$(dirname "$0")" && pwd)"
 root="$(cd "$here/../.." && pwd)"
 container="$(cd "$here" && docker compose ps -q "$service")"
 
-# Module files, as in the release zip (without tests and tooling).
-tar -C "$root" --exclude=.git --exclude=tests --exclude=tools --exclude=docs --exclude=.github -cf - . \
-  | docker exec -i "$container" sh -c 'rm -rf /tmp/cmi && mkdir -p /tmp/cmi && tar -C /tmp/cmi -xf - && mkdir -p /var/www/html/modules/cmi && cp -r /tmp/cmi/. /var/www/html/modules/cmi/ && chown -R www-data:www-data /var/www/html/modules/cmi'
+if [ -n "${CMI_PACKAGE:-}" ]; then
+  # The zip holds a cmi/ folder; PrestaShop unpacks it into modules/.
+  docker exec -i "$container" sh -c 'cat > /tmp/cmi-package.zip' < "$CMI_PACKAGE"
+  docker exec "$container" php -r '$z = new ZipArchive(); if ($z->open("/tmp/cmi-package.zip") !== true || !$z->extractTo("/var/www/html/modules")) { fwrite(STDERR, "cannot unpack the package\n"); exit(1); } echo "unpacked ", $z->numFiles, " entries\n";'
+  docker exec "$container" chown -R www-data:www-data /var/www/html/modules/cmi
+else
+  # Module files, as in the release zip (without tests and tooling).
+  tar -C "$root" --exclude=.git --exclude=tests --exclude=tools --exclude=docs --exclude=.github -cf - . \
+    | docker exec -i "$container" sh -c 'rm -rf /tmp/cmi && mkdir -p /tmp/cmi && tar -C /tmp/cmi -xf - && mkdir -p /var/www/html/modules/cmi && cp -r /tmp/cmi/. /var/www/html/modules/cmi/ && chown -R www-data:www-data /var/www/html/modules/cmi'
+fi
 
 # The mock's internal CA (Caddy), so the module's https:// API calls are verified for real.
 docker exec "$container" sh -c 'cp /cmi-ca/caddy/pki/authorities/local/root.crt /usr/local/share/ca-certificates/cmi-test.crt && update-ca-certificates >/dev/null 2>&1 || true'

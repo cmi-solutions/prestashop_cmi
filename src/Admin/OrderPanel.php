@@ -8,7 +8,7 @@
 
 namespace Cmi\PrestaShop\Admin;
 
-use Cmi\PrestaShop\Entity\CmiTransaction;
+use Cmi\PrestaShop\Model\CmiTransaction;
 use Cmi\PrestaShop\Payment\PaymentState;
 use Cmi\PrestaShop\Protocol\CmiProtocol;
 use Cmi\PrestaShop\Services;

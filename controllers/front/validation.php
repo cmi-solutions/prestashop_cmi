@@ -6,7 +6,7 @@
  * @license   https://opensource.org/licenses/AFL-3.0 Academic Free License 3.0 (AFL-3.0)
  */
 
-use Cmi\PrestaShop\Entity\CmiTransaction;
+use Cmi\PrestaShop\Model\CmiTransaction;
 use Cmi\PrestaShop\Payment\PaymentState;
 use Cmi\PrestaShop\Service\PaymentRequest;
 

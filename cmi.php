@@ -208,7 +208,7 @@ class Cmi extends PaymentModule
     }
 
     /** @return array<string, mixed> */
-    public function customerResult(Cmi\PrestaShop\Entity\CmiTransaction $transaction, Order $order): array
+    public function customerResult(Cmi\PrestaShop\Model\CmiTransaction $transaction, Order $order): array
     {
         $texts = [
             PaymentState::CONFIRMED => [$this->trans('Payment successful', [], 'Modules.Cmi.Shop'), $this->trans('Your card payment was accepted.', [], 'Modules.Cmi.Shop')],

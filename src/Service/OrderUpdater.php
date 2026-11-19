@@ -8,7 +8,7 @@
 
 namespace Cmi\PrestaShop\Service;
 
-use Cmi\PrestaShop\Entity\CmiTransaction;
+use Cmi\PrestaShop\Model\CmiTransaction;
 use Order;
 use OrderPayment;
 use Validate;

@@ -6,7 +6,7 @@
  * @license   https://opensource.org/licenses/AFL-3.0 Academic Free License 3.0 (AFL-3.0)
  */
 
-namespace Cmi\PrestaShop\Entity;
+namespace Cmi\PrestaShop\Model;
 
 use Cmi\PrestaShop\Payment\Amounts;
 use Cmi\PrestaShop\Payment\TransactionGuard;

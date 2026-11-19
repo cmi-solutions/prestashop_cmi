@@ -9,7 +9,7 @@
 namespace Cmi\PrestaShop\Api;
 
 use Cmi\PrestaShop\Config\Settings;
-use Cmi\PrestaShop\Entity\CmiTransaction;
+use Cmi\PrestaShop\Model\CmiTransaction;
 use Cmi\PrestaShop\Protocol\ApiException;
 use Cmi\PrestaShop\Protocol\ApiResponseParser;
 use Cmi\PrestaShop\Protocol\CmiProtocol;
