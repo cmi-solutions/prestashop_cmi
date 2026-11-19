@@ -13,7 +13,10 @@ console() { docker exec -u www-data "$container" sh -c "cd /var/www/html && php 
 
 console uninstall || true
 docker exec "$container" rm -rf /var/www/html/modules/cmi /var/www/html/var/cache/prod /var/www/html/var/cache/dev
-(cd "$root" && git archive "$ref") | docker exec -i "$container" sh -c 'mkdir -p /var/www/html/modules/cmi && tar -C /var/www/html/modules/cmi -xf - && chown -R www-data:www-data /var/www/html/modules/cmi'
+# Some 1.x releases (prestashop_v8) keep the module in a cmi/ subfolder, others at the root.
+tree="$ref"
+if (cd "$root" && git cat-file -e "$ref:cmi/cmi.php" 2>/dev/null); then tree="$ref:cmi"; fi
+(cd "$root" && git archive "$tree") | docker exec -i "$container" sh -c 'mkdir -p /var/www/html/modules/cmi && tar -C /var/www/html/modules/cmi -xf - && chown -R www-data:www-data /var/www/html/modules/cmi'
 console install
 tar -C "$here" -cf - bootstrap.php upgrade-check.php | docker exec -i "$container" sh -c 'mkdir -p /cmi-tests && tar -C /cmi-tests -xf -'
 docker exec -u www-data "$container" php /cmi-tests/upgrade-check.php before
