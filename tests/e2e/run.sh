@@ -1,12 +1,12 @@
 #!/usr/bin/env bash
 # Deploy the module to the test shops, configure it against the mock CMI and run the scenarios.
-# Usage: tests/e2e/run.sh [ps8] [ps9]   (both when omitted; the bench must be up)
+# Usage: tests/e2e/run.sh [ps8] [ps9]   (default: ps9, the shop this branch targets; the bench must be up)
 set -uo pipefail
 export MSYS_NO_PATHCONV=1
 here="$(cd "$(dirname "$0")" && pwd)"
 status=0
 shops=("$@")
-[ ${#shops[@]} -eq 0 ] && shops=(ps8 ps9)
+[ ${#shops[@]} -eq 0 ] && shops=(ps9)
 for name in "${shops[@]}"; do
   echo "=== $name"
   "$here/deploy.sh" "$name" || { status=1; continue; }

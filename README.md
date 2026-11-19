@@ -4,15 +4,25 @@ A PrestaShop payment module for [CMI](https://www.cmi.co.ma/) (Centre Monétique
 
 Updating from version 1.x? Read the [changelog](CHANGELOG.md) first: version 2.0.0 changes how some things work.
 
+## Which version do I need?
+
+There is one package per PrestaShop version. Download the one matching your shop from the **[releases](https://github.com/cmi-solutions/prestashop_cmi/releases)**; PrestaShop refuses to install a package made for another version.
+
+| Your PrestaShop | Branch | Release | File to download |
+| --- | --- | --- | --- |
+| 9.x | [`version_9`](https://github.com/cmi-solutions/prestashop_cmi/tree/version_9) | `v2.0.0-ps9` | `cmi_prestashop_v2.0.0-ps9.zip` |
+| 8.x | [`version_8`](https://github.com/cmi-solutions/prestashop_cmi/tree/version_8) | `v2.0.0-ps8` | `cmi_prestashop_v2.0.0-ps8.zip` |
+| 10.x | not available yet | | |
+
+This branch is the **PrestaShop 9** package.
+
 ## Supported versions
 
-| Component | Minimum | Tested |
+| Component | Supported | Tested |
 | --- | --- | --- |
-| PrestaShop | 8.0 | 8.2.9 and 9.2.1 |
-| PHP | 8.1 | 8.1 (PrestaShop 8) and 8.3 (PrestaShop 9) |
+| PrestaShop | 9.0 to 9.x | 9.2.1 |
+| PHP | 8.1 to 8.4 | 8.3 |
 | PHP extensions | cURL, SimpleXML | |
-
-PrestaShop 8 runs on PHP up to 8.1; PrestaShop 9 runs on PHP 8.1 to 8.4. The module's code is the same for both.
 
 ## Features
 
@@ -34,8 +44,8 @@ PrestaShop 8 runs on PHP up to 8.1; PrestaShop 9 runs on PHP 8.1 to 8.4. The mod
 
 ### 1. Download the module
 
-1. Open the **[latest release](https://github.com/cmi-solutions/prestashop_cmi/releases/latest)**.
-2. Under **Assets**, click **`cmi_prestashop_vX.Y.Z.zip`** (for example `cmi_prestashop_v2.0.0.zip`) to download it.
+1. Open the **[releases](https://github.com/cmi-solutions/prestashop_cmi/releases)** and pick the newest one for your PrestaShop version: its name ends with **-ps9** for PrestaShop 9 (for example `v2.0.0-ps9`), **-ps8** for PrestaShop 8.
+2. Under **Assets**, click **`cmi_prestashop_vX.Y.Z-ps9.zip`** (for example `cmi_prestashop_v2.0.0-ps9.zip`) to download it.
 
 > [!IMPORTANT]
 > - Don't download **Source code (zip)** or **Source code (tar.gz)**: they contain the whole project, not an installable module.

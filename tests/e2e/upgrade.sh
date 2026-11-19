@@ -1,11 +1,11 @@
 #!/usr/bin/env bash
-# Upgrade test: install version 1.1.0 (git tag/branch given, default "main"), give it 1.x settings
+# Upgrade test: install version 1.1.0 (git tag/branch given, default the 1.x release for PrestaShop 9, "prestashop_v9"), give it 1.x settings
 # and a 1.x order, upgrade to the working tree, and check the result.
 # Usage: tests/e2e/upgrade.sh ps8|ps9 [git-ref]. It replaces the module installed in that shop.
 set -euo pipefail
 export MSYS_NO_PATHCONV=1
 service="${1:?ps8 or ps9}"
-ref="${2:-main}"
+ref="${2:-prestashop_v9}"
 here="$(cd "$(dirname "$0")" && pwd)"
 root="$(cd "$here/../.." && pwd)"
 container="$(cd "$here" && docker compose ps -q "$service")"

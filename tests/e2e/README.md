@@ -18,12 +18,14 @@ The mock signs callbacks with the module's own signature code and keeps its tran
 ```
 cd tests/e2e
 docker compose up -d          # first start installs both shops (a few minutes)
-./run.sh                      # deploy the working tree, configure, run every scenario on both shops
-./run.sh ps9                  # one shop
-docker compose exec -u www-data ps8 php /cmi-tests/harness.php manual currency   # some scenarios
-./upgrade.sh ps8              # upgrade test from 1.1.0 (branch main); replaces the shop's module
+./run.sh                      # deploy the working tree, configure, run every scenario on ps9 (this branch's PrestaShop)
+docker compose exec -u www-data ps9 php /cmi-tests/harness.php manual currency   # some scenarios
+./upgrade.sh ps9              # upgrade test from 1.1.0 (tag prestashop_v9); replaces the shop's module
+CMI_PACKAGE=/path/to/cmi_prestashop_v2.0.0-ps9.zip ./run.sh   # test a release zip instead of the working tree
 docker compose down -v        # remove everything
 ```
+
+This branch's package only installs on PrestaShop 9; the `ps8` shop is there to check that it is refused on 8 (the `version_8` branch tests PrestaShop 8).
 
 `configure.php` sets the module up against the mock (Complete Kit, automatic confirmation, server callback; pass `mode=manual`, `callback=browser`, `kit=standard`, `currencies=504,978` to change it). It also makes sure MAD and EUR exist (1 EUR = 10.8 MAD), lets the demo carriers deliver to Morocco, and disables e-mails.
 
