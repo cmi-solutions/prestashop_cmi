@@ -738,6 +738,22 @@
         <source>standard</source>
         <target>standard</target>
       </trans-unit>
+      <trans-unit id="012aeac4be5029b998855bd992b1c1e0">
+        <source>CMI is not offered to customers at checkout yet: enter %missing% in &quot;Connection to CMI&quot;, then save.</source>
+        <target>CMI n&apos;est pas encore proposé aux clients lors de la commande : saisissez %missing% dans « Connexion à CMI », puis enregistrez.</target>
+      </trans-unit>
+      <trans-unit id="df0b8d075515b67867e3b7aa939efb27">
+        <source>the Client ID</source>
+        <target>le Client ID</target>
+      </trans-unit>
+      <trans-unit id="cfcd76eab84d10b072cceaad852ed679">
+        <source>the store key (hash key)</source>
+        <target>la clé de boutique (hash key)</target>
+      </trans-unit>
+      <trans-unit id="f11466cc7ae62732f3733880ecf25a6e">
+        <source>the payment page URL</source>
+        <target>l&apos;URL de la page de paiement</target>
+      </trans-unit>
     </body>
   </file>
 </xliff>
