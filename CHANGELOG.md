@@ -26,6 +26,7 @@ A major update, rewritten from version 1.1.0. Some things now work differently, 
 - **Order status after capture** can be chosen in the settings.
 - **Payment title and description** at checkout can be set per language.
 - **Show/hide button** on the store key and API password fields.
+- **Settings page warnings:** when CMI is not offered at checkout yet (missing Client ID, store key or payment page URL), when the Complete Kit lacks its API credentials, when MAD is missing, and when the shop doesn't use HTTPS.
 - **English and French**, following the language of the back office and of the customer.
 - **Order history** of each CMI payment (callbacks, actions, checks) in the order page panel.
 

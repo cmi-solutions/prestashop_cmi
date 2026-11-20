@@ -116,6 +116,20 @@ class Cmi extends PaymentModule
     {
         $settings = new Settings();
         $warnings = [];
+        // CMI is hidden at checkout until the connection is complete: say what is missing.
+        if (!$settings->isPaymentConfigured()) {
+            $missing = [];
+            if ($settings->get(Settings::CLIENT_ID) === '' && $settings->get(Settings::CLIENT_ID_OFFSHORE) === '') {
+                $missing[] = $this->trans('the Client ID', [], 'Modules.Cmi.Admin');
+            }
+            if ($settings->storeKey() === '') {
+                $missing[] = $this->trans('the store key (hash key)', [], 'Modules.Cmi.Admin');
+            }
+            if ($settings->gatewayUrl() === '') {
+                $missing[] = $this->trans('the payment page URL', [], 'Modules.Cmi.Admin');
+            }
+            $warnings[] = $this->trans('CMI is not offered to customers at checkout yet: enter %missing% in "Connection to CMI", then save.', ['%missing%' => implode(', ', $missing)], 'Modules.Cmi.Admin');
+        }
         if (in_array(AccountResolver::MAD_NUMERIC, $settings->storeCurrencies(), true) && !Currency::getIdByIsoCode(AccountResolver::MAD)) {
             $warnings[] = $this->trans('The Moroccan dirham (MAD) is not installed in Localization > Currencies: orders in other currencies cannot be converted, so CMI is not offered for them.', [], 'Modules.Cmi.Admin');
         }
