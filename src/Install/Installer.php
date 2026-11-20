@@ -345,9 +345,13 @@ class Installer
                 @unlink($base . $file);
             }
         }
-        if (is_dir($base . 'views/fonts') && count((array) scandir($base . 'views/fonts')) <= 3) {
-            @unlink($base . 'views/fonts/index.php');
-            @rmdir($base . 'views/fonts');
+        // The fonts folder of 1.x, once empty (it may hold an index.php).
+        $fonts = $base . 'views/fonts';
+        if (is_dir($fonts) && count(array_diff((array) scandir($fonts), ['.', '..', 'index.php'])) === 0) {
+            if (is_file($fonts . '/index.php')) {
+                unlink($fonts . '/index.php');
+            }
+            rmdir($fonts);
         }
     }
 }
