@@ -9,7 +9,6 @@
 namespace Cmi\PrestaShop\Admin;
 
 use Cmi\PrestaShop\Config\Settings;
-use Cmi\PrestaShop\Payment\AccountResolver;
 use Cmi\PrestaShop\Payment\TransactionGuard;
 use Configuration;
 use Context;
@@ -29,6 +28,11 @@ class SettingsForm
 {
     public const SUBMIT = 'submitCmiSettings';
     private const DOMAIN = 'Modules.Cmi.Admin';
+
+    /** "Status after capture" value meaning "my own status", and its fields (not saved as settings). */
+    private const CUSTOM_STATE = 'custom';
+    private const CUSTOM_STATE_NAME = 'CMI_CUSTOM_STATE_NAME';
+    private const CUSTOM_STATE_COLOR = 'CMI_CUSTOM_STATE_COLOR';
 
     /** Secret fields: an empty value keeps the saved one (it is never sent back to the browser). */
     private const SECRETS = [Settings::STORE_KEY, Settings::API_PASSWORD];
@@ -60,6 +64,15 @@ class SettingsForm
 
             return $errors;
         }
+        if ($values[Settings::CAPTURED_STATE] === self::CUSTOM_STATE) {
+            $values[Settings::CAPTURED_STATE] = $this->saveCustomState($values[self::CUSTOM_STATE_NAME], $values[self::CUSTOM_STATE_COLOR]);
+            if ($values[Settings::CAPTURED_STATE] <= 0) {
+                $this->refused = true;
+
+                return [$this->t('The custom order status could not be saved.')];
+            }
+        }
+        unset($values[self::CUSTOM_STATE_NAME], $values[self::CUSTOM_STATE_COLOR]);
         foreach ($values as $key => $value) {
             if (in_array($key, self::SECRETS, true) && $value === '') {
                 continue;
@@ -76,20 +89,17 @@ class SettingsForm
         $values = [];
         foreach ([
             Settings::KIT, Settings::CONFIRMATION_MODE, Settings::CALLBACK_MODE, Settings::PAYMENT_LANGUAGE,
-            Settings::CLIENT_ID, Settings::CLIENT_ID_OFFSHORE, Settings::GATEWAY_URL, Settings::STORE_KEY,
+            Settings::CLIENT_ID, Settings::GATEWAY_URL, Settings::STORE_KEY,
             Settings::API_URL, Settings::API_USERNAME, Settings::API_PASSWORD, Settings::OID_PREFIX,
         ] as $key) {
             $values[$key] = trim((string) Tools::getValue($key, ''));
         }
-        $values[Settings::THREE_D_SECURE] = (int) (bool) Tools::getValue(Settings::THREE_D_SECURE);
         $values[Settings::AUTO_REDIRECT] = (int) (bool) Tools::getValue(Settings::AUTO_REDIRECT);
-        $values[Settings::CAPTURED_STATE] = (int) Tools::getValue(Settings::CAPTURED_STATE);
+        $captured = (string) Tools::getValue(Settings::CAPTURED_STATE);
+        $values[Settings::CAPTURED_STATE] = $captured === self::CUSTOM_STATE ? self::CUSTOM_STATE : (int) $captured;
+        $values[self::CUSTOM_STATE_NAME] = trim(strip_tags((string) Tools::getValue(self::CUSTOM_STATE_NAME, '')));
+        $values[self::CUSTOM_STATE_COLOR] = trim((string) Tools::getValue(self::CUSTOM_STATE_COLOR, ''));
         $values[Settings::OID_PREFIX] = TransactionGuard::sanitizeOidPrefix($values[Settings::OID_PREFIX]);
-        $currencies = Tools::getValue(Settings::STORE_CURRENCIES);
-        $values[Settings::STORE_CURRENCIES] = implode(',', array_values(array_intersect(
-            AccountResolver::SUPPORTED,
-            array_map('strval', is_array($currencies) ? $currencies : [])
-        )));
         foreach ([Settings::TITLE, Settings::DESCRIPTION] as $key) {
             $values[$key] = [];
             foreach (Language::getLanguages(false) as $language) {
@@ -104,16 +114,8 @@ class SettingsForm
     private function validate(array $values): array
     {
         $errors = [];
-        $currencies = array_filter(explode(',', $values[Settings::STORE_CURRENCIES]));
-        if (!$currencies) {
-            $errors[] = $this->t('Select at least one currency of your CMI store.');
-        }
-        $hasMad = in_array(AccountResolver::MAD_NUMERIC, $currencies, true);
-        if ($hasMad && !preg_match('/^[0-9A-Za-z]{4,32}$/', $values[Settings::CLIENT_ID])) {
+        if (!preg_match('/^[0-9A-Za-z]{4,32}$/', $values[Settings::CLIENT_ID])) {
             $errors[] = $this->t('Enter the Client ID of your CMI store (MAD).');
-        }
-        if (array_diff($currencies, [AccountResolver::MAD_NUMERIC]) && !preg_match('/^[0-9A-Za-z]{4,32}$/', $values[Settings::CLIENT_ID_OFFSHORE])) {
-            $errors[] = $this->t('Enter the Client ID of your offshore CMI store (foreign currencies).');
         }
         if (!$this->isHttpsUrl($values[Settings::GATEWAY_URL])) {
             $errors[] = $this->t('The payment page URL must be a valid https:// address, for example https://payment.cmi.co.ma/fim/est3Dgate.');
@@ -148,12 +150,58 @@ class SettingsForm
             && $values[Settings::KIT] !== Settings::KIT_COMPLETE) {
             $errors[] = $this->t('In "browser return" mode, automatic confirmation captures payments through the CMI API: choose the Complete Kit, or the manual confirmation mode.');
         }
-        $state = new OrderState($values[Settings::CAPTURED_STATE]);
-        if (!\Validate::isLoadedObject($state) || $state->deleted || !$state->paid) {
-            $errors[] = $this->t('Choose a "paid" order status for captured payments.');
+        if ($values[Settings::CAPTURED_STATE] === self::CUSTOM_STATE) {
+            $name = $values[self::CUSTOM_STATE_NAME];
+            if ($name === '' || \Tools::strlen($name) > 64 || !\Validate::isGenericName($name)) {
+                $errors[] = $this->t('Enter the name of your custom order status (64 characters at most, without < > = { }).');
+            }
+            if ($values[self::CUSTOM_STATE_COLOR] !== '' && !\Validate::isColor($values[self::CUSTOM_STATE_COLOR])) {
+                $errors[] = $this->t('The color of the custom order status must be like #32CD32.');
+            }
+        } else {
+            $state = new OrderState((int) $values[Settings::CAPTURED_STATE]);
+            if (!\Validate::isLoadedObject($state) || $state->deleted || !$state->paid) {
+                $errors[] = $this->t('Choose a "paid" order status for captured payments.');
+            }
         }
 
         return $errors;
+    }
+
+    /**
+     * Create (or rename) the order status the merchant defined for captured payments. It counts
+     * as paid, gives an invoice and sends the "payment accepted" e-mail, like "Payment accepted".
+     *
+     * @return int its ID, or 0 when it could not be saved
+     */
+    private function saveCustomState(string $name, string $color): int
+    {
+        $state = new OrderState((int) Configuration::getGlobalValue(Settings::OS_CUSTOM_CAPTURED));
+        if (!\Validate::isLoadedObject($state) || $state->deleted) {
+            $state = new OrderState();
+            $state->module_name = $this->module->name;
+            $state->unremovable = false;
+            $state->hidden = false;
+            $state->deleted = false;
+            $state->delivery = false;
+            $state->shipped = false;
+        }
+        foreach (Language::getLanguages(false) as $language) {
+            $state->name[(int) $language['id_lang']] = $name;
+            $state->template[(int) $language['id_lang']] = 'payment';
+        }
+        $state->color = $color !== '' ? $color : ($state->color ?: '#32CD32');
+        $state->paid = true;
+        $state->logable = true;
+        $state->invoice = true;
+        $state->pdf_invoice = true;
+        $state->send_email = true;
+        if (!$state->save()) {
+            return 0;
+        }
+        Configuration::updateGlobalValue(Settings::OS_CUSTOM_CAPTURED, (int) $state->id);
+
+        return (int) $state->id;
     }
 
     public function render(): string
@@ -216,16 +264,18 @@ class SettingsForm
                             ['id' => Settings::MODE_MANUAL, 'name' => $this->t('Manual: pre-authorize, confirm later')],
                         ], 'id' => 'id', 'name' => 'name']],
                     ['type' => 'select', 'name' => Settings::CAPTURED_STATE, 'label' => $this->t('Order status after capture'),
-                        'desc' => $this->t('Status given to an order once its payment is captured.'),
+                        'desc' => $this->t('Status given to an order once its payment is captured. Choose "Custom" to create your own status.'),
                         'options' => ['query' => $this->paidStates(), 'id' => 'id_order_state', 'name' => 'name']],
+                    ['type' => 'text', 'name' => self::CUSTOM_STATE_NAME, 'label' => $this->t('Custom status name'), 'maxlength' => 64, 'class' => 'fixed-width-xxl cmi-custom-state',
+                        'desc' => $this->t('Name of your status, for example "Paid by card (CMI)". It counts as paid, gives an invoice and sends the "payment accepted" e-mail. You can rename it here later.')],
+                    ['type' => 'color', 'name' => self::CUSTOM_STATE_COLOR, 'label' => $this->t('Custom status color'), 'class' => 'cmi-custom-state',
+                        'desc' => $this->t('Color of the status in the orders list.')],
                     ['type' => 'select', 'name' => Settings::CALLBACK_MODE, 'label' => $this->t('Payment result'),
                         'desc' => $this->t('Server to server: CMI calls your shop directly after each payment (recommended; your shop must be reachable from the internet). Browser return only: the result comes back with the customer, for shops CMI cannot reach.'),
                         'options' => ['query' => [
                             ['id' => Settings::CALLBACK_SERVER, 'name' => $this->t('Server to server (recommended)')],
                             ['id' => Settings::CALLBACK_BROWSER, 'name' => $this->t('Browser return only')],
                         ], 'id' => 'id', 'name' => 'name']],
-                    ['type' => 'switch', 'name' => Settings::THREE_D_SECURE, 'label' => $this->t('3-D Secure'), 'is_bool' => true, 'values' => $yesNo,
-                        'desc' => $this->t('Ask the cardholder to authenticate (3-D Secure). Only turn it off if CMI asked you to.')],
                     ['type' => 'switch', 'name' => Settings::AUTO_REDIRECT, 'label' => $this->t('Automatic redirect'), 'is_bool' => true, 'values' => $yesNo,
                         'desc' => $this->t('Send customers back to the shop as soon as the payment is finished. When off, they stay on CMI\'s result page and come back themselves.')],
                     ['type' => 'select', 'name' => Settings::PAYMENT_LANGUAGE, 'label' => $this->t('Payment page language'),
@@ -245,15 +295,8 @@ class SettingsForm
             ['form' => [
                 'legend' => ['title' => $this->t('Connection to CMI'), 'icon' => 'icon-link'],
                 'input' => [
-                    ['type' => 'select', 'name' => Settings::STORE_CURRENCIES . '[]', 'label' => $this->t('Currencies of your CMI store'), 'multiple' => true, 'size' => 7,
-                        'desc' => $this->t('MAD: payments on your standard CMI store, orders in other currencies are converted to MAD with the exchange rates of Localization > Currencies. Other currencies: payments in that currency on your offshore CMI store. Hold Ctrl (Cmd on a Mac) to select several.'),
-                        'options' => ['query' => array_map(static function (string $iso, string $numeric): array {
-                            return ['id' => $numeric, 'name' => $iso];
-                        }, array_keys(AccountResolver::SUPPORTED), AccountResolver::SUPPORTED), 'id' => 'id', 'name' => 'name']],
-                    ['type' => 'text', 'name' => Settings::CLIENT_ID, 'label' => $this->t('Client ID (MAD store)'), 'class' => 'fixed-width-xl',
-                        'desc' => $this->t('Merchant Client ID provided by CMI, for example 600XXXXXX.')],
-                    ['type' => 'text', 'name' => Settings::CLIENT_ID_OFFSHORE, 'label' => $this->t('Client ID (offshore store)'), 'class' => 'fixed-width-xl',
-                        'desc' => $this->t('Only when your CMI store accepts foreign currencies.')],
+                    ['type' => 'text', 'name' => Settings::CLIENT_ID, 'label' => $this->t('Client ID'), 'class' => 'fixed-width-xl',
+                        'desc' => $this->t('Merchant Client ID provided by CMI, for example 600XXXXXX. Payments are made in MAD; orders in other currencies are converted to MAD with the exchange rates of International > Localization > Currencies.')],
                     ['type' => 'text', 'name' => Settings::GATEWAY_URL, 'label' => $this->t('Payment page URL'),
                         'desc' => $this->t('CMI\'s payment page, for example https://payment.cmi.co.ma/fim/est3Dgate (test: https://testpayment.cmi.co.ma/fim/est3Dgate).')],
                     ['type' => 'password', 'name' => Settings::STORE_KEY, 'label' => $this->t('Store key (hash key)'), 'class' => 'cmi-secret',
@@ -283,17 +326,26 @@ class SettingsForm
         $values = [];
         foreach ([
             Settings::KIT, Settings::CONFIRMATION_MODE, Settings::CALLBACK_MODE, Settings::PAYMENT_LANGUAGE,
-            Settings::CLIENT_ID, Settings::CLIENT_ID_OFFSHORE, Settings::GATEWAY_URL, Settings::API_URL,
-            Settings::API_USERNAME, Settings::OID_PREFIX, Settings::THREE_D_SECURE, Settings::AUTO_REDIRECT, Settings::CAPTURED_STATE,
+            Settings::CLIENT_ID, Settings::GATEWAY_URL, Settings::API_URL,
+            Settings::API_USERNAME, Settings::OID_PREFIX, Settings::AUTO_REDIRECT, Settings::CAPTURED_STATE,
         ] as $key) {
             $values[$key] = $this->refused ? Tools::getValue($key, Configuration::get($key)) : Configuration::get($key);
         }
         // Secrets are never written into the page.
         $values[Settings::STORE_KEY] = '';
         $values[Settings::API_PASSWORD] = '';
-        $values[Settings::STORE_CURRENCIES . '[]'] = $this->refused && Tools::getIsset(Settings::STORE_CURRENCIES)
-            ? (array) Tools::getValue(Settings::STORE_CURRENCIES)
-            : (new Settings())->storeCurrencies();
+        // The custom status is shown as "Custom", with its name and color ready to edit.
+        $custom = $this->customState();
+        if ($custom && (int) $values[Settings::CAPTURED_STATE] === (int) $custom->id) {
+            $values[Settings::CAPTURED_STATE] = self::CUSTOM_STATE;
+        }
+        $idLang = (int) $this->context->language->id;
+        $values[self::CUSTOM_STATE_NAME] = $this->refused
+            ? Tools::getValue(self::CUSTOM_STATE_NAME, '')
+            : ($custom ? (string) ($custom->name[$idLang] ?? reset($custom->name)) : '');
+        $values[self::CUSTOM_STATE_COLOR] = $this->refused
+            ? Tools::getValue(self::CUSTOM_STATE_COLOR, '#32CD32')
+            : ($custom ? (string) $custom->color : '#32CD32');
         foreach ([Settings::TITLE, Settings::DESCRIPTION] as $key) {
             foreach (Language::getLanguages(false) as $language) {
                 $idLang = (int) $language['id_lang'];
@@ -305,17 +357,36 @@ class SettingsForm
         return $values;
     }
 
-    /** @return array<int, array{id_order_state: int, name: string}> */
+    /** @return array<int, array{id_order_state: int|string, name: string}> the "paid" states, then "Custom" */
     private function paidStates(): array
     {
+        $custom = $this->customState();
         $states = [];
         foreach (OrderState::getOrderStates((int) $this->context->language->id) as $state) {
-            if ((int) $state['paid'] === 1 && empty($state['deleted'])) {
+            if ((int) $state['paid'] === 1 && empty($state['deleted']) && (!$custom || (int) $state['id_order_state'] !== (int) $custom->id)) {
                 $states[] = ['id_order_state' => (int) $state['id_order_state'], 'name' => (string) $state['name']];
             }
         }
+        $states[] = [
+            'id_order_state' => self::CUSTOM_STATE,
+            'name' => $custom
+                ? $this->t('Custom: %name%', ['%name%' => (string) ($custom->name[(int) $this->context->language->id] ?? reset($custom->name))])
+                : $this->t('Custom: create my own status...'),
+        ];
 
         return $states;
+    }
+
+    /** The order status created through "Custom", if any. */
+    private function customState(): ?OrderState
+    {
+        $id = (int) Configuration::getGlobalValue(Settings::OS_CUSTOM_CAPTURED);
+        if ($id <= 0) {
+            return null;
+        }
+        $state = new OrderState($id);
+
+        return \Validate::isLoadedObject($state) && !$state->deleted ? $state : null;
     }
 
     private function secretDescription(string $key, string $description): string

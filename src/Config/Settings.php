@@ -22,9 +22,11 @@ if (!defined('_PS_VERSION_')) {
 final class Settings
 {
     public const CLIENT_ID = 'CMI_CLIENT_ID';
+    /** Offshore store (foreign currencies): not offered for now. Kept so a 1.x value is not lost. */
     public const CLIENT_ID_OFFSHORE = 'CMI_CLIENT_ID_OFFSHORE';
     public const GATEWAY_URL = 'CMI_GATEWAY_URL';
     public const STORE_KEY = 'CMI_STORE_KEY';
+    /** Currencies of the CMI store (1.x setting, kept): payments are MAD-only for now. */
     public const STORE_CURRENCIES = 'CMI_STORE_CURRENCIES';
     public const KIT = 'CMI_KIT';
     public const API_URL = 'CMI_API_URL';
@@ -32,6 +34,7 @@ final class Settings
     public const API_PASSWORD = 'CMI_API_PASSWORD';
     public const CONFIRMATION_MODE = 'CMI_CONFIRMATION_MODE';
     public const CALLBACK_MODE = 'CMI_CALLBACK_MODE';
+    /** Removed setting: payments always go through 3-D Secure. Only deleted on uninstall. */
     public const THREE_D_SECURE = 'CMI_3D_SECURE';
     public const AUTO_REDIRECT = 'CMI_AUTO_REDIRECT';
     public const PAYMENT_LANGUAGE = 'CMI_PAYMENT_LANGUAGE';
@@ -44,6 +47,8 @@ final class Settings
     /** Order states installed by the module. */
     public const OS_AWAITING = 'CMI_OS_AWAITING';
     public const OS_PREAUTHORIZED = 'CMI_OS_PREAUTHORIZED';
+    /** Order state the merchant created with "Custom" in "Order status after capture". */
+    public const OS_CUSTOM_CAPTURED = 'CMI_OS_CUSTOM_CAPTURED';
 
     public const KIT_STANDARD = 'standard';
     public const KIT_COMPLETE = 'complete';
@@ -60,6 +65,7 @@ final class Settings
         self::KIT, self::API_URL, self::API_USERNAME, self::API_PASSWORD, self::CONFIRMATION_MODE,
         self::CALLBACK_MODE, self::THREE_D_SECURE, self::AUTO_REDIRECT, self::PAYMENT_LANGUAGE, self::OID_PREFIX,
         self::CAPTURED_STATE, self::TITLE, self::DESCRIPTION, self::CRON_TOKEN, self::OS_AWAITING, self::OS_PREAUTHORIZED,
+        self::OS_CUSTOM_CAPTURED,
     ];
 
     /** @var int|null */
@@ -101,13 +107,16 @@ final class Settings
         return $this->get(self::STORE_KEY);
     }
 
-    /** @return string[] ISO 4217 numeric codes */
+    /**
+     * Currencies the CMI store accepts (ISO 4217 numeric codes). MAD only for now, as in the
+     * WooCommerce plugin: orders in other currencies are converted to MAD. The offshore store
+     * (payments in foreign currencies) may come back later.
+     *
+     * @return string[]
+     */
     public function storeCurrencies(): array
     {
-        $raw = $this->get(self::STORE_CURRENCIES);
-        $codes = array_values(array_filter(array_map('trim', preg_split('/[|,]/', $raw) ?: [])));
-
-        return $codes ?: [AccountResolver::MAD_NUMERIC];
+        return [AccountResolver::MAD_NUMERIC];
     }
 
     public function confirmationMode(): string
@@ -118,11 +127,6 @@ final class Settings
     public function callbackMode(): string
     {
         return $this->get(self::CALLBACK_MODE) === self::CALLBACK_BROWSER ? self::CALLBACK_BROWSER : self::CALLBACK_SERVER;
-    }
-
-    public function isThreeDSecure(): bool
-    {
-        return $this->get(self::THREE_D_SECURE) !== '0';
     }
 
     public function isAutoRedirect(): bool
@@ -166,8 +170,7 @@ final class Settings
     /** Payment can be offered: the connection to CMI is configured. */
     public function isPaymentConfigured(): bool
     {
-        return $this->gatewayUrl() !== '' && $this->storeKey() !== ''
-            && ($this->get(self::CLIENT_ID) !== '' || $this->get(self::CLIENT_ID_OFFSHORE) !== '');
+        return $this->gatewayUrl() !== '' && $this->storeKey() !== '' && $this->get(self::CLIENT_ID) !== '';
     }
 
     public function hasApiCredentials(): bool

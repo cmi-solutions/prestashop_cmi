@@ -119,7 +119,7 @@ class Cmi extends PaymentModule
         // CMI is hidden at checkout until the connection is complete: say what is missing.
         if (!$settings->isPaymentConfigured()) {
             $missing = [];
-            if ($settings->get(Settings::CLIENT_ID) === '' && $settings->get(Settings::CLIENT_ID_OFFSHORE) === '') {
+            if ($settings->get(Settings::CLIENT_ID) === '') {
                 $missing[] = $this->trans('the Client ID', [], 'Modules.Cmi.Admin');
             }
             if ($settings->storeKey() === '') {

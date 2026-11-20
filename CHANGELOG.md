@@ -23,7 +23,7 @@ A major update, rewritten from version 1.1.0. Some things now work differently, 
 - **"Pay again"** for the customer when a card payment is declined or not completed, on the result page and in the order details of their account.
 - **Clear payment result for customers** on the order confirmation page ("Payment successful", "Payment authorized"...).
 - **Customer cancel on CMI's page:** cancels the order only when CMI shows no payment for it.
-- **Order status after capture** can be chosen in the settings.
+- **Order status after capture** can be chosen in the settings, or created: **Custom** creates your own status (name and color), counted as paid.
 - **Payment title and description** at checkout can be set per language.
 - **Show/hide button** on the store key and API password fields.
 - **Settings page warnings:** when CMI is not offered at checkout yet (missing Client ID, store key or payment page URL), when the Complete Kit lacks its API credentials, when MAD is missing, and when the shop doesn't use HTTPS.
@@ -39,8 +39,9 @@ A major update, rewritten from version 1.1.0. Some things now work differently, 
 | In **Manual** confirmation mode, an approved payment moves the order to **CMI payment authorized (to confirm)**, no longer to **Payment accepted** (1.x marked it paid although it was only pre-authorized) | Confirm the payment from the order page (Complete Kit) or in the CMI back office before shipping |
 | The **Complete Kit** is a new setting. The API is used only with the Complete Kit and its credentials. Updated shops that had the API credentials start with the Complete Kit | Nothing, or choose the Standard Kit if you don't want the module to call the CMI API |
 | The **Callback** setting is now **Payment result**: *Server to server* (was *Server-to-server*) or *Browser return only* (was *Redirection automatique*) | Nothing |
-| **Automatic redirect** and **3-D Secure** are on/off switches (were Automatique/Manuelle and OUI/NON) | Nothing |
-| Orders in a currency your CMI store doesn't accept are converted to MAD on your standard store, when MAD is one of your CMI store currencies. 1.x sent them to the offshore store in their own currency, which CMI refused | Nothing |
+| **Automatic redirect** is an on/off switch (was Automatique/Manuelle) | Nothing |
+| The **3-D Secure** setting (Authentification du titulaire de la carte) is removed: every payment goes through CMI's 3-D Secure page, which CMI requires (without it CMI refuses the payment: "Marchand ne supporte pas ce modèle de paiement") | Nothing |
+| Payments are made in MAD only, on your standard CMI store: orders in other currencies are converted to MAD. The **offshore store** settings (Client ID offshore, CMI store currencies) are no longer offered; values saved with 1.x are kept but not used | If you used an offshore CMI store, payments now go to your MAD store: check with CMI before updating |
 | CMI is not offered for an order in another currency when its exchange rate is missing, or still set to 1 (never set up) | Set up your rates in **International > Localization > Currencies** |
 | A store key containing the word "SKS" can't be saved | Ask CMI for a new key if yours contains it |
 | A customer whose name has no Latin letter (for example typed in Arabic) is asked to enter it in Latin letters: CMI receives names in Latin letters only | Nothing |
