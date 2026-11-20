@@ -77,6 +77,8 @@ foreach ([
     'CMI_CONFIRMATION_MODE' => $options['mode'],
     'CMI_CALLBACK_MODE' => $options['callback'],
     'CMI_STORE_CURRENCIES' => $options['currencies'],
+    // The scenarios expect captured orders in "Payment accepted", whatever was chosen by hand.
+    'CMI_CAPTURED_STATE' => (string) (int) Configuration::get('PS_OS_PAYMENT'),
 ] as $key => $value) {
     Configuration::updateValue($key, $value);
 }
