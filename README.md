@@ -21,7 +21,7 @@ This branch is the **PrestaShop 9** package.
 | Component | Supported | Tested |
 | --- | --- | --- |
 | PrestaShop | 9.0 to 9.x | 9.2.1 |
-| PHP | 8.1 to 8.4 | 8.3 |
+| PHP | 8.1 to 8.4 | 8.3 and 8.4 |
 | PHP extensions | cURL, SimpleXML | |
 
 ## Features

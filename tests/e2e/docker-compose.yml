@@ -54,6 +54,21 @@ services:
     volumes:
       - ./mock/caddy-data:/cmi-ca:ro
 
+  # PrestaShop 9 on PHP 8.4, the newest PHP it supports.
+  ps94:
+    image: prestashop/prestashop:9.2.1-8.4
+    depends_on:
+      mysql:
+        condition: service_healthy
+    environment:
+      <<: *ps-env
+      DB_NAME: ps94
+      PS_DOMAIN: localhost:8083
+    ports:
+      - "8083:80"
+    volumes:
+      - ./mock/caddy-data:/cmi-ca:ro
+
   # Mock of CMI: payment page (/fim/est3Dgate) and XML API (/fim/api), plain HTTP inside.
   cmi-app:
     image: php:8.3-cli
@@ -71,7 +86,7 @@ services:
       CMI_API_USER: apiuser
       CMI_API_PASSWORD: apipass
       # The shops as seen from inside the network (callbacks).
-      SHOP_HOSTS: "localhost:8081=ps8:80,localhost:8082=ps9:80"
+      SHOP_HOSTS: "localhost:8081=ps8:80,localhost:8082=ps9:80,localhost:8083=ps94:80"
 
   # HTTPS in front of the mock (the module only calls an https:// API).
   cmi:
