@@ -754,6 +754,54 @@
         <source>the payment page URL</source>
         <target>l&apos;URL de la page de paiement</target>
       </trans-unit>
+      <trans-unit id="037973a6b3f5a731103d6fb073547afe">
+        <source>The custom order status could not be saved.</source>
+        <target>Le statut de commande personnalisé n&apos;a pas pu être enregistré.</target>
+      </trans-unit>
+      <trans-unit id="9e49ff04e5209c2229047359f6dbc075">
+        <source>Enter the name of your custom order status (64 characters at most, without &lt; &gt; = { }).</source>
+        <target>Saisissez le nom de votre statut de commande personnalisé (64 caractères au maximum, sans &lt; &gt; = { }).</target>
+      </trans-unit>
+      <trans-unit id="8522e724876950ae44d69d0c26d3a0d5">
+        <source>The color of the custom order status must be like #32CD32.</source>
+        <target>La couleur du statut personnalisé doit être de la forme #32CD32.</target>
+      </trans-unit>
+      <trans-unit id="b916c1eac19527dfc38b7ee999156bb6">
+        <source>Status given to an order once its payment is captured. Choose &quot;Custom&quot; to create your own status.</source>
+        <target>Statut donné à une commande une fois son paiement débité. Choisissez « Personnalisé » pour créer votre propre statut.</target>
+      </trans-unit>
+      <trans-unit id="6e86c61ec3d26a26adf422a854f06483">
+        <source>Custom status name</source>
+        <target>Nom du statut personnalisé</target>
+      </trans-unit>
+      <trans-unit id="68fc88a71c1bfaf5688b940ab4f2ec18">
+        <source>Name of your status, for example &quot;Paid by card (CMI)&quot;. It counts as paid, gives an invoice and sends the &quot;payment accepted&quot; e-mail. You can rename it here later.</source>
+        <target>Nom de votre statut, par exemple « Payée par carte (CMI) ». Il compte comme payé, génère une facture et envoie l&apos;e-mail « paiement accepté ». Vous pourrez le renommer ici plus tard.</target>
+      </trans-unit>
+      <trans-unit id="851debc970e29cf257c358f23f108ec9">
+        <source>Custom status color</source>
+        <target>Couleur du statut personnalisé</target>
+      </trans-unit>
+      <trans-unit id="991ce837b4b94d44e9ae6efce975a603">
+        <source>Color of the status in the orders list.</source>
+        <target>Couleur du statut dans la liste des commandes.</target>
+      </trans-unit>
+      <trans-unit id="76525f0f34b48475e5ca33f71d296f3b">
+        <source>Client ID</source>
+        <target>Client ID</target>
+      </trans-unit>
+      <trans-unit id="9286aabea9b049328f7bb45790c836d4">
+        <source>Merchant Client ID provided by CMI, for example 600XXXXXX. Payments are made in MAD; orders in other currencies are converted to MAD with the exchange rates of International &gt; Localization &gt; Currencies.</source>
+        <target>Client ID marchand fourni par CMI, par exemple 600XXXXXX. Les paiements se font en MAD ; les commandes dans d&apos;autres devises sont converties en MAD avec les taux de change de International &gt; Localisation &gt; Devises.</target>
+      </trans-unit>
+      <trans-unit id="36b11bf123845744d382acac24bc7fdb">
+        <source>Custom: %name%</source>
+        <target>Personnalisé : %name%</target>
+      </trans-unit>
+      <trans-unit id="5bfed9723c4fafb884d7115bc4c88a8c">
+        <source>Custom: create my own status...</source>
+        <target>Personnalisé : créer mon propre statut…</target>
+      </trans-unit>
     </body>
   </file>
 </xliff>

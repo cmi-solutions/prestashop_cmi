@@ -31,8 +31,7 @@ The code is ready for PHP 8.3 and 8.4 (checked by CI), but PrestaShop 8 itself o
 - **Secure hosted payment:** customers enter their card details on CMI's 3-D Secure page, never on your shop.
 - **Automatic or manual capture:** capture the payment immediately, or pre-authorize it and confirm later.
 - **Manage payments from PrestaShop** (Complete Kit): confirm, void, refund (full or partial) and check a payment's status at CMI, from the **CMI payment** panel of the order page.
-- **Standard and offshore CMI stores:** payments in MAD on your standard store, and in EUR, USD, GBP, AED, CHF or SAR on your offshore store.
-- **Other currencies:** orders in a currency your CMI store doesn't accept are converted to MAD with PrestaShop's exchange rates, show both amounts, and are refunded using the rate applied at payment.
+- **Payments in MAD:** orders in other currencies are converted to MAD with PrestaShop's exchange rates, show both amounts, and are refunded using the rate applied at payment.
 - **Order number known by CMI:** each order is sent as a prefix followed by its reference, shown on the order page and in a **CMI** column of the orders list (with the payment's state).
 - **Safe with several websites:** if one CMI account is used by several websites, the module never acts on another website's payment.
 - **Stays in sync with the CMI back office:** a payment confirmed, voided or refunded in the CMI back office updates the order when you click **Check CMI**.
@@ -78,9 +77,8 @@ In **Modules > Module Manager**, find **CMI** and click **Configure**.
 | --- | --- |
 | CMI kit | **Standard Kit:** customers pay on CMI's page; you manage payments in the CMI back office. **Complete Kit:** you can also confirm, void, refund and check payments from the order page, and orders left awaiting payment are checked automatically. It needs the API credentials provided by CMI. |
 | Payment confirmation | **Automatic:** the payment is captured as soon as the customer pays. **Manual:** the payment is only pre-authorized; you confirm it later to capture the funds. |
-| Order status after capture | Status given to an order once its payment is captured (default: Payment accepted). |
+| Order status after capture | Status given to an order once its payment is captured (default: Payment accepted). Choose **Custom** to create your own status: give it a name and a color; it counts as paid, gives an invoice and sends the "payment accepted" e-mail. Choose **Custom** again to rename it. |
 | Payment result | **Server to server** (recommended): CMI calls your shop after each payment. Your shop must be reachable from the internet. **Browser return only:** the result comes back with the customer, for shops CMI's servers cannot reach. In this mode, automatic confirmation captures the payment through the API, so it needs the Complete Kit. |
-| 3-D Secure | Asks the cardholder to authenticate. Only turn it off if CMI asked you to. |
 | Automatic redirect | Sends customers back to the shop as soon as the payment is finished. |
 | Payment page language | The customer's language, or always French, English or Arabic. |
 | Order ID prefix | Generated at installation. See [Order number](#order-number). |
@@ -89,9 +87,7 @@ In **Modules > Module Manager**, find **CMI** and click **Configure**.
 
 | Setting | |
 | --- | --- |
-| Currencies of your CMI store | **MAD:** your standard CMI store. **Other currencies:** your offshore CMI store, which charges them in their own currency. |
-| Client ID (MAD store) | Provided by CMI, for example `600XXXXXX`. |
-| Client ID (offshore store) | Only when your CMI store accepts foreign currencies. |
+| Client ID | Provided by CMI, for example `600XXXXXX`. |
 | Payment page URL | `https://payment.cmi.co.ma/fim/est3Dgate` (test: `https://testpayment.cmi.co.ma/fim/est3Dgate`). |
 | Store key (hash key) | The secret key set in your CMI merchant center. It must not contain the word "SKS". Once saved, it is never shown again: leave the field empty to keep it. |
 
@@ -130,9 +126,10 @@ Orders are sent to CMI as the **Order ID prefix** followed by the order referenc
 
 ### Other currencies
 
-- **MAD orders** are charged in MAD on your standard CMI store.
-- **Orders in a currency your offshore CMI store accepts** are charged in that currency on the offshore store.
-- **Other orders** are converted to MAD with PrestaShop's exchange rates (**International > Localization > Currencies**) and charged on your standard store; CMI's page shows both amounts. The rate is saved with the order, and refunds use it. If the rate is missing, or still set to 1, CMI is not offered for that currency.
+CMI charges in MAD. Payments always go through CMI's 3-D Secure page.
+
+- **MAD orders** are charged as they are.
+- **Orders in another currency** are converted to MAD with PrestaShop's exchange rates (**International > Localization > Currencies**); CMI's page shows both amounts. The rate is saved with the order, and refunds use it. If the rate is missing, or still set to 1, CMI is not offered for that currency.
 
 You are responsible for the accuracy of the exchange rates.
 

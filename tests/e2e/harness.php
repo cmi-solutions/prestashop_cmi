@@ -213,7 +213,7 @@ $scenarios['automatic'] = static function () use ($states) {
     check('form sends MAD on the standard store', $o['fields']['currency'] === '504' && $o['fields']['clientid'] === '600000001');
     check('form keeps the + of the phone', $o['fields']['tel'] === '+212 600000000', $o['fields']['tel']);
     check('form has no accents in the city', $o['fields']['BillToCity'] === 'Fes');
-    check('form uses 3-D Secure and the server callback', $o['fields']['storetype'] === '3DPAYHOSTING' && $o['fields']['CallbackResponse'] === 'true' && !empty($o['fields']['callbackUrl']));
+    check('form always uses 3-D Secure (3d_pay_hosting), and the server callback', $o['fields']['storetype'] === '3d_pay_hosting' && $o['fields']['CallbackResponse'] === 'true' && !empty($o['fields']['callbackUrl']), $o['fields']['storetype']);
 
     $paid = pay($tx, 'approve');
     check('callback answered ACTION=POSTAUTH', $paid['callback']['body'] === 'ACTION=POSTAUTH', json_encode($paid['callback']));
@@ -435,13 +435,11 @@ $scenarios['currency'] = static function () use ($states) {
     $refund = services()->manager()->refund(reload($tx), 20.0, '');
     check('refund in MAD of a EUR order', $refund->success && strpos($refund->message, 'EUR') !== false, $refund->message);
 
-    // Offshore store: EUR charged in EUR with the offshore client ID.
+    // MAD only: an offshore setting kept from 1.x is ignored, EUR is still converted to MAD.
     setting('CMI_STORE_CURRENCIES', '504,978');
+    setting('CMI_CLIENT_ID_OFFSHORE', '600000002');
     $off = newOrder('EUR');
-    check('offshore: EUR charged in EUR', $off['fields']['currency'] === '978' && $off['fields']['clientid'] === '600000002' && !isset($off['fields']['amountCur']));
-    pay($off['tx'], 'approve');
-    $offRefund = services()->manager()->refund(reload($off['tx']), 1.0, '');
-    check('offshore refund sent in EUR', $offRefund->success, $offRefund->message);
+    check('1.x offshore settings ignored: EUR charged in MAD on the MAD store', $off['fields']['currency'] === '504' && $off['fields']['clientid'] === '600000001' && isset($off['fields']['amountCur']), $off['fields']['currency'] . ' ' . $off['fields']['clientid']);
     setting('CMI_STORE_CURRENCIES', '504');
 
     // A rate never set up (1 EUR = 1 MAD) is refused.
@@ -449,6 +447,61 @@ $scenarios['currency'] = static function () use ($states) {
     $eur->conversion_rate = (float) $mad->conversion_rate;
     check('a rate of exactly 1 is refused', services()->paymentRequest()->charge($eur, 100.0) === 'rate');
     $eur->conversion_rate = $original;
+};
+
+$scenarios['custom-status'] = static function () use ($states) {
+    // The settings form, as submitted from the back office.
+    $context = Context::getContext();
+    $saved = [];
+    foreach (['CMI_GATEWAY_URL', 'CMI_CAPTURED_STATE', 'CMI_KIT', 'CMI_CONFIRMATION_MODE', 'CMI_CALLBACK_MODE', 'CMI_API_URL', 'CMI_API_USERNAME', 'CMI_CLIENT_ID', 'CMI_OID_PREFIX'] as $key) {
+        $saved[$key] = (string) Configuration::get($key);
+    }
+    $post = static function (array $changes) use ($saved): array {
+        $_POST = array_merge([
+            'submitCmiSettings' => '1',
+            'CMI_KIT' => $saved['CMI_KIT'], 'CMI_CONFIRMATION_MODE' => $saved['CMI_CONFIRMATION_MODE'], 'CMI_CALLBACK_MODE' => $saved['CMI_CALLBACK_MODE'],
+            'CMI_PAYMENT_LANGUAGE' => 'auto', 'CMI_CLIENT_ID' => $saved['CMI_CLIENT_ID'],
+            // The form only accepts https://: the bench's mock payment page is restored below.
+            'CMI_GATEWAY_URL' => 'https://testpayment.cmi.co.ma/fim/est3Dgate',
+            'CMI_STORE_KEY' => '', 'CMI_API_URL' => $saved['CMI_API_URL'], 'CMI_API_USERNAME' => $saved['CMI_API_USERNAME'], 'CMI_API_PASSWORD' => '',
+            'CMI_OID_PREFIX' => $saved['CMI_OID_PREFIX'], 'CMI_AUTO_REDIRECT' => '1',
+        ], $changes);
+        $form = new Cmi\PrestaShop\Admin\SettingsForm(Module::getInstanceByName('cmi'), Context::getContext());
+        $errors = $form->process();
+        $_POST = [];
+        Configuration::loadConfiguration();
+
+        return $errors;
+    };
+
+    $errors = $post(['CMI_CAPTURED_STATE' => 'custom', 'CMI_CUSTOM_STATE_NAME' => '', 'CMI_CUSTOM_STATE_COLOR' => '#123456']);
+    check('custom status without a name is refused', count($errors) === 1, implode(' | ', $errors));
+    $errors = $post(['CMI_CAPTURED_STATE' => 'custom', 'CMI_CUSTOM_STATE_NAME' => 'Payée par carte (banc)', 'CMI_CUSTOM_STATE_COLOR' => '#123456']);
+    $id = (int) Configuration::get('CMI_CAPTURED_STATE');
+    $state = new OrderState($id);
+    check('custom status saved and chosen', !$errors && $id > 0 && $id === (int) Configuration::getGlobalValue('CMI_OS_CUSTOM_CAPTURED'), implode(' | ', $errors));
+    check('custom status counts as paid, with invoice and e-mail', $state->paid && $state->invoice && $state->logable && $state->send_email && $state->color === '#123456');
+    check('custom status has its name in every language', !array_diff(array_values($state->name), ['Payée par carte (banc)']));
+
+    // A payment captured now ends in the custom status.
+    setting('CMI_GATEWAY_URL', 'http://localhost:8090/fim/est3Dgate');
+    $o = newOrder();
+    pay($o['tx'], 'approve');
+    check('captured order in the custom status', orderState($o['tx']) === $id, (string) orderState($o['tx']));
+    check('...and counted as paid (payment recorded)', (bool) OrderPayment::getByOrderReference($o['order']->reference));
+
+    // Renaming keeps the same status.
+    $post(['CMI_CAPTURED_STATE' => 'custom', 'CMI_CUSTOM_STATE_NAME' => 'Payée CMI', 'CMI_CUSTOM_STATE_COLOR' => '#123456']);
+    $renamed = new OrderState((int) Configuration::get('CMI_CAPTURED_STATE'));
+    check('renaming the custom status keeps it', (int) $renamed->id === $id && in_array('Payée CMI', $renamed->name, true));
+
+    // Back to a standard status.
+    $errors = $post(['CMI_CAPTURED_STATE' => (string) $states['paid']]);
+    check('a standard status can be chosen again', !$errors && (int) Configuration::get('CMI_CAPTURED_STATE') === $states['paid'], implode(' | ', $errors));
+    foreach ($saved as $key => $value) {
+        setting($key, $value);
+    }
+    setting('CMI_GATEWAY_URL', 'http://localhost:8090/fim/est3Dgate');
 };
 
 $scenarios['names'] = static function () {

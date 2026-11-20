@@ -44,6 +44,7 @@ This branch's package only installs on PrestaShop 8; the `ps9` shop is there to 
 | `foreign` | another website's transaction under the same OrderId is never confirmed or refunded |
 | `pending` | lost callback found by the cron check, wrong cron token, abandoned order cancelled |
 | `back-office` | refund made in the CMI back office blocks a refund until Check CMI records it; capture made in the back office |
-| `currency` | EUR order charged in MAD with a frozen rate, refund; offshore store in EUR; rate never set up refused |
+| `currency` | EUR order charged in MAD with a frozen rate, refund; 1.x offshore settings ignored (still MAD); rate never set up refused |
+| `custom-status` | settings form: custom status after capture created (paid, invoice, e-mail), used for a captured order, renamed, then a standard status again |
 | `names` | names in Arabic only refused |
 | `admin-panel` | order page panel variables and template |

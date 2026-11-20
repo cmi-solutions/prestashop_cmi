@@ -79,7 +79,7 @@ check('payment page URL moved', Configuration::get('CMI_GATEWAY_URL') === 'http:
 check('manual confirmation kept', Configuration::get('CMI_CONFIRMATION_MODE') === 'manual');
 check('server callback kept', Configuration::get('CMI_CALLBACK_MODE') === 'server');
 check('automatic redirect kept', Configuration::get('CMI_AUTO_REDIRECT') === '1');
-check('3-D Secure kept', Configuration::get('CMI_3D_SECURE') === '1');
+check('1.x 3-D Secure setting dropped (always 3-D Secure now)', !Configuration::hasKey('CMI_3D_SECURE') && !Configuration::hasKey('cardholder_authentication'));
 check('API credentials moved, Complete Kit chosen', Configuration::get('CMI_API_USERNAME') === 'apiuser' && Configuration::get('CMI_KIT') === 'complete');
 check('store currencies moved', Configuration::get('CMI_STORE_CURRENCIES') === '504');
 check('order ID prefix generated', (bool) preg_match('/^PS[0-9A-F]{4}-$/', (string) Configuration::get('CMI_OID_PREFIX')));

@@ -43,6 +43,20 @@
       kit.addEventListener('change', toggle);
       toggle();
     }
+
+    // "Order status after capture": the name and color fields only for "Custom".
+    var captured = document.querySelector('[name="CMI_CAPTURED_STATE"]');
+    var customRows = ['CMI_CUSTOM_STATE_NAME', 'CMI_CUSTOM_STATE_COLOR'].map(rowOf).filter(Boolean);
+    var toggleCustom = function () {
+      var custom = captured && captured.value === 'custom';
+      customRows.forEach(function (row) {
+        row.style.display = custom ? '' : 'none';
+      });
+    };
+    if (captured) {
+      captured.addEventListener('change', toggleCustom);
+      toggleCustom();
+    }
   }
 
   if (document.readyState === 'loading') {

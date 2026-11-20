@@ -148,7 +148,8 @@ class PaymentRequest
 
         $fields = [
             'clientid' => (string) $transaction->client_id,
-            'storetype' => $this->settings->isThreeDSecure() ? '3DPAYHOSTING' : 'PAYHOSTING',
+            // Always 3-D Secure, as CMI requires (and as the WooCommerce plugin sends).
+            'storetype' => '3d_pay_hosting',
             'hashAlgorithm' => 'ver3',
             'TranType' => 'PreAuth',
             'rnd' => (string) microtime(),
