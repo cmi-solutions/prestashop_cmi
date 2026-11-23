@@ -376,6 +376,11 @@ $scenarios['admin-token'] = static function () {
     $context = Context::getContext();
     $context->employee = new Employee(1);
     $_GET = ['controller' => 'AdminCmiPayment'];
+    // PrestaShop 9 checks the token through Symfony, which reads the current request.
+    global $kernel;
+    if ($kernel && $kernel->getContainer()->has('request_stack')) {
+        $kernel->getContainer()->get('request_stack')->push(Symfony\Component\HttpFoundation\Request::create('/admin-dev/index.php', 'POST', ['cmi_action' => 'refund']));
+    }
     require_once _PS_MODULE_DIR_ . 'cmi/controllers/admin/AdminCmiPaymentController.php';
     $controller = new AdminCmiPaymentController();
     $_POST = ['cmi_action' => 'refund'];
