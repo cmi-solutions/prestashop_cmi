@@ -1,4 +1,5 @@
 <?php
+
 /**
  * CMI payment module for PrestaShop.
  *
@@ -10,8 +11,6 @@ namespace Cmi\PrestaShop\Service;
 
 use Cmi\PrestaShop\Model\CmiTransaction;
 use Order;
-use OrderPayment;
-use Validate;
 
 if (!defined('_PS_VERSION_')) {
     exit;
@@ -22,20 +21,21 @@ if (!defined('_PS_VERSION_')) {
  */
 class OrderUpdater
 {
-    /** @return Order[] every order of the transaction's cart (several with split shipments) */
+    /** @return \Order[] every order of the transaction's cart (several with split shipments) */
     public function ordersOf(CmiTransaction $transaction): array
     {
         $orders = [];
         if ((string) $transaction->order_reference !== '') {
-            foreach (Order::getByReference($transaction->order_reference) as $order) {
+            /** @var \Order $order */
+            foreach (\Order::getByReference($transaction->order_reference) as $order) {
                 if ((int) $order->id_cart === (int) $transaction->id_cart) {
                     $orders[(int) $order->id] = $order;
                 }
             }
         }
         if (!$orders && (int) $transaction->id_order) {
-            $order = new Order((int) $transaction->id_order);
-            if (Validate::isLoadedObject($order)) {
+            $order = new \Order((int) $transaction->id_order);
+            if (\Validate::isLoadedObject($order)) {
                 $orders[(int) $order->id] = $order;
             }
         }
@@ -91,7 +91,7 @@ class OrderUpdater
     /** @return int[] current state of each order */
     public function currentStates(CmiTransaction $transaction): array
     {
-        return array_map(static function (Order $order): int {
+        return array_map(static function (\Order $order): int {
             return (int) $order->getCurrentState();
         }, $this->ordersOf($transaction));
     }
@@ -109,7 +109,7 @@ class OrderUpdater
         $pan = preg_replace('/[^0-9*Xx ]/', '', (string) ($answer['MaskedPan'] ?? ''));
         $lastDigits = substr((string) preg_replace('/\D/', '', (string) $pan), -4);
         $brand = substr(trim((string) preg_replace('/[^A-Za-z0-9 _-]/', '', (string) ($answer['EXTRA_CARDBRAND'] ?? ''))), 0, 254);
-        foreach (OrderPayment::getByOrderReference($transaction->order_reference) as $payment) {
+        foreach (\OrderPayment::getByOrderReference($transaction->order_reference) as $payment) {
             if ((string) $payment->transaction_id !== '' && (string) $payment->transaction_id !== $transId) {
                 continue;
             }

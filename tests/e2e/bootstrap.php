@@ -1,4 +1,5 @@
 <?php
+
 /**
  * Test bench: start PrestaShop from the command line the way bin/console does, Symfony kernel
  * included (modules need it on PrestaShop 9, and for some services on 8).

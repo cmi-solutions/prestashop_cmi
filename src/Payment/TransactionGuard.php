@@ -1,4 +1,5 @@
 <?php
+
 /**
  * CMI payment module for PrestaShop.
  *
@@ -167,11 +168,11 @@ final class TransactionGuard
     /**
      * Whether the CMI transaction behind an OrderId is this order's own payment.
      *
-     * @param array    $status  parsed ORDERSTATUS answer
+     * @param array $status parsed ORDERSTATUS answer
      * @param string[] $history ORDERHISTORY lines (may be empty when not fetched)
-     * @param array    $ours    ids (string[]: TransId / HostRefNum from our signed callbacks and
-     *                          our own API calls), amount_minor (?int, amount sent, minor units),
-     *                          sent_at (?int, when first sent to CMI)
+     * @param array $ours ids (string[]: TransId / HostRefNum from our signed callbacks and
+     *                    our own API calls), amount_minor (?int, amount sent, minor units),
+     *                    sent_at (?int, when first sent to CMI)
      */
     public static function ownership(array $status, array $history, array $ours): string
     {

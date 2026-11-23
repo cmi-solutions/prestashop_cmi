@@ -1,4 +1,5 @@
 <?php
+
 /**
  * CMI payment module for PrestaShop.
  *
@@ -12,7 +13,6 @@ use Cmi\PrestaShop\Model\CmiTransaction;
 use Cmi\PrestaShop\Payment\PaymentState;
 use Cmi\PrestaShop\Protocol\CmiProtocol;
 use Cmi\PrestaShop\Services;
-use Context;
 use Order;
 
 if (!defined('_PS_VERSION_')) {
@@ -32,10 +32,10 @@ class OrderPanel
     private $module;
     /** @var Services */
     private $services;
-    /** @var Context */
+    /** @var \Context */
     private $context;
 
-    public function __construct(\PaymentModule $module, Services $services, Context $context)
+    public function __construct(\PaymentModule $module, Services $services, \Context $context)
     {
         $this->module = $module;
         $this->services = $services;
@@ -43,7 +43,7 @@ class OrderPanel
     }
 
     /** @return array<string, mixed>|null template variables, null when the order was not paid with CMI */
-    public function variables(Order $order): ?array
+    public function variables(\Order $order): ?array
     {
         $transaction = $this->services->repository()->findByOrder($order)
             ?? $this->services->legacy()->forOrder($order, $this->module->name);
@@ -138,20 +138,20 @@ class OrderPanel
     private function takeFlash(): ?array
     {
         $cookie = $this->context->cookie;
-        $raw = isset($cookie->{self::FLASH_COOKIE}) ? (string) $cookie->{self::FLASH_COOKIE} : '';
+        $raw = $cookie->__isset(self::FLASH_COOKIE) ? (string) $cookie->__get(self::FLASH_COOKIE) : '';
         if ($raw === '') {
             return null;
         }
-        unset($cookie->{self::FLASH_COOKIE});
+        $cookie->__unset(self::FLASH_COOKIE);
         $cookie->write();
         $flash = json_decode($raw, true);
 
         return is_array($flash) && isset($flash['type'], $flash['message']) ? ['type' => (string) $flash['type'], 'message' => (string) $flash['message']] : null;
     }
 
-    public static function setFlash(Context $context, bool $success, string $message): void
+    public static function setFlash(\Context $context, bool $success, string $message): void
     {
-        $context->cookie->{self::FLASH_COOKIE} = (string) json_encode(['type' => $success ? 'success' : 'danger', 'message' => $message]);
+        $context->cookie->__set(self::FLASH_COOKIE, (string) json_encode(['type' => $success ? 'success' : 'danger', 'message' => $message]));
         $context->cookie->write();
     }
 

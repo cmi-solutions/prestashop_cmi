@@ -1,4 +1,5 @@
 <?php
+
 /**
  * CMI payment module for PrestaShop.
  *
@@ -167,6 +168,8 @@ class CmiValidationModuleFrontController extends ModuleFrontController
             'cmi_cancel_url' => $fields['shopurl'],
             'cmi_reference' => (string) $order->reference,
         ]);
+        // Sends the form to CMI (views/js, not inline: compatible with a Content-Security-Policy).
+        $this->registerJavascript('module-cmi-redirect', 'modules/' . $this->module->name . '/views/js/redirect.js', ['position' => 'bottom', 'priority' => 200]);
         $this->setTemplate('module:cmi/views/templates/front/redirect.tpl');
     }
 
@@ -187,13 +190,18 @@ class CmiValidationModuleFrontController extends ModuleFrontController
     {
         $orders = [];
         $reference = (string) $this->module->currentOrderReference;
+        /** @var Order $order */
         foreach ($reference !== '' ? Order::getByReference($reference) : [] as $order) {
             if ((int) $order->id_cart === $idCart) {
                 $orders[(int) $order->id] = $order;
             }
         }
-        if (!$orders && ($order = Order::getByCartId($idCart)) && Validate::isLoadedObject($order)) {
-            $orders[(int) $order->id] = $order;
+        if (!$orders) {
+            /** @var Order|null $order */
+            $order = Order::getByCartId($idCart);
+            if ($order && Validate::isLoadedObject($order)) {
+                $orders[(int) $order->id] = $order;
+            }
         }
         ksort($orders);
 

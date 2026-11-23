@@ -1,4 +1,5 @@
 <?php
+
 /**
  * Mock of CMI for the test bench: hosted payment page, server callback, XML API, plus test
  * helpers (/mock/*). It reuses the module's signature code, so it signs exactly like CMI's

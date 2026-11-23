@@ -1,4 +1,5 @@
 <?php
+
 /**
  * Test bench: upgrade from version 1.1.0.
  *   php upgrade-check.php before   with 1.1.0 installed: write 1.x settings and a 1.x-style paid order

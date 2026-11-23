@@ -1,4 +1,5 @@
 <?php
+
 /**
  * CMI payment module for PrestaShop.
  *
@@ -142,8 +143,8 @@ final class CmiProtocol
     /**
      * XML request for CMI's API, every value escaped.
      *
-     * @param string      $type     PostAuth, Void, Credit, ORDERSTATUS or ORDERHISTORY
-     * @param string|null $total    amount ("150.00"): partial PostAuth, Credit (required)
+     * @param string $type PostAuth, Void, Credit, ORDERSTATUS or ORDERHISTORY
+     * @param string|null $total amount ("150.00"): partial PostAuth, Credit (required)
      * @param string|null $currency ISO 4217 numeric code, for Credit ("504")
      *
      * @return string|null the XML, or null for an unknown type

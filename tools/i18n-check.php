@@ -1,4 +1,5 @@
 <?php
+
 /**
  * Checks that every text of the module has a French translation, and that every other language
  * (translations/<locale>/) translates every French text with the same %placeholders%.

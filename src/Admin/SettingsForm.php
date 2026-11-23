@@ -1,4 +1,5 @@
 <?php
+
 /**
  * CMI payment module for PrestaShop.
  *
@@ -11,11 +12,6 @@ namespace Cmi\PrestaShop\Admin;
 use Cmi\PrestaShop\Config\Settings;
 use Cmi\PrestaShop\Payment\TransactionGuard;
 use Configuration;
-use Context;
-use HelperForm;
-use Language;
-use OrderState;
-use Tools;
 
 if (!defined('_PS_VERSION_')) {
     exit;
@@ -39,12 +35,12 @@ class SettingsForm
 
     /** @var \Module */
     private $module;
-    /** @var Context */
+    /** @var \Context */
     private $context;
     /** @var bool the last submission was refused: show what was typed, not what is saved */
     private $refused = false;
 
-    public function __construct(\Module $module, Context $context)
+    public function __construct(\Module $module, \Context $context)
     {
         $this->module = $module;
         $this->context = $context;
@@ -77,7 +73,7 @@ class SettingsForm
             if (in_array($key, self::SECRETS, true) && $value === '') {
                 continue;
             }
-            Configuration::updateValue($key, $value);
+            \Configuration::updateValue($key, $value);
         }
 
         return [];
@@ -92,7 +88,7 @@ class SettingsForm
             Settings::CLIENT_ID, Settings::ENVIRONMENT, Settings::GATEWAY_URL, Settings::STORE_KEY,
             Settings::API_URL, Settings::API_USERNAME, Settings::API_PASSWORD, Settings::OID_PREFIX,
         ] as $key) {
-            $values[$key] = trim((string) Tools::getValue($key, ''));
+            $values[$key] = trim((string) \Tools::getValue($key, ''));
         }
         // Empty addresses take those of the chosen CMI platform.
         $platform = Settings::PLATFORM_URLS[$values[Settings::ENVIRONMENT]] ?? null;
@@ -102,17 +98,17 @@ class SettingsForm
         if ($platform !== null && $values[Settings::API_URL] === '' && $values[Settings::KIT] === Settings::KIT_COMPLETE) {
             $values[Settings::API_URL] = $platform['api'];
         }
-        $values[Settings::AUTO_REDIRECT] = (int) (bool) Tools::getValue(Settings::AUTO_REDIRECT);
-        $values[Settings::DELETE_DATA_ON_UNINSTALL] = (int) (bool) Tools::getValue(Settings::DELETE_DATA_ON_UNINSTALL);
-        $captured = (string) Tools::getValue(Settings::CAPTURED_STATE);
+        $values[Settings::AUTO_REDIRECT] = (int) (bool) \Tools::getValue(Settings::AUTO_REDIRECT);
+        $values[Settings::DELETE_DATA_ON_UNINSTALL] = (int) (bool) \Tools::getValue(Settings::DELETE_DATA_ON_UNINSTALL);
+        $captured = (string) \Tools::getValue(Settings::CAPTURED_STATE);
         $values[Settings::CAPTURED_STATE] = $captured === self::CUSTOM_STATE ? self::CUSTOM_STATE : (int) $captured;
-        $values[self::CUSTOM_STATE_NAME] = trim(strip_tags((string) Tools::getValue(self::CUSTOM_STATE_NAME, '')));
-        $values[self::CUSTOM_STATE_COLOR] = trim((string) Tools::getValue(self::CUSTOM_STATE_COLOR, ''));
+        $values[self::CUSTOM_STATE_NAME] = trim(strip_tags((string) \Tools::getValue(self::CUSTOM_STATE_NAME, '')));
+        $values[self::CUSTOM_STATE_COLOR] = trim((string) \Tools::getValue(self::CUSTOM_STATE_COLOR, ''));
         $values[Settings::OID_PREFIX] = TransactionGuard::sanitizeOidPrefix($values[Settings::OID_PREFIX]);
         foreach ([Settings::TITLE, Settings::DESCRIPTION] as $key) {
             $values[$key] = [];
-            foreach (Language::getLanguages(false) as $language) {
-                $values[$key][(int) $language['id_lang']] = trim(strip_tags((string) Tools::getValue($key . '_' . (int) $language['id_lang'], '')));
+            foreach (\Language::getLanguages(false) as $language) {
+                $values[$key][(int) $language['id_lang']] = trim(strip_tags((string) \Tools::getValue($key . '_' . (int) $language['id_lang'], '')));
             }
         }
 
@@ -132,7 +128,7 @@ class SettingsForm
         if (!$this->isHttpsUrl($values[Settings::GATEWAY_URL])) {
             $errors[] = $this->t('The payment page URL must be a valid https:// address, for example https://payment.cmi.co.ma/fim/est3Dgate.');
         }
-        $storeKey = $values[Settings::STORE_KEY] !== '' ? $values[Settings::STORE_KEY] : (string) Configuration::get(Settings::STORE_KEY);
+        $storeKey = $values[Settings::STORE_KEY] !== '' ? $values[Settings::STORE_KEY] : (string) \Configuration::get(Settings::STORE_KEY);
         if ($storeKey === '') {
             $errors[] = $this->t('Enter the store key (hash key) set in your CMI merchant center.');
         } elseif (!TransactionGuard::isValidStoreKey($storeKey)) {
@@ -151,7 +147,7 @@ class SettingsForm
             $errors[] = $this->t('Choose the payment page language.');
         }
         if ($values[Settings::KIT] === Settings::KIT_COMPLETE) {
-            $apiPassword = $values[Settings::API_PASSWORD] !== '' ? $values[Settings::API_PASSWORD] : (string) Configuration::get(Settings::API_PASSWORD);
+            $apiPassword = $values[Settings::API_PASSWORD] !== '' ? $values[Settings::API_PASSWORD] : (string) \Configuration::get(Settings::API_PASSWORD);
             if (!$this->isHttpsUrl($values[Settings::API_URL]) || $values[Settings::API_USERNAME] === '' || $apiPassword === '') {
                 $errors[] = $this->t('The Complete Kit needs the API credentials provided by CMI: API URL (https://), username and password.');
             } elseif (stripos($values[Settings::API_URL], 'est3Dgate') !== false) {
@@ -171,7 +167,7 @@ class SettingsForm
                 $errors[] = $this->t('The color of the custom order status must be like #32CD32.');
             }
         } else {
-            $state = new OrderState((int) $values[Settings::CAPTURED_STATE]);
+            $state = new \OrderState((int) $values[Settings::CAPTURED_STATE]);
             if (!\Validate::isLoadedObject($state) || $state->deleted || !$state->paid) {
                 $errors[] = $this->t('Choose a "paid" order status for captured payments.');
             }
@@ -188,9 +184,9 @@ class SettingsForm
      */
     private function saveCustomState(string $name, string $color): int
     {
-        $state = new OrderState((int) Configuration::getGlobalValue(Settings::OS_CUSTOM_CAPTURED));
+        $state = new \OrderState((int) \Configuration::getGlobalValue(Settings::OS_CUSTOM_CAPTURED));
         if (!\Validate::isLoadedObject($state) || $state->deleted) {
-            $state = new OrderState();
+            $state = new \OrderState();
             $state->module_name = $this->module->name;
             $state->unremovable = false;
             $state->hidden = false;
@@ -198,7 +194,7 @@ class SettingsForm
             $state->delivery = false;
             $state->shipped = false;
         }
-        foreach (Language::getLanguages(false) as $language) {
+        foreach (\Language::getLanguages(false) as $language) {
             $state->name[(int) $language['id_lang']] = $name;
             $state->template[(int) $language['id_lang']] = 'payment';
         }
@@ -211,7 +207,7 @@ class SettingsForm
         if (!$state->save()) {
             return 0;
         }
-        Configuration::updateGlobalValue(Settings::OS_CUSTOM_CAPTURED, (int) $state->id);
+        \Configuration::updateGlobalValue(Settings::OS_CUSTOM_CAPTURED, (int) $state->id);
 
         return (int) $state->id;
     }
@@ -219,16 +215,16 @@ class SettingsForm
     public function render(): string
     {
         $idLang = (int) $this->context->language->id;
-        $helper = new HelperForm();
+        $helper = new \HelperForm();
         $helper->module = $this->module;
         $helper->name_controller = $this->module->name;
         $helper->table = 'configuration';
         $helper->identifier = 'id_configuration';
-        $helper->token = Tools::getAdminTokenLite('AdminModules');
+        $helper->token = \Tools::getAdminTokenLite('AdminModules');
         $helper->currentIndex = $this->context->link->getAdminLink('AdminModules', false)
             . '&configure=' . $this->module->name . '&tab_module=' . $this->module->tab . '&module_name=' . $this->module->name;
         $helper->default_form_language = $idLang;
-        $helper->allow_employee_form_lang = (int) Configuration::get('PS_BO_ALLOW_EMPLOYEE_FORM_LANG');
+        $helper->allow_employee_form_lang = (int) \Configuration::get('PS_BO_ALLOW_EMPLOYEE_FORM_LANG');
         $helper->submit_action = self::SUBMIT;
         $helper->tpl_vars = [
             'fields_value' => $this->fieldValues(),
@@ -246,8 +242,8 @@ class SettingsForm
             ['id' => 'off', 'value' => 0, 'label' => $this->t('No')],
         ];
         $submit = ['title' => $this->t('Save'), 'name' => self::SUBMIT];
-        $prefix = (string) Configuration::get(Settings::OID_PREFIX);
-        $cronUrl = $this->context->link->getModuleLink($this->module->name, 'cron', ['token' => (string) Configuration::get(Settings::CRON_TOKEN)], true);
+        $prefix = (string) \Configuration::get(Settings::OID_PREFIX);
+        $cronUrl = $this->context->link->getModuleLink($this->module->name, 'cron', ['token' => (string) \Configuration::get(Settings::CRON_TOKEN)], true);
 
         return [
             ['form' => [
@@ -353,9 +349,9 @@ class SettingsForm
             Settings::API_USERNAME, Settings::OID_PREFIX, Settings::AUTO_REDIRECT, Settings::CAPTURED_STATE,
             Settings::DELETE_DATA_ON_UNINSTALL,
         ] as $key) {
-            $values[$key] = $this->refused ? Tools::getValue($key, Configuration::get($key)) : Configuration::get($key);
+            $values[$key] = $this->refused ? \Tools::getValue($key, \Configuration::get($key)) : \Configuration::get($key);
         }
-        $values[Settings::ENVIRONMENT] = $this->refused ? Tools::getValue(Settings::ENVIRONMENT) : (new Settings())->environment();
+        $values[Settings::ENVIRONMENT] = $this->refused ? \Tools::getValue(Settings::ENVIRONMENT) : (new Settings())->environment();
         // Secrets are never written into the page.
         $values[Settings::STORE_KEY] = '';
         $values[Settings::API_PASSWORD] = '';
@@ -366,15 +362,15 @@ class SettingsForm
         }
         $idLang = (int) $this->context->language->id;
         $values[self::CUSTOM_STATE_NAME] = $this->refused
-            ? Tools::getValue(self::CUSTOM_STATE_NAME, '')
+            ? \Tools::getValue(self::CUSTOM_STATE_NAME, '')
             : ($custom ? (string) ($custom->name[$idLang] ?? reset($custom->name)) : '');
         $values[self::CUSTOM_STATE_COLOR] = $this->refused
-            ? Tools::getValue(self::CUSTOM_STATE_COLOR, '#32CD32')
+            ? \Tools::getValue(self::CUSTOM_STATE_COLOR, '#32CD32')
             : ($custom ? (string) $custom->color : '#32CD32');
         foreach ([Settings::TITLE, Settings::DESCRIPTION] as $key) {
-            foreach (Language::getLanguages(false) as $language) {
+            foreach (\Language::getLanguages(false) as $language) {
                 $idLang = (int) $language['id_lang'];
-                $values[$key][$idLang] = $this->refused ? Tools::getValue($key . '_' . $idLang, Configuration::get($key, $idLang)) : Configuration::get($key, $idLang);
+                $values[$key][$idLang] = $this->refused ? \Tools::getValue($key . '_' . $idLang, \Configuration::get($key, $idLang)) : \Configuration::get($key, $idLang);
             }
         }
         $values['cmi_cron'] = '';
@@ -387,7 +383,7 @@ class SettingsForm
     {
         $custom = $this->customState();
         $states = [];
-        foreach (OrderState::getOrderStates((int) $this->context->language->id) as $state) {
+        foreach (\OrderState::getOrderStates((int) $this->context->language->id) as $state) {
             if ((int) $state['paid'] === 1 && empty($state['deleted']) && (!$custom || (int) $state['id_order_state'] !== (int) $custom->id)) {
                 $states[] = ['id_order_state' => (int) $state['id_order_state'], 'name' => (string) $state['name']];
             }
@@ -403,20 +399,20 @@ class SettingsForm
     }
 
     /** The order status created through "Custom", if any. */
-    private function customState(): ?OrderState
+    private function customState(): ?\OrderState
     {
-        $id = (int) Configuration::getGlobalValue(Settings::OS_CUSTOM_CAPTURED);
+        $id = (int) \Configuration::getGlobalValue(Settings::OS_CUSTOM_CAPTURED);
         if ($id <= 0) {
             return null;
         }
-        $state = new OrderState($id);
+        $state = new \OrderState($id);
 
         return \Validate::isLoadedObject($state) && !$state->deleted ? $state : null;
     }
 
     private function secretDescription(string $key, string $description): string
     {
-        $saved = (string) Configuration::get($key) !== '';
+        $saved = (string) \Configuration::get($key) !== '';
 
         return trim($description . ' ' . ($saved ? $this->t('A value is saved: leave the field empty to keep it.') : ''));
     }
