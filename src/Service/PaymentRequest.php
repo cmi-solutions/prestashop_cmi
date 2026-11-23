@@ -139,7 +139,6 @@ class PaymentRequest
         $order = new \Order((int) $transaction->id_order);
         $country = new \Country((int) $address->id_country);
         $state = $address->id_state ? new \State((int) $address->id_state) : null;
-        $serverCallback = $this->settings->callbackMode() === Settings::CALLBACK_SERVER;
         $returnUrl = $link->getModuleLink('cmi', 'return', [], true);
 
         $fields = [
@@ -156,7 +155,8 @@ class PaymentRequest
             'okUrl' => $returnUrl,
             'failUrl' => $returnUrl,
             'shopurl' => $link->getModuleLink('cmi', 'cancel', ['id_order' => (int) $order->id, 'key' => (string) $order->secure_key], true),
-            'CallbackResponse' => $serverCallback ? 'true' : 'false',
+            // CMI calls the shop after each payment (callbackUrl), as in the WooCommerce plugin.
+            'CallbackResponse' => 'true',
             'AutoRedirect' => $this->settings->isAutoRedirect() ? 'true' : 'false',
             'refreshtime' => '5',
             'email' => (string) $customer->email,
@@ -170,11 +170,9 @@ class PaymentRequest
             'tel' => CmiProtocol::cleanPhone((string) ($address->phone_mobile ?: $address->phone)),
             'encoding' => 'UTF-8',
         ];
-        if ($serverCallback) {
-            // CMI calls this after each payment. The answer decides the capture: ACTION=POSTAUTH
-            // in automatic confirmation, APPROVED in manual confirmation (stays pre-authorized).
-            $fields['callbackUrl'] = $link->getModuleLink('cmi', 'callback', [], true);
-        }
+        // CMI calls this after each payment. The answer decides the capture: ACTION=POSTAUTH in
+        // automatic confirmation, APPROVED in manual confirmation (stays pre-authorized).
+        $fields['callbackUrl'] = $link->getModuleLink('cmi', 'callback', [], true);
         if ($transaction->isConverted()) {
             // Shown on CMI's page next to the MAD amount.
             $fields['amountCur'] = CmiProtocol::formatAmount((float) $transaction->amount_order);

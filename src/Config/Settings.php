@@ -34,6 +34,7 @@ final class Settings
     public const API_USERNAME = 'CMI_API_USERNAME';
     public const API_PASSWORD = 'CMI_API_PASSWORD';
     public const CONFIRMATION_MODE = 'CMI_CONFIRMATION_MODE';
+    /** Removed setting: CMI always calls the shop (server callback). Only deleted on uninstall. */
     public const CALLBACK_MODE = 'CMI_CALLBACK_MODE';
     /** Removed setting: payments always go through 3-D Secure. Only deleted on uninstall. */
     public const THREE_D_SECURE = 'CMI_3D_SECURE';
@@ -59,10 +60,6 @@ final class Settings
     public const KIT_COMPLETE = 'complete';
     public const MODE_AUTOMATIC = 'automatic';
     public const MODE_MANUAL = 'manual';
-    /** CMI calls the shop server to server (recommended). */
-    public const CALLBACK_SERVER = 'server';
-    /** CMI only sends the result through the customer's browser (shops CMI's servers cannot reach). */
-    public const CALLBACK_BROWSER = 'browser';
     public const ENV_TEST = 'test';
     public const ENV_PRODUCTION = 'production';
 
@@ -173,11 +170,6 @@ final class Settings
     public function confirmationMode(): string
     {
         return $this->get(self::CONFIRMATION_MODE) === self::MODE_MANUAL ? self::MODE_MANUAL : self::MODE_AUTOMATIC;
-    }
-
-    public function callbackMode(): string
-    {
-        return $this->get(self::CALLBACK_MODE) === self::CALLBACK_BROWSER ? self::CALLBACK_BROWSER : self::CALLBACK_SERVER;
     }
 
     public function isAutoRedirect(): bool

@@ -295,6 +295,24 @@ class Cmi extends PaymentModule
         $name = isset($controller->controller_name) ? (string) $controller->controller_name : (string) Tools::getValue('controller');
         if ($name === 'AdminOrders') {
             $controller->addCSS($this->_path . 'views/css/admin.css');
+            if ($this->services()->settings()->isApiEnabled()) {
+                // The orders list: Confirm, Void, Refund and Check CMI in the CMI column.
+                $translator = $this->getTranslator();
+                Media::addJsDef(['cmiOrderList' => [
+                    'url' => $this->context->link->getAdminLink('AdminCmiPayment', true),
+                    'texts' => [
+                        'confirm' => $translator->trans('Confirm', [], 'Modules.Cmi.Admin'),
+                        'void' => $translator->trans('Void', [], 'Modules.Cmi.Admin'),
+                        'refund' => $translator->trans('Refund', [], 'Modules.Cmi.Admin'),
+                        'check' => $translator->trans('Check CMI', [], 'Modules.Cmi.Admin'),
+                        'confirm_question' => $translator->trans('Confirm this payment and capture %amount% %currency%?', ['%amount%' => '%amount%', '%currency%' => '%currency%'], 'Modules.Cmi.Admin'),
+                        'confirm_old' => $translator->trans('This pre-authorization is %days% days old. Banks may refuse to capture it, and the customer may not expect the charge any more: we advise you to inform the customer first. Confirm anyway?', ['%days%' => '%days%'], 'Modules.Cmi.Admin'),
+                        'void_question' => $translator->trans('Void this pre-authorization? The customer will not be charged and the order will be cancelled.', [], 'Modules.Cmi.Admin'),
+                        'refund_question' => $translator->trans('Refund %amount% %currency% to the customer\'s card?', ['%amount%' => '%amount%', '%currency%' => '%currency%'], 'Modules.Cmi.Admin'),
+                        'partial' => $translator->trans('For a partial refund, open the order.', [], 'Modules.Cmi.Admin'),
+                    ],
+                ]]);
+            }
             $controller->addJS($this->_path . 'views/js/admin-order.js');
         } elseif ($name === 'AdminModules' && Tools::getValue('configure') === $this->name) {
             $controller->addCSS($this->_path . 'views/css/admin.css');

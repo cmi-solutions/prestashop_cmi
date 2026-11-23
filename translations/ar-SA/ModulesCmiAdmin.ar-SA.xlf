@@ -54,10 +54,6 @@
         <source>Arabic</source>
         <target>العربية</target>
       </trans-unit>
-      <trans-unit id="e8ce5d185fb18a71da9988b80e6835c3">
-        <source>Automatic capture failed: %error% Confirm the payment from this page or the CMI back office.</source>
-        <target>فشل التحصيل التلقائي: %error% أكّد الدفع من هذه الصفحة أو من الواجهة الخلفية لـ CMI.</target>
-      </trans-unit>
       <trans-unit id="45ddab4914f718601510f75a64c71805">
         <source>Automatic check: CMI could not be reached (%error%).</source>
         <target>تحقق تلقائي: تعذر الاتصال بـ CMI (%error%).</target>
@@ -89,10 +85,6 @@
       <trans-unit id="ebb8d514f56157d7bd513eefdd9adb63">
         <source>Awaiting payment</source>
         <target>في انتظار الدفع</target>
-      </trans-unit>
-      <trans-unit id="d1992d5a0d483d4bafbb6ff7798e3efe">
-        <source>Browser return only</source>
-        <target>العودة عبر المتصفح فقط</target>
       </trans-unit>
       <trans-unit id="5efaedb99e7a4140a23f27d28214c895">
         <source>CMI</source>
@@ -266,10 +258,6 @@
         <source>Choose a confirmation mode.</source>
         <target>اختر طريقة التأكيد.</target>
       </trans-unit>
-      <trans-unit id="a98fb034225e1c7abbae6d86bb33403b">
-        <source>Choose how CMI sends the payment result.</source>
-        <target>اختر كيف يرسل CMI نتيجة الدفع.</target>
-      </trans-unit>
       <trans-unit id="41e7605badf961b638a98b8cac064ede">
         <source>Choose the CMI platform: test or production.</source>
         <target>اختر منصة CMI: الاختبار أو الإنتاج.</target>
@@ -326,14 +314,6 @@
         <source>Custom: create my own status...</source>
         <target>مخصصة: إنشاء حالتي الخاصة...</target>
       </trans-unit>
-      <trans-unit id="449397651d0505fa62f599ed7cb085e2">
-        <source>Customer return from CMI</source>
-        <target>عودة حامل البطاقة من CMI</target>
-      </trans-unit>
-      <trans-unit id="d92533874f226dcb3e6a7eac43b0bd9c">
-        <source>Customer return from CMI: payment approved (TransId: %transid%), waiting for CMI&apos;s callback to complete it.</source>
-        <target>عودة حامل البطاقة من CMI: تمت الموافقة على الدفع (TransId: %transid%)، في انتظار إشعار CMI لإتمامه.</target>
-      </trans-unit>
       <trans-unit id="aeb34e8bf442f920b2bd64ba3ba204f3">
         <source>Customer&apos;s language</source>
         <target>لغة الزبون</target>
@@ -370,6 +350,10 @@
         <source>Failed</source>
         <target>فشل</target>
       </trans-unit>
+      <trans-unit id="fc1af95be8d11bc74875e635dbd61e02">
+        <source>For a partial refund, open the order.</source>
+        <target>للاسترداد الجزئي، افتح الطلب.</target>
+      </trans-unit>
       <trans-unit id="ad225f707802ba118c22987186dd38e8">
         <source>French</source>
         <target>الفرنسية</target>
@@ -381,10 +365,6 @@
       <trans-unit id="53e709001d05d53e8cad58a755b5d0ef">
         <source>HTTPS is not enabled on this shop. CMI requires https:// addresses for the payment return and callback.</source>
         <target>بروتوكول HTTPS غير مفعّل في هذا المتجر. يتطلب CMI عناوين https:// للعودة من الدفع وللإشعار.</target>
-      </trans-unit>
-      <trans-unit id="27a10e2d145d2b26b1403a0b6d043ce7">
-        <source>In &quot;browser return&quot; mode, automatic confirmation captures payments through the CMI API: choose the Complete Kit, or the manual confirmation mode.</source>
-        <target>في وضع «العودة عبر المتصفح»، يحصّل التأكيد التلقائي المدفوعات عبر API لـ CMI: اختر العُدّة الكاملة أو طريقة التأكيد اليدوية.</target>
       </trans-unit>
       <trans-unit id="4e7f26d58027e5f9611cc5fe9d901e06">
         <source>Invalid refund amount.</source>
@@ -490,14 +470,6 @@
         <source>Payment page language</source>
         <target>لغة صفحة الدفع</target>
       </trans-unit>
-      <trans-unit id="5c28c6ba2964636df568614cdd480495">
-        <source>Payment pre-authorized. Without the Complete Kit it cannot be captured automatically in &quot;browser return&quot; mode: confirm it in the CMI back office.</source>
-        <target>تم التفويض المسبق للدفع. بدون العُدّة الكاملة لا يمكن تحصيله تلقائيًا في وضع «العودة عبر المتصفح»: أكّده في الواجهة الخلفية لـ CMI.</target>
-      </trans-unit>
-      <trans-unit id="680d75f9122560a05a66159fbfe5b0f9">
-        <source>Payment result</source>
-        <target>نتيجة الدفع</target>
-      </trans-unit>
       <trans-unit id="36894941ed1e282d8c001a58c83e11cc">
         <source>Payment setup</source>
         <target>إعداد الدفع</target>
@@ -569,14 +541,6 @@
       <trans-unit id="296cf745bf3fea7e1fde76f05c56f9cc">
         <source>Send customers back to the shop as soon as the payment is finished. When off, they stay on CMI&apos;s result page and come back themselves.</source>
         <target>إعادة الزبناء إلى المتجر بمجرد انتهاء الدفع. عند التعطيل، يبقون في صفحة نتيجة CMI ويعودون بأنفسهم.</target>
-      </trans-unit>
-      <trans-unit id="12d59c0990568b8e99801e0c30ec6ba1">
-        <source>Server to server (recommended)</source>
-        <target>من خادم إلى خادم (موصى به)</target>
-      </trans-unit>
-      <trans-unit id="8448e869329a899feff2ca85822b1194">
-        <source>Server to server: CMI calls your shop directly after each payment (recommended; your shop must be reachable from the internet). Browser return only: the result comes back with the customer, for shops CMI cannot reach.</source>
-        <target>من خادم إلى خادم: يتصل CMI بمتجرك مباشرة بعد كل دفع (موصى به؛ يجب أن يكون متجرك متاحًا من الإنترنت). العودة عبر المتصفح فقط: تعود النتيجة مع حامل البطاقة، للمتاجر التي لا يستطيع CMI الوصول إليها.</target>
       </trans-unit>
       <trans-unit id="9a7e58ee13cb727cb7c4acc68f4cafe5">
         <source>Settings saved.</source>

@@ -84,7 +84,7 @@ class SettingsForm
     {
         $values = [];
         foreach ([
-            Settings::KIT, Settings::CONFIRMATION_MODE, Settings::CALLBACK_MODE, Settings::PAYMENT_LANGUAGE,
+            Settings::KIT, Settings::CONFIRMATION_MODE, Settings::PAYMENT_LANGUAGE,
             Settings::CLIENT_ID, Settings::ENVIRONMENT, Settings::GATEWAY_URL, Settings::STORE_KEY,
             Settings::API_URL, Settings::API_USERNAME, Settings::API_PASSWORD, Settings::OID_PREFIX,
         ] as $key) {
@@ -140,9 +140,6 @@ class SettingsForm
         if (!in_array($values[Settings::CONFIRMATION_MODE], [Settings::MODE_AUTOMATIC, Settings::MODE_MANUAL], true)) {
             $errors[] = $this->t('Choose a confirmation mode.');
         }
-        if (!in_array($values[Settings::CALLBACK_MODE], [Settings::CALLBACK_SERVER, Settings::CALLBACK_BROWSER], true)) {
-            $errors[] = $this->t('Choose how CMI sends the payment result.');
-        }
         if (!in_array($values[Settings::PAYMENT_LANGUAGE], ['auto', 'fr', 'en', 'ar'], true)) {
             $errors[] = $this->t('Choose the payment page language.');
         }
@@ -153,10 +150,6 @@ class SettingsForm
             } elseif (stripos($values[Settings::API_URL], 'est3Dgate') !== false) {
                 $errors[] = $this->t('The CMI API URL is not the payment page URL: it usually ends with /fim/api.');
             }
-        }
-        if ($values[Settings::CALLBACK_MODE] === Settings::CALLBACK_BROWSER && $values[Settings::CONFIRMATION_MODE] === Settings::MODE_AUTOMATIC
-            && $values[Settings::KIT] !== Settings::KIT_COMPLETE) {
-            $errors[] = $this->t('In "browser return" mode, automatic confirmation captures payments through the CMI API: choose the Complete Kit, or the manual confirmation mode.');
         }
         if ($values[Settings::CAPTURED_STATE] === self::CUSTOM_STATE) {
             $name = $values[self::CUSTOM_STATE_NAME];
@@ -278,12 +271,6 @@ class SettingsForm
                         'desc' => $this->t('Name of your status, for example "Paid by card (CMI)". It counts as paid, gives an invoice and sends the "payment accepted" e-mail. You can rename it here later.')],
                     ['type' => 'color', 'name' => self::CUSTOM_STATE_COLOR, 'label' => $this->t('Custom status color'), 'class' => 'cmi-custom-state',
                         'desc' => $this->t('Color of the status in the orders list.')],
-                    ['type' => 'select', 'name' => Settings::CALLBACK_MODE, 'label' => $this->t('Payment result'),
-                        'desc' => $this->t('Server to server: CMI calls your shop directly after each payment (recommended; your shop must be reachable from the internet). Browser return only: the result comes back with the customer, for shops CMI cannot reach.'),
-                        'options' => ['query' => [
-                            ['id' => Settings::CALLBACK_SERVER, 'name' => $this->t('Server to server (recommended)')],
-                            ['id' => Settings::CALLBACK_BROWSER, 'name' => $this->t('Browser return only')],
-                        ], 'id' => 'id', 'name' => 'name']],
                     ['type' => 'switch', 'name' => Settings::AUTO_REDIRECT, 'label' => $this->t('Automatic redirect'), 'is_bool' => true, 'values' => $yesNo,
                         'desc' => $this->t('Send customers back to the shop as soon as the payment is finished. When off, they stay on CMI\'s result page and come back themselves.')],
                     ['type' => 'select', 'name' => Settings::PAYMENT_LANGUAGE, 'label' => $this->t('Payment page language'),
@@ -344,7 +331,7 @@ class SettingsForm
     {
         $values = [];
         foreach ([
-            Settings::KIT, Settings::CONFIRMATION_MODE, Settings::CALLBACK_MODE, Settings::PAYMENT_LANGUAGE,
+            Settings::KIT, Settings::CONFIRMATION_MODE, Settings::PAYMENT_LANGUAGE,
             Settings::CLIENT_ID, Settings::GATEWAY_URL, Settings::API_URL,
             Settings::API_USERNAME, Settings::OID_PREFIX, Settings::AUTO_REDIRECT, Settings::CAPTURED_STATE,
             Settings::DELETE_DATA_ON_UNINSTALL,

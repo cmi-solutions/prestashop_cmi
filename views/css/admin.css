@@ -4,18 +4,21 @@
  * @author    CMI
  * @license   https://opensource.org/licenses/AFL-3.0 Academic Free License 3.0 (AFL-3.0)
  */
-#cmi-payment-panel .cmi-flash {
+#cmi-payment-panel .cmi-flash,
+.cmi-flash {
   margin-bottom: 1rem;
   padding: 0.75rem 1rem;
   border-left: 4px solid;
   border-radius: 4px;
 }
-#cmi-payment-panel .cmi-flash-success {
+#cmi-payment-panel .cmi-flash-success,
+.cmi-flash-success {
   border-color: #70b580;
   background: #ecf6ee;
   color: #24462c;
 }
-#cmi-payment-panel .cmi-flash-danger {
+#cmi-payment-panel .cmi-flash-danger,
+.cmi-flash-danger {
   border-color: #c05c67;
   background: #fbeced;
   color: #5c1b22;
@@ -47,4 +50,14 @@ input.cmi-secret {
 .cmi-reveal {
   margin-left: 0.25rem;
   vertical-align: top;
+}
+/* Orders list: actions under the CMI column. */
+.cmi-list-actions {
+  margin-top: 0.25rem;
+  white-space: nowrap;
+}
+.cmi-list-actions .cmi-list-action {
+  margin: 0.125rem 0.25rem 0.125rem 0;
+  padding: 0.125rem 0.5rem;
+  font-size: 0.75rem;
 }
