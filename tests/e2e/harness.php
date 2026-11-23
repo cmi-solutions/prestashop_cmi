@@ -7,6 +7,8 @@
  * Prints one line per check and exits 1 when one fails.
  */
 require __DIR__ . '/bootstrap.php';
+// Results are printed once the run ends: controllers called below may still send HTTP headers.
+ob_start();
 
 use Cmi\PrestaShop\Model\CmiTransaction;
 use Cmi\PrestaShop\Payment\PaymentState;
