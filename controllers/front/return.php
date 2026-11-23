@@ -18,8 +18,8 @@ if (!defined('_PS_VERSION_')) {
 /**
  * The customer comes back from CMI (okUrl / failUrl, a signed POST), then sees the result:
  * the order confirmation when paid or authorized, otherwise this page with "Pay again".
- * With the server callback (the default), this page only shows the result; it updates the
- * payment only in "Browser return only" mode, where CMI does not call the shop.
+ * This page only shows the result: CMI's server callback (or Check CMI, or the automatic
+ * checks) is what updates the payment and the order.
  *
  * The POST carries no session cookie (it comes from CMI's site), so it is only processed and
  * redirected; the page itself is shown on the following GET.
@@ -45,8 +45,8 @@ class CmiReturnModuleFrontController extends ModuleFrontController
         $fields = $this->postFields();
         $transaction = null;
         try {
-            // In "Server to server" mode this only verifies the signature and finds the order:
-            // the payment is updated by CMI's callback, never by the customer's browser.
+            // Only verifies the signature and finds the order: the payment is updated by CMI's
+            // callback, never by the customer's browser.
             $result = $services->callbacks()->handle($fields, false, (int) $this->context->shop->id);
             $transaction = $result['valid'] ? $result['transaction'] : null;
         } catch (Throwable $e) {

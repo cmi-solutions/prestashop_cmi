@@ -33,7 +33,7 @@ The code also runs on PHP 8.2 to 8.4 (checked by CI), but PrestaShop 8 itself on
 - **Secure hosted payment:** cardholders enter their card details on CMI's 3-D Secure page, never on your shop.
 - **Test and production platforms:** one setting switches between CMI's test platform and real payments; the settings page and every order show when the shop is in test mode.
 - **Automatic or manual capture:** capture the payment immediately, or pre-authorize it and confirm later.
-- **Manage payments from PrestaShop** (Complete Kit): confirm, void, refund (full or partial) and check a payment's status at CMI, from the **CMI payment** panel of the order page.
+- **Manage payments from PrestaShop** (Complete Kit): confirm, void, refund (full or partial) and check a payment's status at CMI, from the **CMI payment** panel of the order page, or directly from the **CMI** column of the orders list.
 - **Payments in MAD:** orders in other currencies are converted to MAD with PrestaShop's exchange rates, show both amounts, and are refunded using the rate applied at payment.
 - **Order number known by CMI:** each order is sent as a prefix followed by its reference, shown on the order page and in a **CMI** column of the orders list (with the payment's state).
 - **Safe with several websites:** if one CMI account is used by several websites, the module never acts on another website's payment.
@@ -83,7 +83,6 @@ In **Modules > Module Manager**, find **CMI** and click **Configure**. A new ins
 | CMI kit | **Standard Kit:** cardholders pay on CMI's page; the merchant manages payments in the CMI back office. **Complete Kit:** the merchant can also confirm, void, refund and check payments from the order page, and orders left awaiting payment are checked automatically. It needs the API credentials provided by CMI. |
 | Payment confirmation | **Automatic:** the payment is captured as soon as the cardholder pays. **Manual:** the payment is only pre-authorized; the merchant confirms it later to capture the funds. |
 | Order status after capture | Status given to an order once its payment is captured (default: Payment accepted). Choose **Custom** to create your own status: give it a name and a color; it counts as paid, gives an invoice and sends the "payment accepted" e-mail. Choose **Custom** again to rename it. |
-| Payment result | **Server to server** (recommended): CMI calls your shop after each payment ([callback](#callback-address)); your shop must be reachable from the internet. The page the cardholder comes back to only shows the result. **Browser return only:** the result comes back with the cardholder, for shops CMI's servers cannot reach. In this mode, automatic confirmation captures the payment through the API, so it needs the Complete Kit. |
 | Automatic redirect | Sends cardholders back to the shop as soon as the payment is finished. |
 | Payment page language | The customer's language, or always French, English or Arabic. |
 | Order ID prefix | Generated at installation. See [Order number](#order-number). |
@@ -111,7 +110,9 @@ Test the module on CMI's test platform before taking real orders. No card is cha
 
 1. Ask CMI for **test credentials** (test Client ID, store key and, for the Complete Kit, API credentials) and the **test cards** to use with them. Use only the test cards CMI gives you.
 2. In **Connection to CMI**, choose **CMI platform: Test** and enter the test credentials. The settings page then shows a "Test mode" warning, and the **CMI payment** panel of each order shows a **Test mode** badge.
-3. Place orders on your shop and pay with the test cards: an approved payment, a declined payment, and a click on **Cancel** on CMI's page. With the Complete Kit, try **Confirm**, **Void**, **Refund** and **Check CMI** from the order page.
+3. Place orders on your shop and pay with the test cards: an approved payment, a declined payment, and a click on **Cancel** on CMI's page. With the Complete Kit, try **Confirm**, **Void**, **Refund** and **Check CMI** from the order page and from the orders list.
+
+   CMI's test platform must reach your shop too (see [Callback address](#callback-address)). On a shop it cannot reach, such as one on `localhost`, orders stay **Awaiting CMI payment** after the payment: with the Complete Kit, click **Check CMI** to update them.
 4. When everything works, choose **CMI platform: Production**, enter your production credentials, and save. The test-mode warning disappears.
 
 > [!WARNING]
@@ -119,7 +120,7 @@ Test the module on CMI's test platform before taking real orders. No card is cha
 
 ## Callback address
 
-In **Server to server** mode, CMI calls your shop after each payment to report the result (the callback). The module sends its address to CMI with every payment, so there is nothing to type in the CMI merchant center. The addresses are:
+CMI calls your shop after each payment to report the result (the callback, server to server, as in the WooCommerce plugin). The module sends its address to CMI with every payment, so there is nothing to type in the CMI merchant center. The addresses are:
 
 | Address | Used for |
 | --- | --- |
@@ -130,7 +131,7 @@ In **Server to server** mode, CMI calls your shop after each payment to report t
 
 Replace `<your-shop>` with your shop's address. With several languages the address may start with the language, for example `https://<your-shop>/fr/module/cmi/callback`; without friendly URLs it is `https://<your-shop>/index.php?fc=module&module=cmi&controller=callback`.
 
-For the callback to work, your shop must use **HTTPS** and be **reachable from the internet** (not only from your office network, nor behind a login or an IP filter). The callback, return and cron addresses stay open in maintenance mode. If CMI cannot reach your shop, use **Browser return only** mode, or ask CMI which addresses they need you to allow.
+For the callback to work, your shop must use **HTTPS** and be **reachable from the internet** (not only from your office network, nor behind a login or an IP filter). The callback, return and cron addresses stay open in maintenance mode. If CMI cannot reach your shop, orders stay **Awaiting CMI payment** until **Check CMI** or the [automatic checks](#automatic-checks) (Complete Kit) update them: ask CMI which addresses they need you to allow.
 
 ## How orders and payments work
 
@@ -143,9 +144,9 @@ When the cardholder chooses CMI, the order is created with the status **Awaiting
 | Cardholder clicks Cancel on CMI's page | **Canceled**, only if CMI shows no payment | same |
 | No result from CMI | stays **Awaiting CMI payment**; the automatic checks (Complete Kit) update it | same |
 
-In **Server to server** mode, only CMI's callback (or the automatic checks) updates the order. If the cardholder comes back before the callback has arrived, the page says the payment is being confirmed, and doesn't offer to pay again.
+Only CMI's callback, **Check CMI** or the automatic checks update the order: the page the cardholder comes back to only shows the result. If the cardholder comes back before the callback has arrived, the page says the payment is being confirmed, and doesn't offer to pay again.
 
-The order page shows a **CMI payment** panel with the OrderId known by CMI, the amount CMI charged, the refunds, the payment's history, and, with the Complete Kit, the **Confirm**, **Void**, **Refund** and **Check CMI** buttons.
+The order page shows a **CMI payment** panel with the OrderId known by CMI, the amount CMI charged, the refunds, the payment's history, and, with the Complete Kit, the **Confirm**, **Void**, **Refund** and **Check CMI** buttons. With the Complete Kit, the **CMI** column of **Orders > Orders** shows the same buttons for each order (**Refund** there refunds the whole remaining balance; for a partial refund, open the order).
 
 - **Confirm** captures a pre-authorization. If it is older than 5 days, you're advised to inform the cardholder first.
 - **Void** cancels a pre-authorization: the cardholder is not charged and the order is cancelled.

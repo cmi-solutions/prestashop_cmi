@@ -205,7 +205,6 @@ $scenarios = [];
 
 $scenarios['automatic'] = static function () use ($states) {
     setting('CMI_CONFIRMATION_MODE', 'automatic');
-    setting('CMI_CALLBACK_MODE', 'server');
     $o = newOrder();
     $tx = $o['tx'];
     check('order created awaiting CMI payment', orderState($tx) === $states['awaiting']);
@@ -327,21 +326,6 @@ $scenarios['browser-first'] = static function () use ($states) {
     check('the late callback then captures it', $callback['body'] === 'ACTION=POSTAUTH' && $tx->payment_state === PaymentState::CONFIRMED && orderState($tx) === $states['paid'], $callback['body']);
 };
 
-$scenarios['browser-mode'] = static function () use ($states) {
-    // "Browser return only": CMI does not call the shop; automatic mode captures via the API.
-    setting('CMI_CALLBACK_MODE', 'browser');
-    $o = newOrder();
-    check('browser mode: no callbackUrl, CallbackResponse=false', !isset($o['fields']['callbackUrl']) && $o['fields']['CallbackResponse'] === 'false');
-    $paid = pay($o['tx'], 'approve');
-    check('browser mode: CMI did not call the shop', $paid['callback'] === null);
-    browserReturn($paid['state']);
-    $tx = reload($o['tx']);
-    check('browser mode: captured through the API on return', $tx->payment_state === PaymentState::CONFIRMED && orderState($tx) === $states['paid'], $tx->payment_state);
-    $ops = mock('/mock/state?oid=' . urlencode($tx->oid))['json']['ops'];
-    check('browser mode: CMI shows the capture', $ops[0]['stat'] === 'C');
-    setting('CMI_CALLBACK_MODE', 'server');
-};
-
 $scenarios['payment-checks'] = static function () use ($states) {
     // A callback signed by CMI but in another currency: never accepted.
     $o = newOrder();
@@ -390,6 +374,50 @@ $scenarios['admin-token'] = static function () {
     $_GET['token'] = Tools::getAdminToken('AdminCmiPayment' . (int) Tab::getIdFromClassName('AdminCmiPayment') . (int) $context->employee->id);
     check('admin actions with the token are allowed', $controller->checkAccess() === true);
     $_GET = [];
+};
+
+$scenarios['list-actions'] = static function () use ($states) {
+    // The CMI column of the orders list: the actions possible for each order (Complete Kit).
+    setting('CMI_CONFIRMATION_MODE', 'manual');
+    $o = newOrder();
+    pay($o['tx'], 'approve');
+    $context = Context::getContext();
+    $context->employee = new Employee(1);
+    $context->cookie = new Cookie('psAdmin');
+    $panel = new Cmi\PrestaShop\Admin\OrderPanel(Module::getInstanceByName('cmi'), services(), $context);
+    $order = new Order((int) $o['tx']->id_order);
+    $entry = $panel->listEntry($order);
+    check('list: a pre-authorization offers Confirm, Void and Check CMI, not Refund', $entry && $entry['can_confirm'] && $entry['can_void'] && $entry['can_check'] && !$entry['can_refund'], json_encode($entry));
+    services()->manager()->confirm(reload($o['tx']));
+    $entry = $panel->listEntry($order);
+    check('list: a captured payment offers Refund (the whole balance) and Check CMI', $entry && $entry['can_refund'] && !$entry['can_confirm'] && $entry['remaining'] === $entry['charged'], json_encode($entry));
+
+    // The list's request, as the browser sends it (with the back-office token).
+    require_once _PS_MODULE_DIR_ . 'cmi/controllers/admin/AdminCmiPaymentController.php';
+    global $kernel;
+    if ($kernel && $kernel->getContainer()->has('request_stack')) {
+        $kernel->getContainer()->get('request_stack')->push(Symfony\Component\HttpFoundation\Request::create('/admin-dev/index.php'));
+    }
+    $_GET = ['controller' => 'AdminCmiPayment'];
+    $controller = new AdminCmiPaymentController();
+    $_GET['token'] = Tools::getAdminToken('AdminCmiPayment' . (int) Tab::getIdFromClassName('AdminCmiPayment') . (int) $context->employee->id);
+    $_GET['ids'] = (int) $order->id . ',999999';
+    ob_start();
+    $controller->displayAjaxListActions();
+    $answer = json_decode((string) ob_get_clean(), true);
+    check('list: the actions of the orders shown, with the token', isset($answer['orders'][(string) $order->id]) && count($answer['orders']) === 1, json_encode($answer));
+    $_GET['token'] = 'wrong';
+    ob_start();
+    $controller->displayAjaxListActions();
+    $refused = json_decode((string) ob_get_clean(), true);
+    check('list: nothing without the token', $refused === ['orders' => []], json_encode($refused));
+    $_GET = [];
+
+    setting('CMI_KIT', 'standard');
+    $entry = $panel->listEntry($order);
+    check('list: no action with the Standard Kit', $entry && !$entry['can_confirm'] && !$entry['can_refund'] && !$entry['can_check']);
+    setting('CMI_KIT', 'complete');
+    setting('CMI_CONFIRMATION_MODE', 'automatic');
 };
 
 $scenarios['cancel'] = static function () use ($states) {
@@ -530,13 +558,13 @@ $scenarios['custom-status'] = static function () use ($states) {
     // The settings form, as submitted from the back office.
     $context = Context::getContext();
     $saved = [];
-    foreach (['CMI_GATEWAY_URL', 'CMI_CAPTURED_STATE', 'CMI_KIT', 'CMI_CONFIRMATION_MODE', 'CMI_CALLBACK_MODE', 'CMI_API_URL', 'CMI_API_USERNAME', 'CMI_CLIENT_ID', 'CMI_OID_PREFIX'] as $key) {
+    foreach (['CMI_GATEWAY_URL', 'CMI_CAPTURED_STATE', 'CMI_KIT', 'CMI_CONFIRMATION_MODE', 'CMI_API_URL', 'CMI_API_USERNAME', 'CMI_CLIENT_ID', 'CMI_OID_PREFIX'] as $key) {
         $saved[$key] = (string) Configuration::get($key);
     }
     $post = static function (array $changes) use ($saved): array {
         $_POST = array_merge([
             'submitCmiSettings' => '1',
-            'CMI_KIT' => $saved['CMI_KIT'], 'CMI_CONFIRMATION_MODE' => $saved['CMI_CONFIRMATION_MODE'], 'CMI_CALLBACK_MODE' => $saved['CMI_CALLBACK_MODE'],
+            'CMI_KIT' => $saved['CMI_KIT'], 'CMI_CONFIRMATION_MODE' => $saved['CMI_CONFIRMATION_MODE'],
             'CMI_PAYMENT_LANGUAGE' => 'auto', 'CMI_CLIENT_ID' => $saved['CMI_CLIENT_ID'], 'CMI_ENVIRONMENT' => 'test',
             // The form only accepts https://: the bench's mock payment page is restored below.
             'CMI_GATEWAY_URL' => 'https://testpayment.cmi.co.ma/fim/est3Dgate',

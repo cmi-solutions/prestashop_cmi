@@ -54,10 +54,6 @@
         <source>Arabic</source>
         <target>Arabe</target>
       </trans-unit>
-      <trans-unit id="e8ce5d185fb18a71da9988b80e6835c3">
-        <source>Automatic capture failed: %error% Confirm the payment from this page or the CMI back office.</source>
-        <target>Le débit automatique a échoué : %error% Confirmez le paiement depuis cette page ou le back-office CMI.</target>
-      </trans-unit>
       <trans-unit id="45ddab4914f718601510f75a64c71805">
         <source>Automatic check: CMI could not be reached (%error%).</source>
         <target>Vérification automatique : CMI n&apos;a pas pu être contacté (%error%).</target>
@@ -89,10 +85,6 @@
       <trans-unit id="ebb8d514f56157d7bd513eefdd9adb63">
         <source>Awaiting payment</source>
         <target>En attente de paiement</target>
-      </trans-unit>
-      <trans-unit id="d1992d5a0d483d4bafbb6ff7798e3efe">
-        <source>Browser return only</source>
-        <target>Retour navigateur uniquement</target>
       </trans-unit>
       <trans-unit id="5efaedb99e7a4140a23f27d28214c895">
         <source>CMI</source>
@@ -266,10 +258,6 @@
         <source>Choose a confirmation mode.</source>
         <target>Choisissez un mode de confirmation.</target>
       </trans-unit>
-      <trans-unit id="a98fb034225e1c7abbae6d86bb33403b">
-        <source>Choose how CMI sends the payment result.</source>
-        <target>Choisissez comment CMI envoie le résultat du paiement.</target>
-      </trans-unit>
       <trans-unit id="41e7605badf961b638a98b8cac064ede">
         <source>Choose the CMI platform: test or production.</source>
         <target>Choisissez la plateforme CMI : test ou production.</target>
@@ -326,14 +314,6 @@
         <source>Custom: create my own status...</source>
         <target>Personnalisé : créer mon propre statut…</target>
       </trans-unit>
-      <trans-unit id="449397651d0505fa62f599ed7cb085e2">
-        <source>Customer return from CMI</source>
-        <target>Retour du client depuis CMI</target>
-      </trans-unit>
-      <trans-unit id="d92533874f226dcb3e6a7eac43b0bd9c">
-        <source>Customer return from CMI: payment approved (TransId: %transid%), waiting for CMI&apos;s callback to complete it.</source>
-        <target>Retour du client depuis CMI : paiement approuvé (TransId : %transid%), en attente du callback de CMI pour le finaliser.</target>
-      </trans-unit>
       <trans-unit id="aeb34e8bf442f920b2bd64ba3ba204f3">
         <source>Customer&apos;s language</source>
         <target>Langue du client</target>
@@ -370,6 +350,10 @@
         <source>Failed</source>
         <target>Échoué</target>
       </trans-unit>
+      <trans-unit id="fc1af95be8d11bc74875e635dbd61e02">
+        <source>For a partial refund, open the order.</source>
+        <target>Pour un remboursement partiel, ouvrez la commande.</target>
+      </trans-unit>
       <trans-unit id="ad225f707802ba118c22987186dd38e8">
         <source>French</source>
         <target>Français</target>
@@ -381,10 +365,6 @@
       <trans-unit id="53e709001d05d53e8cad58a755b5d0ef">
         <source>HTTPS is not enabled on this shop. CMI requires https:// addresses for the payment return and callback.</source>
         <target>Le HTTPS n&apos;est pas activé sur cette boutique. CMI exige des adresses https:// pour le retour de paiement et le callback.</target>
-      </trans-unit>
-      <trans-unit id="27a10e2d145d2b26b1403a0b6d043ce7">
-        <source>In &quot;browser return&quot; mode, automatic confirmation captures payments through the CMI API: choose the Complete Kit, or the manual confirmation mode.</source>
-        <target>En mode « retour navigateur », la confirmation automatique débite les paiements via l&apos;API CMI : choisissez le Kit Complet, ou le mode de confirmation manuelle.</target>
       </trans-unit>
       <trans-unit id="4e7f26d58027e5f9611cc5fe9d901e06">
         <source>Invalid refund amount.</source>
@@ -490,14 +470,6 @@
         <source>Payment page language</source>
         <target>Langue de la page de paiement</target>
       </trans-unit>
-      <trans-unit id="5c28c6ba2964636df568614cdd480495">
-        <source>Payment pre-authorized. Without the Complete Kit it cannot be captured automatically in &quot;browser return&quot; mode: confirm it in the CMI back office.</source>
-        <target>Paiement pré-autorisé. Sans le Kit Complet, il ne peut pas être débité automatiquement en mode « retour navigateur » : confirmez-le dans le back-office CMI.</target>
-      </trans-unit>
-      <trans-unit id="680d75f9122560a05a66159fbfe5b0f9">
-        <source>Payment result</source>
-        <target>Résultat du paiement</target>
-      </trans-unit>
       <trans-unit id="36894941ed1e282d8c001a58c83e11cc">
         <source>Payment setup</source>
         <target>Configuration du paiement</target>
@@ -569,14 +541,6 @@
       <trans-unit id="296cf745bf3fea7e1fde76f05c56f9cc">
         <source>Send customers back to the shop as soon as the payment is finished. When off, they stay on CMI&apos;s result page and come back themselves.</source>
         <target>Renvoyer les clients vers la boutique dès la fin du paiement. Si désactivé, ils restent sur la page de résultat de CMI et reviennent d&apos;eux-mêmes.</target>
-      </trans-unit>
-      <trans-unit id="12d59c0990568b8e99801e0c30ec6ba1">
-        <source>Server to server (recommended)</source>
-        <target>Serveur à serveur (recommandé)</target>
-      </trans-unit>
-      <trans-unit id="8448e869329a899feff2ca85822b1194">
-        <source>Server to server: CMI calls your shop directly after each payment (recommended; your shop must be reachable from the internet). Browser return only: the result comes back with the customer, for shops CMI cannot reach.</source>
-        <target>Serveur à serveur : CMI appelle directement votre boutique après chaque paiement (recommandé ; votre boutique doit être accessible depuis internet). Retour navigateur uniquement : le résultat revient avec le client, pour les boutiques que CMI ne peut pas joindre.</target>
       </trans-unit>
       <trans-unit id="9a7e58ee13cb727cb7c4acc68f4cafe5">
         <source>Settings saved.</source>

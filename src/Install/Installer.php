@@ -52,7 +52,8 @@ class Installer
         'redirection_mode' => Settings::AUTO_REDIRECT,
         // Removed: payments always go through 3-D Secure (CMI refuses the others).
         'cardholder_authentication' => null,
-        'callback_mode' => Settings::CALLBACK_MODE,
+        // Removed: CMI always calls the shop (server callback), as in the WooCommerce plugin.
+        'callback_mode' => null,
         'actionslkapi' => Settings::API_URL,
         'usernameapi' => Settings::API_USERNAME,
         'passwordapi' => Settings::API_PASSWORD,
@@ -317,7 +318,6 @@ class Installer
         $defaults = [
             Settings::KIT => Settings::KIT_STANDARD,
             Settings::CONFIRMATION_MODE => Settings::MODE_AUTOMATIC,
-            Settings::CALLBACK_MODE => Settings::CALLBACK_SERVER,
             Settings::AUTO_REDIRECT => '1',
             Settings::PAYMENT_LANGUAGE => 'auto',
             Settings::STORE_CURRENCIES => '504',
@@ -383,9 +383,6 @@ class Installer
                 return $value === '2' ? Settings::MODE_MANUAL : Settings::MODE_AUTOMATIC;
             case 'redirection_mode':
                 return $value === '1' ? '1' : '0';
-            case 'callback_mode':
-                // 1 = "Redirection automatique": CMI only returned the result through the browser.
-                return $value === '1' ? Settings::CALLBACK_BROWSER : Settings::CALLBACK_SERVER;
             case 'currency_store':
                 return implode(',', array_filter(array_map('trim', explode('|', $value))));
         }

@@ -73,9 +73,9 @@ class CallbackHandler
         }
 
         $transaction = $oid !== '' ? $this->repository->findByOid($oid, $idShop) : null;
-        if (!$isServer && !$this->returnUpdatesPayment()) {
-            // With the server callback, the customer's return only shows the result: CMI's
-            // callback (or the automatic checks) is the only source that updates the payment.
+        if (!$isServer) {
+            // The customer's return only shows the result: CMI's server callback (or Check CMI,
+            // or the automatic checks) is the only source that updates the payment.
             return ['transaction' => $transaction, 'answer' => self::ANSWER_APPROVED, 'valid' => $transaction !== null];
         }
         if (!$transaction && ctype_digit($oid)) {
@@ -87,18 +87,14 @@ class CallbackHandler
             return ['transaction' => null, 'answer' => self::ANSWER_FAILURE, 'valid' => false];
         }
 
-        // A callback and the browser return often arrive together: process them one at a time.
-        $locked = $this->repository->acquireLockWaiting($transaction, $isServer ? 15 : 5);
+        // A repeated callback or a merchant action may be running: process them one at a time.
+        $locked = $this->repository->acquireLockWaiting($transaction, 15);
         if (!$locked) {
-            if (!$isServer) {
-                // The server callback is processing it: the result page shows its outcome.
-                return ['transaction' => $this->repository->refresh($transaction), 'answer' => self::ANSWER_APPROVED, 'valid' => true];
-            }
             \PrestaShopLogger::addLog('CMI callback processed while the payment was held by another request: OrderId ' . $oid, 2, null, 'Cart', (int) $transaction->id_cart, true);
         }
         try {
             $transaction = $this->repository->refresh($transaction);
-            $answer = $this->process($transaction, $fields, $isServer);
+            $answer = $this->process($transaction, $fields);
         } finally {
             if ($locked) {
                 $this->repository->releaseLock($transaction);
@@ -108,20 +104,16 @@ class CallbackHandler
         return ['transaction' => $transaction, 'answer' => $answer, 'valid' => true];
     }
 
-    private function process(CmiTransaction $transaction, array $fields, bool $isServer): string
+    private function process(CmiTransaction $transaction, array $fields): string
     {
         $approved = (string) ($fields['ProcReturnCode'] ?? '') === '00';
         $current = (string) $transaction->payment_state;
-        $source = $isServer ? $this->t('CMI callback') : $this->t('Customer return from CMI');
+        $source = $this->t('CMI callback');
 
         if ($approved && (int) $transaction->id_order === 0 && !$this->createInFlightOrder($transaction)) {
             return self::ANSWER_FAILURE;
         }
         if ($current === PaymentState::CONFIRMED || ((int) $transaction->id_order && $this->orders->isPaid($transaction) && $current !== PaymentState::PRE_CONFIRMATION_REQUIRED)) {
-            return self::ANSWER_APPROVED;
-        }
-        if (!$isServer && ($current === PaymentState::PRE_CONFIRMATION_REQUIRED || ($current === PaymentState::FAILED && !$approved))) {
-            // The server callback already recorded this result.
             return self::ANSWER_APPROVED;
         }
         if (!PaymentState::acceptsCallback($current, $approved)) {
@@ -181,7 +173,7 @@ class CallbackHandler
         }
 
         // Automatic confirmation, server callback: CMI captures the payment itself on the answer ACTION=POSTAUTH.
-        if ($isServer && $this->capturesOnCallback()) {
+        if ($this->capturesOnCallback()) {
             $this->setState($transaction, PaymentState::CONFIRMED, $fields);
             $this->manager->markPaid($transaction, $fields);
             $this->repository->log($transaction, Repo::LOG_INFO, $this->t('CMI callback: payment approved and captured (TransId: %transid%).', ['%transid%' => (string) ($fields['TransId'] ?? '')]));
@@ -198,42 +190,15 @@ class CallbackHandler
             $this->orders->setState($transaction, $this->settings->preauthorizedStateId());
         }
 
-        if ($this->settings->confirmationMode() === Settings::MODE_AUTOMATIC && !$isServer
-            && $this->settings->callbackMode() === Settings::CALLBACK_BROWSER) {
-            // CMI does not call this shop: capture through the API, as version 1.x did.
-            if ($this->settings->isApiEnabled()) {
-                $result = $this->manager->capture($transaction, true);
-                if (!$result->success) {
-                    $this->repository->log($transaction, Repo::LOG_ERROR, $this->t('Automatic capture failed: %error% Confirm the payment from this page or the CMI back office.', ['%error%' => $result->message]));
-                }
-            } else {
-                $this->repository->log($transaction, Repo::LOG_WARNING, $this->t('Payment pre-authorized. Without the Complete Kit it cannot be captured automatically in "browser return" mode: confirm it in the CMI back office.'));
-            }
-
-            return self::ANSWER_APPROVED;
-        }
-
-        $this->repository->log($transaction, Repo::LOG_INFO, $this->settings->confirmationMode() === Settings::MODE_MANUAL
-            ? $this->t('%source%: payment pre-authorized (TransId: %transid%). Confirm it to capture the funds.', ['%source%' => $source, '%transid%' => (string) ($fields['TransId'] ?? '')])
-            : $this->t('Customer return from CMI: payment approved (TransId: %transid%), waiting for CMI\'s callback to complete it.', ['%transid%' => (string) ($fields['TransId'] ?? '')]));
+        $this->repository->log($transaction, Repo::LOG_INFO, $this->t('%source%: payment pre-authorized (TransId: %transid%). Confirm it to capture the funds.', ['%source%' => $source, '%transid%' => (string) ($fields['TransId'] ?? '')]));
 
         return self::ANSWER_APPROVED;
     }
 
     /** Whether the server callback answer makes CMI capture the payment. */
-    /**
-     * Whether the customer's return from CMI may update the payment: only in "Browser return
-     * only" mode, where CMI does not call the shop and the return is the only signed result.
-     */
-    public function returnUpdatesPayment(): bool
-    {
-        return $this->settings->callbackMode() === Settings::CALLBACK_BROWSER;
-    }
-
     private function capturesOnCallback(): bool
     {
-        return $this->settings->confirmationMode() === Settings::MODE_AUTOMATIC
-            && $this->settings->callbackMode() === Settings::CALLBACK_SERVER;
+        return $this->settings->confirmationMode() === Settings::MODE_AUTOMATIC;
     }
 
     /** Payment started with version 1.x: its order is created now, as 1.x did. */
