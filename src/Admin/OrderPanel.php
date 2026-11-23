@@ -64,6 +64,8 @@ class OrderPanel
             'state_label' => self::stateLabel($state, $this->module),
             'state_class' => self::stateClass($state),
             'legacy' => (bool) $transaction->legacy,
+            // The actions go to CMI's test platform: say so on every order.
+            'test_mode' => $settings->isTestMode(),
             'account' => (string) $transaction->account,
             'client_id' => (string) $transaction->client_id,
             'currency' => (string) $transaction->currency_iso,

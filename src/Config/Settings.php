@@ -43,6 +43,10 @@ final class Settings
     public const TITLE = 'CMI_TITLE';
     public const DESCRIPTION = 'CMI_DESCRIPTION';
     public const CRON_TOKEN = 'CMI_CRON_TOKEN';
+    /** Uninstall removes the payment history and order states too (off by default). */
+    public const DELETE_DATA_ON_UNINSTALL = 'CMI_DELETE_DATA_ON_UNINSTALL';
+    /** CMI platform: test or production. */
+    public const ENVIRONMENT = 'CMI_ENVIRONMENT';
 
     /** Order states installed by the module. */
     public const OS_AWAITING = 'CMI_OS_AWAITING';
@@ -58,6 +62,14 @@ final class Settings
     public const CALLBACK_SERVER = 'server';
     /** CMI only sends the result through the customer's browser (shops CMI's servers cannot reach). */
     public const CALLBACK_BROWSER = 'browser';
+    public const ENV_TEST = 'test';
+    public const ENV_PRODUCTION = 'production';
+
+    /** CMI's addresses for each platform: the payment page and the XML API. */
+    public const PLATFORM_URLS = [
+        self::ENV_TEST => ['gateway' => 'https://testpayment.cmi.co.ma/fim/est3Dgate', 'api' => 'https://testpayment.cmi.co.ma/fim/api'],
+        self::ENV_PRODUCTION => ['gateway' => 'https://payment.cmi.co.ma/fim/est3Dgate', 'api' => 'https://payment.cmi.co.ma/fim/api'],
+    ];
 
     /** Every key the module writes, removed on uninstall. */
     public const ALL_KEYS = [
@@ -65,7 +77,7 @@ final class Settings
         self::KIT, self::API_URL, self::API_USERNAME, self::API_PASSWORD, self::CONFIRMATION_MODE,
         self::CALLBACK_MODE, self::THREE_D_SECURE, self::AUTO_REDIRECT, self::PAYMENT_LANGUAGE, self::OID_PREFIX,
         self::CAPTURED_STATE, self::TITLE, self::DESCRIPTION, self::CRON_TOKEN, self::OS_AWAITING, self::OS_PREAUTHORIZED,
-        self::OS_CUSTOM_CAPTURED,
+        self::OS_CUSTOM_CAPTURED, self::ENVIRONMENT, self::DELETE_DATA_ON_UNINSTALL,
     ];
 
     /** @var int|null */
@@ -100,6 +112,38 @@ final class Settings
     public function gatewayUrl(): string
     {
         return $this->get(self::GATEWAY_URL);
+    }
+
+    /**
+     * The CMI platform chosen: test or production. Shops upgraded from 1.x have no such
+     * setting yet: it follows the payment page URL they entered.
+     */
+    public function environment(): string
+    {
+        $environment = $this->get(self::ENVIRONMENT);
+        if (in_array($environment, [self::ENV_TEST, self::ENV_PRODUCTION], true)) {
+            return $environment;
+        }
+
+        return self::environmentOfUrl($this->gatewayUrl()) ?? self::ENV_PRODUCTION;
+    }
+
+    public function isTestMode(): bool
+    {
+        return $this->environment() === self::ENV_TEST;
+    }
+
+    /** The CMI platform an address belongs to, or null for another address (mock, proxy...). */
+    public static function environmentOfUrl(string $url): ?string
+    {
+        $host = strtolower((string) parse_url($url, PHP_URL_HOST));
+        foreach (self::PLATFORM_URLS as $environment => $urls) {
+            if ($host !== '' && $host === strtolower((string) parse_url($urls['gateway'], PHP_URL_HOST))) {
+                return $environment;
+            }
+        }
+
+        return null;
     }
 
     public function storeKey(): string

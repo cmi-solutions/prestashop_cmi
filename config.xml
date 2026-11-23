@@ -6,7 +6,7 @@
     <description><![CDATA[Card payments with CMI (Morocco): hosted payment page, and confirm, void, refund and check payments from the order page.]]></description>
     <author><![CDATA[CMI]]></author>
     <tab><![CDATA[payments_gateways]]></tab>
-    <confirmUninstall><![CDATA[Uninstall the CMI module? Your CMI connection settings will be deleted; orders and their payment history are kept.]]></confirmUninstall>
+    <confirmUninstall><![CDATA[Uninstall the CMI module? Your CMI settings will be deleted. Orders and their CMI payment history are kept, unless "Delete all CMI data on uninstall" is on.]]></confirmUninstall>
     <is_configurable>1</is_configurable>
     <need_instance>0</need_instance>
     <limited_countries></limited_countries>

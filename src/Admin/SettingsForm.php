@@ -89,12 +89,21 @@ class SettingsForm
         $values = [];
         foreach ([
             Settings::KIT, Settings::CONFIRMATION_MODE, Settings::CALLBACK_MODE, Settings::PAYMENT_LANGUAGE,
-            Settings::CLIENT_ID, Settings::GATEWAY_URL, Settings::STORE_KEY,
+            Settings::CLIENT_ID, Settings::ENVIRONMENT, Settings::GATEWAY_URL, Settings::STORE_KEY,
             Settings::API_URL, Settings::API_USERNAME, Settings::API_PASSWORD, Settings::OID_PREFIX,
         ] as $key) {
             $values[$key] = trim((string) Tools::getValue($key, ''));
         }
+        // Empty addresses take those of the chosen CMI platform.
+        $platform = Settings::PLATFORM_URLS[$values[Settings::ENVIRONMENT]] ?? null;
+        if ($platform !== null && $values[Settings::GATEWAY_URL] === '') {
+            $values[Settings::GATEWAY_URL] = $platform['gateway'];
+        }
+        if ($platform !== null && $values[Settings::API_URL] === '' && $values[Settings::KIT] === Settings::KIT_COMPLETE) {
+            $values[Settings::API_URL] = $platform['api'];
+        }
         $values[Settings::AUTO_REDIRECT] = (int) (bool) Tools::getValue(Settings::AUTO_REDIRECT);
+        $values[Settings::DELETE_DATA_ON_UNINSTALL] = (int) (bool) Tools::getValue(Settings::DELETE_DATA_ON_UNINSTALL);
         $captured = (string) Tools::getValue(Settings::CAPTURED_STATE);
         $values[Settings::CAPTURED_STATE] = $captured === self::CUSTOM_STATE ? self::CUSTOM_STATE : (int) $captured;
         $values[self::CUSTOM_STATE_NAME] = trim(strip_tags((string) Tools::getValue(self::CUSTOM_STATE_NAME, '')));
@@ -116,6 +125,9 @@ class SettingsForm
         $errors = [];
         if (!preg_match('/^[0-9A-Za-z]{4,32}$/', $values[Settings::CLIENT_ID])) {
             $errors[] = $this->t('Enter the Client ID of your CMI store (MAD).');
+        }
+        if (!in_array($values[Settings::ENVIRONMENT], [Settings::ENV_TEST, Settings::ENV_PRODUCTION], true)) {
+            $errors[] = $this->t('Choose the CMI platform: test or production.');
         }
         if (!$this->isHttpsUrl($values[Settings::GATEWAY_URL])) {
             $errors[] = $this->t('The payment page URL must be a valid https:// address, for example https://payment.cmi.co.ma/fim/est3Dgate.');
@@ -289,6 +301,8 @@ class SettingsForm
                         'desc' => $this->t('Orders appear in the CMI back office as this prefix followed by the order reference, for example %example%. It keeps this shop\'s orders apart from any other website using the same CMI account; give each website a different prefix. Letters, digits, - and _ only. Orders already sent keep their ID.', [
                             '%example%' => TransactionGuard::applyOidPrefix($prefix, 'XKBKNABJK'),
                         ])],
+                    ['type' => 'switch', 'name' => Settings::DELETE_DATA_ON_UNINSTALL, 'label' => $this->t('Delete all CMI data on uninstall'), 'is_bool' => true, 'values' => $yesNo,
+                        'desc' => $this->t('No (recommended): uninstalling keeps the CMI payment history of your orders and the module\'s order statuses, so they are found again if you reinstall the module. Yes: uninstalling also deletes the payment history, the order statuses and every CMI setting. This cannot be undone.')],
                 ],
                 'submit' => $submit,
             ]],
@@ -297,8 +311,17 @@ class SettingsForm
                 'input' => [
                     ['type' => 'text', 'name' => Settings::CLIENT_ID, 'label' => $this->t('Client ID'), 'class' => 'fixed-width-xl',
                         'desc' => $this->t('Merchant Client ID provided by CMI, for example 600XXXXXX. Payments are made in MAD; orders in other currencies are converted to MAD with the exchange rates of International > Localization > Currencies.')],
+                    ['type' => 'select', 'name' => Settings::ENVIRONMENT, 'label' => $this->t('CMI platform'),
+                        'desc' => $this->t('Test: payments go to CMI\'s test platform, with the test credentials and test cards CMI gave you; no card is charged. Production: real payments. Choosing a platform fills in its addresses below.'),
+                        'options' => ['query' => [
+                            ['id' => Settings::ENV_TEST, 'name' => $this->t('Test (no real payment)')],
+                            ['id' => Settings::ENV_PRODUCTION, 'name' => $this->t('Production (real payments)')],
+                        ], 'id' => 'id', 'name' => 'name']],
                     ['type' => 'text', 'name' => Settings::GATEWAY_URL, 'label' => $this->t('Payment page URL'),
-                        'desc' => $this->t('CMI\'s payment page, for example https://payment.cmi.co.ma/fim/est3Dgate (test: https://testpayment.cmi.co.ma/fim/est3Dgate).')],
+                        'desc' => $this->t('CMI\'s payment page: %production% (production) or %test% (test). Change it only if CMI gives you another address.', [
+                            '%production%' => Settings::PLATFORM_URLS[Settings::ENV_PRODUCTION]['gateway'],
+                            '%test%' => Settings::PLATFORM_URLS[Settings::ENV_TEST]['gateway'],
+                        ])],
                     ['type' => 'password', 'name' => Settings::STORE_KEY, 'label' => $this->t('Store key (hash key)'), 'class' => 'cmi-secret',
                         'desc' => $this->secretDescription(Settings::STORE_KEY, $this->t('Secret key set in your CMI merchant center. It must not contain the word "SKS".'))],
                 ],
@@ -314,7 +337,7 @@ class SettingsForm
                         'desc' => $this->secretDescription(Settings::API_PASSWORD, '')],
                     ['type' => 'html', 'name' => 'cmi_cron', 'label' => $this->t('Automatic checks'),
                         'html_content' => '<p class="help-block">' . htmlspecialchars($this->t('With the Complete Kit, orders left awaiting payment are checked with CMI about 15 minutes, 1 h 15 and 7 h 15 after the customer was sent to CMI. Ask your host to call this address every 5 minutes (cron job), or use the "Cron tasks manager" module:'), ENT_QUOTES, 'UTF-8') . '</p>'
-                            . '<input type="text" class="form-control" readonly value="' . htmlspecialchars($cronUrl, ENT_QUOTES, 'UTF-8') . '" onclick="this.select()">'],
+                            . '<input type="text" class="form-control cmi-select-all" readonly value="' . htmlspecialchars($cronUrl, ENT_QUOTES, 'UTF-8') . '">'],
                 ],
                 'submit' => $submit,
             ]],
@@ -328,9 +351,11 @@ class SettingsForm
             Settings::KIT, Settings::CONFIRMATION_MODE, Settings::CALLBACK_MODE, Settings::PAYMENT_LANGUAGE,
             Settings::CLIENT_ID, Settings::GATEWAY_URL, Settings::API_URL,
             Settings::API_USERNAME, Settings::OID_PREFIX, Settings::AUTO_REDIRECT, Settings::CAPTURED_STATE,
+            Settings::DELETE_DATA_ON_UNINSTALL,
         ] as $key) {
             $values[$key] = $this->refused ? Tools::getValue($key, Configuration::get($key)) : Configuration::get($key);
         }
+        $values[Settings::ENVIRONMENT] = $this->refused ? Tools::getValue(Settings::ENVIRONMENT) : (new Settings())->environment();
         // Secrets are never written into the page.
         $values[Settings::STORE_KEY] = '';
         $values[Settings::API_PASSWORD] = '';

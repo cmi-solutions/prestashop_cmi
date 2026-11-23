@@ -30,9 +30,27 @@ final class CmiProtocol
      */
     public static function requestHash(array $fields, string $storeKey): string
     {
-        return self::hash($fields, $storeKey, static function ($value): string {
-            return trim(html_entity_decode(html_entity_decode((string) $value)));
+        // Explicit flags: PHP 8.1 changed html_entity_decode()'s defaults, and the signature
+        // must be the same on every PHP version (these are the PHP 8.1+ defaults).
+        $flags = ENT_QUOTES | ENT_SUBSTITUTE | ENT_HTML401;
+
+        return self::hash($fields, $storeKey, static function ($value) use ($flags): string {
+            return trim(html_entity_decode(html_entity_decode((string) $value, $flags, 'UTF-8'), $flags, 'UTF-8'));
         });
+    }
+
+    /**
+     * Whether the amount CMI approved is the amount sent. A payment started with version 1.x
+     * may have been converted with slightly different rounding: 1% tolerance for those.
+     */
+    public static function amountMatches(float $approved, float $sent, bool $legacy = false): bool
+    {
+        if ($sent <= 0) {
+            return false;
+        }
+        $tolerance = $legacy ? max(0.01, round($sent * 0.01, 2)) : 0.009;
+
+        return abs(round($approved, 2) - round($sent, 2)) <= $tolerance;
     }
 
     /**

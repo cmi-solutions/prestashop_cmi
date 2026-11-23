@@ -11,6 +11,7 @@ namespace Cmi\PrestaShop\Service;
 use Cmi\PrestaShop\Config\Settings;
 use Cmi\PrestaShop\Model\CmiTransaction;
 use Cmi\PrestaShop\Payment\AccountResolver;
+use Cmi\PrestaShop\Payment\Amounts;
 use Cmi\PrestaShop\Payment\PaymentState;
 use Cmi\PrestaShop\Repository\TransactionRepository;
 use Currency;
@@ -106,8 +107,25 @@ class LegacyTransactions
         }
         $currency = new Currency((int) $cart->id_currency);
         $route = AccountResolver::resolve($this->settings->storeCurrencies(), (string) $currency->iso_code);
+        if ($route === null) {
+            return null;
+        }
         $orderTotal = (float) $cart->getOrderTotal(true, \Cart::BOTH);
-        $charged = round((float) str_replace(',', '.', (string) ($callback['amount'] ?? '0')), 2);
+        // The amount CMI should have approved, computed from the cart (never taken from the
+        // callback): the callback handler compares the two before creating the order.
+        $rate = 1.0;
+        if ($route['convert']) {
+            $mad = new Currency((int) Currency::getIdByIsoCode(AccountResolver::MAD));
+            $rate = \Validate::isLoadedObject($mad) && !$mad->deleted
+                ? Amounts::rateBetween((float) $currency->conversion_rate, (float) $mad->conversion_rate, false)
+                : 0.0;
+            if ($rate <= 0) {
+                \PrestaShopLogger::addLog('CMI: payment of cart ' . (int) $cart->id . ' (version 1.x) cannot be checked: no exchange rate to MAD.', 3, null, 'Cart', (int) $cart->id, true);
+
+                return null;
+            }
+        }
+        $charged = Amounts::toCharged($orderTotal, $rate);
 
         $transaction = new CmiTransaction();
         $transaction->id_shop = (int) $cart->id_shop;
@@ -122,7 +140,7 @@ class LegacyTransactions
         $transaction->order_currency = strtoupper((string) $currency->iso_code);
         $transaction->amount_order = $orderTotal;
         $transaction->amount_charged = $charged;
-        $transaction->rate = $orderTotal > 0 && $charged > 0 ? $charged / $orderTotal : 0.0;
+        $transaction->rate = $rate;
         $transaction->sent_at = time() - 3600;
         $this->repository->save($transaction);
 

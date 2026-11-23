@@ -38,6 +38,10 @@ class Installer
         'actionOrderGridDefinitionModifier',
         'actionOrderGridQueryBuilderModifier',
         'displayRightColumn',
+        // PrestaShop's GDPR module (psgdpr): consent, export and deletion of customer data.
+        'registerGDPRConsent',
+        'actionExportGDPRData',
+        'actionDeleteGDPRCustomer',
     ];
 
     /** Settings of version 1.x and how they map to 2.0 (null: removed). */
@@ -103,23 +107,49 @@ class Installer
     }
 
     /**
-     * Uninstall keeps the transaction tables and order states, so the history of paid orders is
-     * never lost, and removes the connection settings (credentials).
+     * By default, uninstall keeps the payment history (transaction tables), the order states
+     * used by existing orders and the OrderId prefix, so a reinstall finds the payments of past
+     * orders again; it removes the settings, credentials included. With the setting "Delete all
+     * CMI data on uninstall", it removes everything: tables, order states and every setting.
      */
     public function uninstall(): bool
     {
+        $deleteAll = (bool) Configuration::get(Settings::DELETE_DATA_ON_UNINSTALL);
         $idTab = (int) Tab::getIdFromClassName(self::ADMIN_CONTROLLER);
         if ($idTab) {
             $tab = new Tab($idTab);
             $tab->delete();
         }
+        $kept = [Settings::OS_AWAITING, Settings::OS_PREAUTHORIZED, Settings::OS_CUSTOM_CAPTURED, Settings::OID_PREFIX];
+        if ($deleteAll) {
+            $this->deleteOrderStates();
+            foreach (['cmi_transaction_log', 'cmi_transaction'] as $table) {
+                Db::getInstance()->execute('DROP TABLE IF EXISTS `' . _DB_PREFIX_ . $table . '`');
+            }
+            $kept = [];
+        }
         foreach (Settings::ALL_KEYS as $key) {
-            if (!in_array($key, [Settings::OS_AWAITING, Settings::OS_PREAUTHORIZED, Settings::OS_CUSTOM_CAPTURED, Settings::OID_PREFIX], true)) {
+            if (!in_array($key, $kept, true)) {
                 Configuration::deleteByName($key);
             }
         }
 
         return true;
+    }
+
+    /**
+     * The module's order states are marked deleted, as PrestaShop does: orders that had them
+     * keep showing their history.
+     */
+    private function deleteOrderStates(): void
+    {
+        foreach ([Settings::OS_AWAITING, Settings::OS_PREAUTHORIZED, Settings::OS_CUSTOM_CAPTURED] as $key) {
+            $state = new OrderState((int) Configuration::getGlobalValue($key));
+            if (Validate::isLoadedObject($state) && !$state->deleted) {
+                $state->deleted = true;
+                $state->save();
+            }
+        }
     }
 
     public function createTables(): bool
@@ -277,6 +307,12 @@ class Installer
             Settings::OID_PREFIX => TransactionGuard::generateOidPrefix(),
             Settings::CRON_TOKEN => bin2hex(random_bytes(16)),
         ];
+        // A new shop starts on CMI's test platform. A shop upgraded from 1.x keeps its payment
+        // page URL, and its platform follows that URL (Settings::environment()).
+        if ((string) Configuration::get(Settings::GATEWAY_URL) === '') {
+            $defaults[Settings::ENVIRONMENT] = Settings::ENV_TEST;
+            $defaults[Settings::GATEWAY_URL] = Settings::PLATFORM_URLS[Settings::ENV_TEST]['gateway'];
+        }
         foreach ($defaults as $key => $value) {
             if (!Configuration::hasKey($key) && !Configuration::updateValue($key, $value)) {
                 return false;
