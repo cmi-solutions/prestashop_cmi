@@ -72,6 +72,12 @@ class Installer
         'views/templates/front/payment_return.tpl', 'views/templates/hook/confirmation.tpl',
     ];
 
+    /** Built-in names of the order states (also in translations/*.xlf). */
+    private const STATE_NAMES = [
+        'Awaiting CMI payment' => ['fr' => 'En attente de paiement CMI', 'ar' => 'في انتظار الدفع عبر CMI'],
+        'CMI payment authorized (to confirm)' => ['fr' => 'Paiement CMI autorisé (à confirmer)', 'ar' => 'دفع CMI مُفوَّض (في انتظار التأكيد)'],
+    ];
+
     /** @var \Module */
     private $module;
 
@@ -219,28 +225,36 @@ class Installer
         }
         Configuration::deleteByName('BPI_ID_ORDERSTATE');
 
-        return $this->installOrderState(Settings::OS_AWAITING, [
-            'en' => 'Awaiting CMI payment',
-            'fr' => 'En attente de paiement CMI',
-        ], '#4169E1', false)
-            && $this->installOrderState(Settings::OS_PREAUTHORIZED, [
-                'en' => 'CMI payment authorized (to confirm)',
-                'fr' => 'Paiement CMI autorisé (à confirmer)',
-            ], '#FF8C00', true);
+        return $this->installOrderState(Settings::OS_AWAITING, 'Awaiting CMI payment', '#4169E1', false)
+            && $this->installOrderState(Settings::OS_PREAUTHORIZED, 'CMI payment authorized (to confirm)', '#FF8C00', true);
     }
 
     /**
-     * @param array{en: string, fr: string} $names
-     * @param bool                          $logable whether the order counts as a valid sale
+     * Name of an order state in a language: the module's translation (Modules.Cmi.Admin), or the
+     * built-in one when PrestaShop has not loaded the module's translations yet (first install).
+     *
+     * @param array<string, mixed> $language a row of Language::getLanguages()
      */
-    private function installOrderState(string $configKey, array $names, string $color, bool $logable): bool
+    private function stateName(string $english, array $language): string
+    {
+        $locale = (string) ($language['locale'] ?? '');
+        $translated = $locale !== '' ? $this->module->getTranslator()->trans($english, [], 'Modules.Cmi.Admin', $locale) : $english;
+        if ($translated !== $english) {
+            return $translated;
+        }
+
+        return self::STATE_NAMES[$english][substr((string) $language['iso_code'], 0, 2)] ?? $english;
+    }
+
+    /** @param bool $logable whether the order counts as a valid sale */
+    private function installOrderState(string $configKey, string $name, string $color, bool $logable): bool
     {
         $state = new OrderState((int) Configuration::getGlobalValue($configKey));
         if (!Validate::isLoadedObject($state) || $state->deleted) {
             $state = new OrderState();
         }
         foreach (Language::getLanguages(false) as $language) {
-            $state->name[(int) $language['id_lang']] = strpos((string) $language['iso_code'], 'fr') === 0 ? $names['fr'] : $names['en'];
+            $state->name[(int) $language['id_lang']] = $this->stateName($name, $language);
         }
         $state->module_name = $this->module->name;
         $state->color = $color;
@@ -275,6 +289,7 @@ class Installer
         // Not shown in the menu: it only runs the actions of the order page's CMI panel.
         $tab->active = false;
         foreach (Language::getLanguages(false) as $language) {
+            // The brand name, the same in every language.
             $tab->name[(int) $language['id_lang']] = 'CMI';
         }
 
