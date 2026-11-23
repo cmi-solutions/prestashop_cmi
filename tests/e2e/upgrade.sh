@@ -1,7 +1,7 @@
 #!/usr/bin/env bash
 # Upgrade test: install version 1.x (git tag/branch given, default the 1.x release for PrestaShop 8, "prestashop_v8"), give it 1.x settings
 # and a 1.x order, upgrade to the working tree, and check the result.
-# Usage: tests/e2e/upgrade.sh ps8|ps9 [git-ref]. It replaces the module installed in that shop.
+# Usage: tests/e2e/upgrade.sh ps8|ps872|ps9 [git-ref]. It replaces the module installed in that shop.
 set -euo pipefail
 export MSYS_NO_PATHCONV=1
 service="${1:?ps8 or ps9}"

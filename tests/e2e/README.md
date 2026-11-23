@@ -1,11 +1,12 @@
 # Test bench
 
-Two shops and a mock of CMI, to test the module end to end without CMI credentials:
+Three shops and a mock of CMI, to test the module end to end without CMI credentials:
 
 | Service | Address | |
 | --- | --- | --- |
 | `ps8` | http://localhost:8081 (admin: `/admin-dev`) | PrestaShop 8.2.9, PHP 8.1 |
 | `ps9` | http://localhost:8082 (admin: `/admin-dev`) | PrestaShop 9.2.1, PHP 8.3 |
+| `ps872` | http://localhost:8084 (admin: `/admin-dev`) | PrestaShop 8.0.5, PHP 7.2: the oldest versions this package supports (`./run.sh ps872`) |
 | `cmi-app` | http://localhost:8090/fim/est3Dgate | mock payment page (Approve / Decline / Cancel) |
 | `cmi` | https://cmi.test/fim/api (inside the network) | mock XML API, HTTPS with a local CA the shops trust |
 

@@ -6,7 +6,7 @@ A major update, rewritten from version 1.1.0. Some things now work differently, 
 
 ### Before you update
 
-- This package is for **PrestaShop 8.0 to 8.x** (tested on 8.2.9 with PHP 8.1). For PrestaShop 9, use the `-ps9` package (branch `version_9`). PrestaShop 1.7 is no longer supported.
+- This package is for **PrestaShop 8.0 to 8.x** (PHP 7.2 to 8.1; tested on 8.0.5 with PHP 7.2 and on 8.2.9 with PHP 8.1). For PrestaShop 9, use the `-ps9` package (branch `version_9`). PrestaShop 1.7 is no longer supported.
 - Your settings are kept: they are moved to the new settings page during the update.
 - After updating, test a payment, a confirmation and a refund using CMI's test environment.
 - With the Complete Kit, set up the cron job shown on the settings page (see **Automatic checks** in the README).

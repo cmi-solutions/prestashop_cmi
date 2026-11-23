@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
 # Copy the module into a test shop, trust the mock CMI's HTTPS certificate, and copy the
-# bench scripts. Usage: tests/e2e/deploy.sh ps8|ps9
+# bench scripts. Usage: tests/e2e/deploy.sh ps8|ps872|ps9
 #   CMI_PACKAGE=path/to/cmi_prestashop_vX.Y.Z.zip  install that release zip, unpacked over the
 #                                                  module folder as "Upload a module" does
 #   (otherwise)                                    copy the working tree
