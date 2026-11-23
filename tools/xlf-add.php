@@ -1,4 +1,5 @@
 <?php
+
 /**
  * Adds or updates translations in a module XLF file, keeping the units sorted by source text.
  *

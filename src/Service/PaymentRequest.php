@@ -1,4 +1,5 @@
 <?php
+
 /**
  * CMI payment module for PrestaShop.
  *
@@ -8,7 +9,6 @@
 
 namespace Cmi\PrestaShop\Service;
 
-use Address;
 use Cmi\PrestaShop\Config\Settings;
 use Cmi\PrestaShop\Model\CmiTransaction;
 use Cmi\PrestaShop\Payment\AccountResolver;
@@ -17,13 +17,9 @@ use Cmi\PrestaShop\Payment\PaymentState;
 use Cmi\PrestaShop\Payment\TransactionGuard;
 use Cmi\PrestaShop\Protocol\CmiProtocol;
 use Cmi\PrestaShop\Repository\TransactionRepository;
-use Country;
 use Currency;
 use Customer;
-use Link;
 use Order;
-use State;
-use Validate;
 
 if (!defined('_PS_VERSION_')) {
     exit;
@@ -55,9 +51,9 @@ class PaymentRequest
      * What CMI will charge for an amount in a currency.
      *
      * @return array{account: string, client_id: string, currency_iso: string, currency_num: string, amount_charged: float, order_currency: string, amount_order: float, rate: float}|string
-     *                                                                                                                                                                              an ERROR_* code when it cannot be paid with CMI
+     *                                                                                                                                                                                       an ERROR_* code when it cannot be paid with CMI
      */
-    public function charge(Currency $currency, float $total)
+    public function charge(\Currency $currency, float $total)
     {
         if (!$this->settings->isPaymentConfigured()) {
             return self::ERROR_CONFIGURATION;
@@ -73,8 +69,8 @@ class PaymentRequest
         $rate = 1.0;
         if ($route['convert']) {
             // Never send an unconverted amount: CMI would charge it as MAD.
-            $mad = new Currency((int) Currency::getIdByIsoCode(AccountResolver::MAD));
-            if (!Validate::isLoadedObject($mad) || $mad->deleted) {
+            $mad = new \Currency((int) \Currency::getIdByIsoCode(AccountResolver::MAD));
+            if (!\Validate::isLoadedObject($mad) || $mad->deleted) {
                 return self::ERROR_RATE;
             }
             $rate = Amounts::rateBetween((float) $currency->conversion_rate, (float) $mad->conversion_rate, false);
@@ -96,7 +92,7 @@ class PaymentRequest
     }
 
     /** CMI receives names in Latin letters only: one typed only in Arabic would arrive empty. */
-    public function hasValidName(Address $address): bool
+    public function hasValidName(\Address $address): bool
     {
         return CmiProtocol::hasLatinName($address->firstname . ' ' . $address->lastname);
     }
@@ -105,7 +101,7 @@ class PaymentRequest
      * Record the payment of the orders PrestaShop just created for a cart (or a new attempt to
      * pay them). The OrderId sent to CMI is the shop's prefix + the order reference.
      *
-     * @param Order[] $orders
+     * @param \Order[] $orders
      */
     public function recordAttempt(array $orders, array $charge, ?CmiTransaction $existing = null): CmiTransaction
     {
@@ -138,11 +134,11 @@ class PaymentRequest
      *
      * @return array<string, string>
      */
-    public function formFields(CmiTransaction $transaction, Customer $customer, Address $address, string $languageIso, Link $link): array
+    public function formFields(CmiTransaction $transaction, \Customer $customer, \Address $address, string $languageIso, \Link $link): array
     {
-        $order = new Order((int) $transaction->id_order);
-        $country = new Country((int) $address->id_country);
-        $state = $address->id_state ? new State((int) $address->id_state) : null;
+        $order = new \Order((int) $transaction->id_order);
+        $country = new \Country((int) $address->id_country);
+        $state = $address->id_state ? new \State((int) $address->id_state) : null;
         $serverCallback = $this->settings->callbackMode() === Settings::CALLBACK_SERVER;
         $returnUrl = $link->getModuleLink('cmi', 'return', [], true);
 
@@ -168,7 +164,7 @@ class PaymentRequest
             'BillToCompany' => CmiProtocol::withoutAccents((string) $address->company),
             'BillToStreet1' => CmiProtocol::withoutAccents(trim($address->address1 . ' ' . $address->address2)),
             'BillToCity' => CmiProtocol::withoutAccents((string) $address->city),
-            'BillToStateProv' => $state && Validate::isLoadedObject($state) ? CmiProtocol::withoutAccents((string) $state->name) : '',
+            'BillToStateProv' => $state && \Validate::isLoadedObject($state) ? CmiProtocol::withoutAccents((string) $state->name) : '',
             'BillToCountry' => (string) $country->iso_code,
             'BillToPostalCode' => CmiProtocol::withoutAccents((string) $address->postcode),
             'tel' => CmiProtocol::cleanPhone((string) ($address->phone_mobile ?: $address->phone)),

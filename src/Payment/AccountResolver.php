@@ -1,4 +1,5 @@
 <?php
+
 /**
  * CMI payment module for PrestaShop.
  *
@@ -58,10 +59,10 @@ final class AccountResolver
 
     /**
      * @param string[] $storeCurrencies numeric codes selected in the settings
-     * @param string   $orderIso        alphabetic code of the order currency
+     * @param string $orderIso alphabetic code of the order currency
      *
      * @return array{account: string, currency: string, currency_iso: string, convert: bool}|null
-     *                                                                                               null when the order currency cannot be charged
+     *                                                                                            null when the order currency cannot be charged
      */
     public static function resolve(array $storeCurrencies, string $orderIso): ?array
     {

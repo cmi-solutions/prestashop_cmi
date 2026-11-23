@@ -1,4 +1,5 @@
 <?php
+
 /**
  * Test bench: install the module and configure it against the mock CMI.
  * Run inside a shop container: php /cmi-tests/configure.php [key=value ...]
@@ -44,7 +45,7 @@ Shop::setContext(Shop::CONTEXT_ALL);
 $module = Module::getInstanceByName('cmi');
 if ($options['install'] === '1' && !Module::isInstalled('cmi')) {
     if (!$module->install()) {
-        fwrite(STDERR, "install failed: " . implode(', ', $module->getErrors()) . "\n");
+        fwrite(STDERR, 'install failed: ' . implode(', ', $module->getErrors()) . "\n");
         exit(1);
     }
     echo "module installed\n";

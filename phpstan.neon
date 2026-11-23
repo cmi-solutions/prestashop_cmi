@@ -1,0 +1,14 @@
+# PHPStan with PrestaShop's configuration (prestashop/php-dev-tools), run against a PrestaShop core:
+#   _PS_ROOT_DIR_=/path/to/prestashop vendor/bin/phpstan analyse
+# CI runs it in the prestashop/prestashop image (see .github/workflows/ci.yml).
+includes:
+    - %currentWorkingDirectory%/vendor/prestashop/php-dev-tools/phpstan/ps-module-extension.neon
+
+parameters:
+    level: 5
+    paths:
+        - cmi.php
+        - controllers
+        - src
+        - upgrade
+    reportUnmatchedIgnoredErrors: false

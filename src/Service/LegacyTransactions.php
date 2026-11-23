@@ -1,4 +1,5 @@
 <?php
+
 /**
  * CMI payment module for PrestaShop.
  *
@@ -16,7 +17,6 @@ use Cmi\PrestaShop\Payment\PaymentState;
 use Cmi\PrestaShop\Repository\TransactionRepository;
 use Currency;
 use Order;
-use OrderPayment;
 
 if (!defined('_PS_VERSION_')) {
     exit;
@@ -44,7 +44,7 @@ class LegacyTransactions
      * used on it. Its CMI state is unknown until checked: version 1.x marked orders paid even
      * when CMI had only pre-authorized them.
      */
-    public function forOrder(Order $order, string $moduleName): ?CmiTransaction
+    public function forOrder(\Order $order, string $moduleName): ?CmiTransaction
     {
         if ($order->module !== $moduleName) {
             return null;
@@ -53,11 +53,12 @@ class LegacyTransactions
         if ($existing) {
             return $existing;
         }
-        $currency = new Currency((int) $order->id_currency);
+        $currency = new \Currency((int) $order->id_currency);
         $route = AccountResolver::resolve($this->settings->storeCurrencies(), (string) $currency->iso_code);
         $account = $route['account'] ?? AccountResolver::INSHORE;
         $total = 0.0;
-        foreach (Order::getByReference($order->reference) as $sibling) {
+        /** @var \Order $sibling */
+        foreach (\Order::getByReference($order->reference) as $sibling) {
             if ((int) $sibling->id_cart === (int) $order->id_cart) {
                 $total += (float) $sibling->total_paid_tax_incl;
             }
@@ -84,7 +85,7 @@ class LegacyTransactions
         $transaction->sent_at = 0;
         // Version 1.x saved CMI's TransId on the order payment: it proves ownership.
         $ids = [];
-        foreach (OrderPayment::getByOrderReference($order->reference) as $payment) {
+        foreach (\OrderPayment::getByOrderReference($order->reference) as $payment) {
             if ((string) $payment->transaction_id !== '') {
                 $ids[] = (string) $payment->transaction_id;
             }
@@ -105,7 +106,7 @@ class LegacyTransactions
         if (!\Validate::isLoadedObject($cart)) {
             return null;
         }
-        $currency = new Currency((int) $cart->id_currency);
+        $currency = new \Currency((int) $cart->id_currency);
         $route = AccountResolver::resolve($this->settings->storeCurrencies(), (string) $currency->iso_code);
         if ($route === null) {
             return null;
@@ -115,7 +116,7 @@ class LegacyTransactions
         // callback): the callback handler compares the two before creating the order.
         $rate = 1.0;
         if ($route['convert']) {
-            $mad = new Currency((int) Currency::getIdByIsoCode(AccountResolver::MAD));
+            $mad = new \Currency((int) \Currency::getIdByIsoCode(AccountResolver::MAD));
             $rate = \Validate::isLoadedObject($mad) && !$mad->deleted
                 ? Amounts::rateBetween((float) $currency->conversion_rate, (float) $mad->conversion_rate, false)
                 : 0.0;
@@ -133,10 +134,10 @@ class LegacyTransactions
         $transaction->oid = (string) (int) $cart->id;
         $transaction->payment_state = PaymentState::INITIATED;
         $transaction->legacy = true;
-        $transaction->account = $route['account'] ?? AccountResolver::INSHORE;
+        $transaction->account = $route['account'];
         $transaction->client_id = (string) ($callback['clientid'] ?? $this->settings->clientId($transaction->account));
-        $transaction->currency_iso = $route['currency_iso'] ?? AccountResolver::MAD;
-        $transaction->currency_num = $route['currency'] ?? AccountResolver::MAD_NUMERIC;
+        $transaction->currency_iso = $route['currency_iso'];
+        $transaction->currency_num = $route['currency'];
         $transaction->order_currency = strtoupper((string) $currency->iso_code);
         $transaction->amount_order = $orderTotal;
         $transaction->amount_charged = $charged;

@@ -1,4 +1,5 @@
 <?php
+
 /**
  * CMI payment module for PrestaShop.
  *
@@ -91,17 +92,23 @@ final class Settings
     public function get(string $key): string
     {
         $value = $this->idShop === null
-            ? Configuration::get($key)
-            : Configuration::get($key, null, null, $this->idShop);
+            ? \Configuration::get($key)
+            : \Configuration::get($key, null, null, $this->idShop);
 
-        return $value === false || $value === null ? '' : trim((string) $value);
+        return self::text($value);
     }
 
     public function getLang(string $key, int $idLang): string
     {
-        $value = Configuration::get($key, $idLang, null, $this->idShop);
+        $value = \Configuration::get($key, $idLang, null, $this->idShop);
 
-        return $value === false || $value === null ? '' : trim((string) $value);
+        return self::text($value);
+    }
+
+    /** A saved value as text: '' when there is none (false or null). */
+    private static function text($value): string
+    {
+        return is_scalar($value) && $value !== false ? trim((string) $value) : '';
     }
 
     public function clientId(string $account): string
@@ -198,7 +205,7 @@ final class Settings
     {
         $id = (int) $this->get(self::CAPTURED_STATE);
 
-        return $id > 0 ? $id : (int) Configuration::get('PS_OS_PAYMENT');
+        return $id > 0 ? $id : (int) \Configuration::get('PS_OS_PAYMENT');
     }
 
     public function awaitingStateId(): int

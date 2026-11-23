@@ -1,4 +1,5 @@
 <?php
+
 /**
  * CMI payment module for PrestaShop.
  *
@@ -14,7 +15,6 @@ use Cmi\PrestaShop\Payment\PaymentState;
 use Cmi\PrestaShop\Payment\TransactionGuard;
 use Cmi\PrestaShop\Protocol\ApiException;
 use Cmi\PrestaShop\Repository\TransactionRepository as Repo;
-use Configuration;
 
 if (!defined('_PS_VERSION_')) {
     exit;
@@ -106,7 +106,7 @@ class PendingChecker
                     // Still no payment hours later: the customer left. Cancel the order so its
                     // products return to stock (PrestaShop has no automatic expiry of unpaid orders).
                     $transaction->payment_state = PaymentState::FAILED;
-                    $this->orders->setStateIfIn($transaction, (int) Configuration::get('PS_OS_CANCELED'), [$awaitingState]);
+                    $this->orders->setStateIfIn($transaction, (int) \Configuration::get('PS_OS_CANCELED'), [$awaitingState]);
                     $this->repository->log($transaction, Repo::LOG_INFO, $this->texts->admin('Automatic check: still no payment on CMI hours after the customer was sent there. The order was cancelled.'));
                 }
             } catch (ApiException $e) {

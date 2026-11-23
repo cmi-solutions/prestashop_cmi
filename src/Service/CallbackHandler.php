@@ -1,4 +1,5 @@
 <?php
+
 /**
  * CMI payment module for PrestaShop.
  *
@@ -13,10 +14,7 @@ use Cmi\PrestaShop\Model\CmiTransaction;
 use Cmi\PrestaShop\Payment\PaymentState;
 use Cmi\PrestaShop\Protocol\CmiProtocol;
 use Cmi\PrestaShop\Repository\TransactionRepository as Repo;
-use Configuration;
 use Order;
-use PaymentModule;
-use PrestaShopLogger;
 
 if (!defined('_PS_VERSION_')) {
     exit;
@@ -33,7 +31,7 @@ class CallbackHandler
     public const ANSWER_APPROVED = 'APPROVED';
     public const ANSWER_FAILURE = 'FAILURE';
 
-    /** @var PaymentModule */
+    /** @var \PaymentModule */
     private $module;
     /** @var Settings */
     private $settings;
@@ -48,7 +46,7 @@ class CallbackHandler
     /** @var Texts */
     private $texts;
 
-    public function __construct(PaymentModule $module, Settings $settings, Repo $repository, OrderUpdater $orders, TransactionManager $manager, LegacyTransactions $legacy, Texts $texts)
+    public function __construct(\PaymentModule $module, Settings $settings, Repo $repository, OrderUpdater $orders, TransactionManager $manager, LegacyTransactions $legacy, Texts $texts)
     {
         $this->module = $module;
         $this->settings = $settings;
@@ -60,8 +58,8 @@ class CallbackHandler
     }
 
     /**
-     * @param array<string, string> $fields   the POST fields CMI sent
-     * @param bool                  $isServer server callback (true) or browser return (false)
+     * @param array<string, string> $fields the POST fields CMI sent
+     * @param bool $isServer server callback (true) or browser return (false)
      *
      * @return array{transaction: CmiTransaction|null, answer: string, valid: bool}
      */
@@ -69,7 +67,7 @@ class CallbackHandler
     {
         $oid = CmiProtocol::sanitizeOid((string) ($fields['oid'] ?? $fields['ReturnOid'] ?? ''));
         if (!CmiProtocol::isValidCallback($fields, $this->settings->storeKey())) {
-            PrestaShopLogger::addLog(sprintf('CMI %s rejected: invalid signature (OrderId %s, IP %s).', $isServer ? 'callback' : 'browser return', $oid, (string) \Tools::getRemoteAddr()), 2, null, null, null, true);
+            \PrestaShopLogger::addLog(sprintf('CMI %s rejected: invalid signature (OrderId %s, IP %s).', $isServer ? 'callback' : 'browser return', $oid, (string) \Tools::getRemoteAddr()), 2, null, null, null, true);
 
             return ['transaction' => null, 'answer' => self::ANSWER_FAILURE, 'valid' => false];
         }
@@ -84,7 +82,7 @@ class CallbackHandler
             $transaction = $this->legacy->forInFlightCart((int) $oid, $fields);
         }
         if (!$transaction) {
-            PrestaShopLogger::addLog('CMI callback for an unknown OrderId: ' . $oid, 2, null, null, null, true);
+            \PrestaShopLogger::addLog('CMI callback for an unknown OrderId: ' . $oid, 2, null, null, null, true);
 
             return ['transaction' => null, 'answer' => self::ANSWER_FAILURE, 'valid' => false];
         }
@@ -96,7 +94,7 @@ class CallbackHandler
                 // The server callback is processing it: the result page shows its outcome.
                 return ['transaction' => $this->repository->refresh($transaction), 'answer' => self::ANSWER_APPROVED, 'valid' => true];
             }
-            PrestaShopLogger::addLog('CMI callback processed while the payment was held by another request: OrderId ' . $oid, 2, null, 'Cart', (int) $transaction->id_cart, true);
+            \PrestaShopLogger::addLog('CMI callback processed while the payment was held by another request: OrderId ' . $oid, 2, null, 'Cart', (int) $transaction->id_cart, true);
         }
         try {
             $transaction = $this->repository->refresh($transaction);
@@ -144,7 +142,7 @@ class CallbackHandler
                 return self::ANSWER_APPROVED;
             }
             $this->setState($transaction, PaymentState::FAILED, $fields);
-            $this->orders->setStateIfIn($transaction, (int) Configuration::get('PS_OS_ERROR'), [$this->settings->awaitingStateId()]);
+            $this->orders->setStateIfIn($transaction, (int) \Configuration::get('PS_OS_ERROR'), [$this->settings->awaitingStateId()]);
             $this->repository->log($transaction, Repo::LOG_WARNING, $this->t('%source%: payment declined (%error%, ProcReturnCode %code%).', [
                 '%source%' => $source,
                 '%error%' => trim((string) ($fields['ErrMsg'] ?? '')) !== '' ? (string) $fields['ErrMsg'] : $this->t('declined'),
@@ -241,7 +239,7 @@ class CallbackHandler
     /** Payment started with version 1.x: its order is created now, as 1.x did. */
     private function createInFlightOrder(CmiTransaction $transaction): bool
     {
-        $existing = Order::getByCartId((int) $transaction->id_cart);
+        $existing = \Order::getByCartId((int) $transaction->id_cart);
         if (!$existing || !$existing->id) {
             $cart = new \Cart((int) $transaction->id_cart);
             $customer = new \Customer((int) $cart->id_customer);
@@ -259,11 +257,11 @@ class CallbackHandler
                     $customer->secure_key
                 );
             } catch (\Exception $e) {
-                PrestaShopLogger::addLog('CMI could not create the order of cart ' . (int) $cart->id . ': ' . $e->getMessage(), 3, null, 'Cart', (int) $cart->id, true);
+                \PrestaShopLogger::addLog('CMI could not create the order of cart ' . (int) $cart->id . ': ' . $e->getMessage(), 3, null, 'Cart', (int) $cart->id, true);
 
                 return false;
             }
-            $existing = Order::getByCartId((int) $cart->id);
+            $existing = \Order::getByCartId((int) $cart->id);
         }
         if (!$existing || !$existing->id) {
             return false;

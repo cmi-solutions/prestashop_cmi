@@ -1,4 +1,5 @@
 <?php
+
 /**
  * CMI payment module for PrestaShop.
  *
@@ -9,7 +10,6 @@
 namespace Cmi\PrestaShop\Service;
 
 use Cmi\PrestaShop\Repository\TransactionRepository;
-use Db;
 
 if (!defined('_PS_VERSION_')) {
     exit;
@@ -60,7 +60,7 @@ class GdprData
             if (!is_array($answer) || !array_intersect_key($answer, array_flip(self::CARD_FIELDS))) {
                 continue;
             }
-            $ok = Db::getInstance()->update(
+            $ok = \Db::getInstance()->update(
                 'cmi_transaction',
                 ['last_response' => pSQL((string) json_encode(array_diff_key($answer, array_flip(self::CARD_FIELDS))))],
                 '`id_cmi_transaction` = ' . (int) $row['id_cmi_transaction']
@@ -76,7 +76,7 @@ class GdprData
         if ($idCustomer <= 0) {
             return [];
         }
-        $rows = Db::getInstance()->executeS(
+        $rows = \Db::getInstance()->executeS(
             'SELECT t.* FROM `' . TransactionRepository::table() . '` t'
             . ' INNER JOIN `' . _DB_PREFIX_ . 'cart` c ON c.`id_cart` = t.`id_cart`'
             . ' WHERE c.`id_customer` = ' . $idCustomer

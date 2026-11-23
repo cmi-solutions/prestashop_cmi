@@ -1,4 +1,5 @@
 <?php
+
 /**
  * Test bench scenarios: real orders, real HTTP calls to the module's controllers, the mock CMI
  * for the payment page, callbacks and API. Run inside a shop container:
@@ -147,7 +148,7 @@ function newOrder(string $currencyIso = 'MAD', string $firstname = 'Said', strin
     $cart->add();
     $context->cart = $cart;
     $context->customer = $customer;
-    $product =(int) Db::getInstance()->getValue('SELECT p.id_product FROM ' . _DB_PREFIX_ . 'product p INNER JOIN ' . _DB_PREFIX_ . 'stock_available s ON s.id_product = p.id_product AND s.id_product_attribute = 0 WHERE p.active = 1 AND s.quantity > 5 AND p.price > 10 ORDER BY p.id_product');
+    $product = (int) Db::getInstance()->getValue('SELECT p.id_product FROM ' . _DB_PREFIX_ . 'product p INNER JOIN ' . _DB_PREFIX_ . 'stock_available s ON s.id_product = p.id_product AND s.id_product_attribute = 0 WHERE p.active = 1 AND s.quantity > 5 AND p.price > 10 ORDER BY p.id_product');
     $cart->updateQty(1, $product);
     $context->cart = $cart;
     $context->customer = $customer;
@@ -225,7 +226,7 @@ $scenarios['automatic'] = static function () use ($states) {
 
     $back = browserReturn($paid['state']);
     $result = shop('GET', $back['location']);
-    check('browser return redirects to the order confirmation', $back['status'] === 302 && strpos($result['location'], 'id_module=') !== false && strpos($result['location'], 'id_order=') !== false,$back['status'] . ' ' . $back['location'] . ' -> ' . $result['location']);
+    check('browser return redirects to the order confirmation', $back['status'] === 302 && strpos($result['location'], 'id_module=') !== false && strpos($result['location'], 'id_order=') !== false, $back['status'] . ' ' . $back['location'] . ' -> ' . $result['location']);
 
     $replay = shop('POST', $paid['state']['last_result']['callbackUrl'], $paid['state']['last_result']);
     check('a repeated callback changes nothing', $replay['body'] === 'APPROVED' && orderState(reload($tx)) === $states['paid'], $replay['body']);
@@ -406,7 +407,7 @@ $scenarios['cancel'] = static function () use ($states) {
     check('cancel link with a wrong key is refused', orderState(reload($tx2)) === $states['paid'] && $forged['status'] === 302);
 };
 
-$scenarios['foreign'] = static function () use ($states) {
+$scenarios['foreign'] = static function () {
     setting('CMI_CONFIRMATION_MODE', 'manual');
     $o = newOrder();
     pay($o['tx'], 'approve', true);
@@ -496,7 +497,7 @@ $scenarios['back-office'] = static function () use ($states) {
     setting('CMI_CONFIRMATION_MODE', 'automatic');
 };
 
-$scenarios['currency'] = static function () use ($states) {
+$scenarios['currency'] = static function () {
     setting('CMI_STORE_CURRENCIES', '504');
     $o = newOrder('EUR');
     $tx = $o['tx'];
