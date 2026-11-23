@@ -16,6 +16,9 @@
   <section id="cmi-result" class="card card-block">
     <p>{l s='Order reference: %reference%' sprintf=['%reference%' => $cmi_reference] d='Modules.Cmi.Shop'}</p>
     <p class="alert {if $cmi_state == 'failed' || $cmi_state == 'client_cancelled'}alert-warning{else}alert-info{/if}">{$cmi_message|escape:'html':'UTF-8'}</p>
+    {if $cmi_confirming}
+      <p><a class="btn btn-secondary" href="{$cmi_refresh_url|escape:'html':'UTF-8'}">{l s='Refresh' d='Modules.Cmi.Shop'}</a></p>
+    {/if}
     {if $cmi_retry_url}
       <p><a class="btn btn-primary" href="{$cmi_retry_url|escape:'html':'UTF-8'}">{l s='Pay again by card' d='Modules.Cmi.Shop'}</a></p>
     {/if}

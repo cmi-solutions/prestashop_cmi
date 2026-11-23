@@ -66,17 +66,31 @@ class CmiValidationModuleFrontController extends ModuleFrontController
             $this->fail($this->chargeError($charge, (string) $currency->iso_code));
         }
 
-        $this->module->validateOrder(
-            (int) $cart->id,
-            $this->module->services()->settings()->awaitingStateId(),
-            $total,
-            $this->module->displayName,
-            null,
-            [],
-            (int) $currency->id,
-            false,
-            $customer->secure_key
-        );
+        // Sent twice (double click, two tabs, back button from CMI's page): the order of this
+        // cart already exists, so show it (with "Pay again") instead of creating another one.
+        if ($cart->orderExists()) {
+            $this->showExistingOrder((int) $cart->id);
+        }
+        try {
+            $this->module->validateOrder(
+                (int) $cart->id,
+                $this->module->services()->settings()->awaitingStateId(),
+                $total,
+                $this->module->displayName,
+                null,
+                [],
+                (int) $currency->id,
+                false,
+                $customer->secure_key
+            );
+        } catch (PrestaShopException $e) {
+            if ((new Cart((int) $cart->id))->orderExists()) {
+                // The other request created the order at the same moment.
+                $this->showExistingOrder((int) $cart->id);
+            }
+            PrestaShopLogger::addLog('CMI could not create the order of cart ' . (int) $cart->id . ': ' . $e->getMessage(), 3, null, 'Cart', (int) $cart->id, true);
+            $this->fail($this->trans('Your order could not be created. Please try again.', [], 'Modules.Cmi.Shop'));
+        }
         $orders = $this->ordersOfCart((int) $cart->id);
         if (!$orders) {
             $this->fail($this->trans('Your order could not be created. Please try again.', [], 'Modules.Cmi.Shop'));
@@ -201,6 +215,17 @@ class CmiValidationModuleFrontController extends ModuleFrontController
     }
 
     /** Back to the checkout (or the order's result page) with an error message. */
+    /** The cart already has its order: show its result page (it offers "Pay again" when unpaid). */
+    private function showExistingOrder(int $idCart): void
+    {
+        $order = Order::getByCartId($idCart);
+        if (!$order || !Validate::isLoadedObject($order) || $order->module !== $this->module->name
+            || (int) $order->id_customer !== (int) $this->context->cart->id_customer) {
+            Tools::redirect($this->context->link->getPageLink('history', true));
+        }
+        Tools::redirect($this->context->link->getModuleLink('cmi', 'return', ['id_order' => (int) $order->id, 'key' => (string) $order->secure_key], true));
+    }
+
     private function fail(string $message, ?Order $order = null): void
     {
         $this->errors[] = $message;

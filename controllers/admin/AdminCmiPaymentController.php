@@ -29,9 +29,15 @@ class AdminCmiPaymentController extends ModuleAdminController
         parent::__construct();
     }
 
-    /** Whoever may edit orders may manage their CMI payments. */
+    /**
+     * Whoever may edit orders may manage their CMI payments. The parent check comes first:
+     * it validates the back-office token, which protects these actions against CSRF.
+     */
     public function checkAccess()
     {
+        if (!parent::checkAccess()) {
+            return false;
+        }
         $employee = $this->context->employee;
         if (!$employee || !$employee->id) {
             return false;

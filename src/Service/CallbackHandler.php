@@ -75,6 +75,11 @@ class CallbackHandler
         }
 
         $transaction = $oid !== '' ? $this->repository->findByOid($oid, $idShop) : null;
+        if (!$isServer && !$this->returnUpdatesPayment()) {
+            // With the server callback, the customer's return only shows the result: CMI's
+            // callback (or the automatic checks) is the only source that updates the payment.
+            return ['transaction' => $transaction, 'answer' => self::ANSWER_APPROVED, 'valid' => $transaction !== null];
+        }
         if (!$transaction && ctype_digit($oid)) {
             $transaction = $this->legacy->forInFlightCart((int) $oid, $fields);
         }
@@ -149,8 +154,19 @@ class CallbackHandler
             return self::ANSWER_APPROVED;
         }
 
+        $currency = trim((string) ($fields['currency'] ?? ''));
+        if ($currency !== (string) $transaction->currency_num) {
+            // Signed by CMI, so this should never happen: don't let CMI capture it.
+            $this->repository->log($transaction, Repo::LOG_ERROR, $this->t('%source%: CMI approved the payment in currency %currency%, not in the currency sent (%sent%). The payment was not accepted; check it in the CMI back office.', [
+                '%source%' => $source,
+                '%currency%' => $currency !== '' ? $currency : '?',
+                '%sent%' => (string) $transaction->currency_num,
+            ]));
+
+            return self::ANSWER_FAILURE;
+        }
         $amount = round((float) str_replace(',', '.', (string) ($fields['amount'] ?? '0')), 2);
-        if (!$transaction->legacy && abs($amount - (float) $transaction->amount_charged) > 0.009) {
+        if (!CmiProtocol::amountMatches($amount, (float) $transaction->amount_charged, (bool) $transaction->legacy)) {
             // Signed by CMI, so this should never happen: don't let CMI capture it.
             $this->repository->log($transaction, Repo::LOG_ERROR, $this->t('%source%: the amount approved by CMI (%amount%) is not the amount sent (%sent%). The payment was not accepted; check it in the CMI back office.', [
                 '%source%' => $source,
@@ -207,6 +223,15 @@ class CallbackHandler
     }
 
     /** Whether the server callback answer makes CMI capture the payment. */
+    /**
+     * Whether the customer's return from CMI may update the payment: only in "Browser return
+     * only" mode, where CMI does not call the shop and the return is the only signed result.
+     */
+    public function returnUpdatesPayment(): bool
+    {
+        return $this->settings->callbackMode() === Settings::CALLBACK_BROWSER;
+    }
+
     private function capturesOnCallback(): bool
     {
         return $this->settings->confirmationMode() === Settings::MODE_AUTOMATIC
@@ -221,10 +246,11 @@ class CallbackHandler
             $cart = new \Cart((int) $transaction->id_cart);
             $customer = new \Customer((int) $cart->id_customer);
             try {
+                // The order total checked against the amount CMI approved (see process()).
                 $this->module->validateOrder(
                     (int) $cart->id,
                     $this->settings->awaitingStateId(),
-                    (float) $cart->getOrderTotal(true, \Cart::BOTH),
+                    (float) $transaction->amount_order,
                     $this->module->displayName,
                     null,
                     [],
