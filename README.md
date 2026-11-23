@@ -32,7 +32,8 @@ The configuration, the order statuses and the payment management are described i
 
 - Secure hosted payment on CMI's 3-D Secure page; automatic capture, or pre-authorization confirmed later.
 - Confirm, void, refund (full or partial) and check payments from the order page (Complete Kit), after checking with CMI that the payment belongs to the order.
-- Standard (MAD) and offshore CMI stores; orders in other currencies converted to MAD, refunded with the rate applied at payment.
+- Payments in MAD; orders in other currencies converted to MAD, refunded with the rate applied at payment.
+- Order status after capture of your choice, including a status of your own.
 - Sync with the CMI back office, automatic status checks of unpaid orders, "Pay again" for customers.
 - English and French; multistore.
 
