@@ -47,6 +47,8 @@ class Cmi extends PaymentModule
         $this->author = 'CMI';
         $this->need_instance = 0;
         $this->bootstrap = true;
+        // PrestaShop Addons key of the CMI module, unchanged since version 1.x.
+        $this->module_key = '3a6587e8877a665f590245c45874f65';
         // This branch (version_8) is the PrestaShop 8.x package; version_9 is the 9.x one.
         $this->ps_versions_compliancy = ['min' => '8.0.0', 'max' => '8.99.99'];
         $this->controllers = ['validation', 'callback', 'return', 'cancel', 'cron'];
