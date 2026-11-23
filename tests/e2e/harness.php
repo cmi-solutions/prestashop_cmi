@@ -396,6 +396,25 @@ $scenarios['pending'] = static function () use ($states) {
     check('abandoned order cancelled at the last check', orderState($tx2) === $states['canceled'] && $tx2->payment_state === PaymentState::FAILED, (string) orderState($tx2));
 };
 
+$scenarios['pay-again'] = static function () use ($states) {
+    // Approved on CMI, but the callback and the customer's return are both lost.
+    $o = newOrder();
+    pay($o['tx'], 'approve', true);
+    check('lost result: order still awaiting payment', orderState($o['tx']) === $states['awaiting']);
+    $retryUrl = Context::getContext()->link->getModuleLink('cmi', 'validation', ['id_order' => (int) $o['order']->id, 'key' => (string) $o['order']->secure_key]);
+    $retry = shop('GET', $retryUrl);
+    $tx = reload($o['tx']);
+    check('"Pay again" asks CMI first and does not send the customer to pay twice', $retry['status'] === 302 && strpos($retry['location'], 'return') !== false && strpos($retry['body'], 'cmi-payment-form') === false, $retry['status'] . ' ' . $retry['location']);
+    check('...and the order is updated from CMI (pre-authorized)', $tx->payment_state === PaymentState::PRE_CONFIRMATION_REQUIRED && orderState($tx) === $states['preauth'], $tx->payment_state);
+
+    // Really unpaid (declined): "Pay again" sends the customer to CMI.
+    $d = newOrder();
+    pay($d['tx'], 'decline');
+    $again = shop('GET', Context::getContext()->link->getModuleLink('cmi', 'validation', ['id_order' => (int) $d['order']->id, 'key' => (string) $d['order']->secure_key]));
+    check('declined order: "Pay again" shows the payment form', $again['status'] === 200 && strpos($again['body'], 'cmi-payment-form') !== false, (string) $again['status']);
+    check('...back to awaiting payment', orderState($d['tx']) === $states['awaiting'] && reload($d['tx'])->payment_state === PaymentState::INITIATED);
+};
+
 $scenarios['back-office'] = static function () use ($states) {
     $o = newOrder();
     pay($o['tx'], 'approve');

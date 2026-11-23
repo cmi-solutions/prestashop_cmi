@@ -97,9 +97,27 @@ class CmiValidationModuleFrontController extends ModuleFrontController
         $transaction = $services->repository()->findByOrder($order);
         $settings = $services->settings();
         $payable = [$settings->awaitingStateId(), (int) Configuration::get('PS_OS_ERROR')];
+        $resultPage = $this->context->link->getModuleLink('cmi', 'return', ['id_order' => (int) $order->id, 'key' => (string) $order->secure_key], true);
         if (!$transaction || !PaymentState::isAwaitingPayment((string) $transaction->payment_state)
             || !in_array((int) $order->getCurrentState(), $payable, true)) {
-            Tools::redirect($this->context->link->getModuleLink('cmi', 'return', ['id_order' => (int) $order->id, 'key' => (string) $order->secure_key], true));
+            Tools::redirect($resultPage);
+        }
+        // The previous attempt may have been paid while its result never reached the shop
+        // (callback lost, customer closed the page): ask CMI first, so nobody pays twice.
+        if ($settings->isApiEnabled() && (int) $transaction->sent_at > 0) {
+            $repository = $services->repository();
+            if ($repository->acquireLockWaiting($transaction, 5)) {
+                try {
+                    $transaction = $repository->refresh($transaction);
+                    $services->manager()->sync($transaction);
+                } finally {
+                    $repository->releaseLock($transaction);
+                }
+            }
+            $transaction = $repository->refresh($transaction);
+            if (!PaymentState::isAwaitingPayment((string) $transaction->payment_state)) {
+                Tools::redirect($resultPage);
+            }
         }
         $orders = $services->orders()->ordersOf($transaction);
         $total = 0.0;
