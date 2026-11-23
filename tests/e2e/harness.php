@@ -309,11 +309,18 @@ $scenarios['decline'] = static function () use ($states) {
 };
 
 $scenarios['browser-first'] = static function () use ($states) {
+    // Server to server mode: the customer's return only shows the result, CMI's callback updates it.
     $o = newOrder();
     $paid = pay($o['tx'], 'approve', true);
     $back = browserReturn($paid['state']);
     $tx = reload($o['tx']);
-    check('browser return before the callback: authorized, not yet captured', $tx->payment_state === PaymentState::PRE_CONFIRMATION_REQUIRED && orderState($tx) === $states['preauth'], $back['status'] . ' ' . $tx->payment_state);
+    check('browser return before the callback changes nothing (display only)', $tx->payment_state === PaymentState::INITIATED && orderState($tx) === $states['awaiting'], $back['status'] . ' ' . $tx->payment_state);
+    $page = shop('GET', $back['location']);
+    check('...and tells the cardholder the payment is being confirmed, without "Pay again"', $page['status'] === 200 && strpos($back['location'], 'outcome=approved') !== false && strpos($page['body'], 'controller=validation') === false && strpos($page['body'], '/validation?') === false, $back['status'] . ' ' . $back['location']);
+    $forged = $paid['state']['last_result'];
+    $forged['HASH'] = 'forged';
+    $refused = shop('POST', $forged['okUrl'], $forged);
+    check('an unsigned return never leads to the order page', $refused['status'] === 302 && strpos($refused['location'], 'key=') === false, $refused['location']);
     $callback = shop('POST', $paid['state']['last_result']['callbackUrl'], $paid['state']['last_result']);
     $tx = reload($tx);
     check('the late callback then captures it', $callback['body'] === 'ACTION=POSTAUTH' && $tx->payment_state === PaymentState::CONFIRMED && orderState($tx) === $states['paid'], $callback['body']);
@@ -332,6 +339,51 @@ $scenarios['browser-mode'] = static function () use ($states) {
     $ops = mock('/mock/state?oid=' . urlencode($tx->oid))['json']['ops'];
     check('browser mode: CMI shows the capture', $ops[0]['stat'] === 'C');
     setting('CMI_CALLBACK_MODE', 'server');
+};
+
+$scenarios['payment-checks'] = static function () use ($states) {
+    // A callback signed by CMI but in another currency: never accepted.
+    $o = newOrder();
+    $paid = pay($o['tx'], 'approve', true);
+    $result = $paid['state']['last_result'];
+    $result['currency'] = '978';
+    $other = signed($result);
+    $answer = shop('POST', $other['callbackUrl'], $other);
+    $tx = reload($o['tx']);
+    check('a callback in another currency is refused', $answer['body'] === 'FAILURE' && $tx->payment_state === PaymentState::INITIATED && orderState($tx) === $states['awaiting'], $answer['body'] . ' ' . $tx->payment_state);
+    check('amount check: exact, and 1% for 1.x payments only', CmiProtocol::amountMatches(150.0, 150.0) && !CmiProtocol::amountMatches(150.5, 150.0) && CmiProtocol::amountMatches(150.5, 150.0, true) && !CmiProtocol::amountMatches(152.0, 150.0, true) && !CmiProtocol::amountMatches(10.0, 0.0, true));
+
+    // GDPR: export the customer's payments, then remove their card data.
+    $o2 = newOrder();
+    pay($o2['tx'], 'approve');
+    $module = Module::getInstanceByName('cmi');
+    $customer = ['id' => (int) $o2['order']->id_customer, 'email' => ''];
+    $export = json_decode((string) $module->hookActionExportGDPRData($customer), true);
+    check('GDPR export lists the CMI payment with the masked card', is_array($export) && $export[0]['CMI OrderId'] === $o2['tx']->oid && $export[0]['Card'] === '**** 1111', json_encode($export));
+    $deleted = json_decode((string) $module->hookActionDeleteGDPRCustomer($customer), true);
+    $after = json_decode((string) $module->hookActionExportGDPRData($customer), true);
+    check('GDPR deletion removes the card data, keeps the payment', $deleted === true && $after[0]['Card'] === '' && $after[0]['CMI OrderId'] === $o2['tx']->oid && reload($o2['tx'])->payment_state === PaymentState::CONFIRMED, json_encode($after));
+    check('GDPR hooks registered', $module->isRegisteredInHook('actionExportGDPRData') && $module->isRegisteredInHook('actionDeleteGDPRCustomer') && $module->isRegisteredInHook('registerGDPRConsent'));
+
+    // CMI platform of an address.
+    check('platform of CMI\'s addresses', Cmi\PrestaShop\Config\Settings::environmentOfUrl('https://testpayment.cmi.co.ma/fim/est3Dgate') === 'test'
+        && Cmi\PrestaShop\Config\Settings::environmentOfUrl('https://payment.cmi.co.ma/fim/est3Dgate') === 'production'
+        && Cmi\PrestaShop\Config\Settings::environmentOfUrl('http://localhost:8090/fim/est3Dgate') === null);
+};
+
+$scenarios['admin-token'] = static function () {
+    // The order panel's actions need the back-office token (CSRF), even for a super admin.
+    $context = Context::getContext();
+    $context->employee = new Employee(1);
+    $_GET = ['controller' => 'AdminCmiPayment'];
+    require_once _PS_MODULE_DIR_ . 'cmi/controllers/admin/AdminCmiPaymentController.php';
+    $controller = new AdminCmiPaymentController();
+    $_POST = ['cmi_action' => 'refund'];
+    check('admin actions without the token are refused', $controller->checkAccess() === false);
+    $_POST = [];
+    $_GET['token'] = Tools::getAdminToken('AdminCmiPayment' . (int) Tab::getIdFromClassName('AdminCmiPayment') . (int) $context->employee->id);
+    check('admin actions with the token are allowed', $controller->checkAccess() === true);
+    $_GET = [];
 };
 
 $scenarios['cancel'] = static function () use ($states) {
@@ -479,7 +531,7 @@ $scenarios['custom-status'] = static function () use ($states) {
         $_POST = array_merge([
             'submitCmiSettings' => '1',
             'CMI_KIT' => $saved['CMI_KIT'], 'CMI_CONFIRMATION_MODE' => $saved['CMI_CONFIRMATION_MODE'], 'CMI_CALLBACK_MODE' => $saved['CMI_CALLBACK_MODE'],
-            'CMI_PAYMENT_LANGUAGE' => 'auto', 'CMI_CLIENT_ID' => $saved['CMI_CLIENT_ID'],
+            'CMI_PAYMENT_LANGUAGE' => 'auto', 'CMI_CLIENT_ID' => $saved['CMI_CLIENT_ID'], 'CMI_ENVIRONMENT' => 'test',
             // The form only accepts https://: the bench's mock payment page is restored below.
             'CMI_GATEWAY_URL' => 'https://testpayment.cmi.co.ma/fim/est3Dgate',
             'CMI_STORE_KEY' => '', 'CMI_API_URL' => $saved['CMI_API_URL'], 'CMI_API_USERNAME' => $saved['CMI_API_USERNAME'], 'CMI_API_PASSWORD' => '',
@@ -501,6 +553,13 @@ $scenarios['custom-status'] = static function () use ($states) {
     check('custom status saved and chosen', !$errors && $id > 0 && $id === (int) Configuration::getGlobalValue('CMI_OS_CUSTOM_CAPTURED'), implode(' | ', $errors));
     check('custom status counts as paid, with invoice and e-mail', $state->paid && $state->invoice && $state->logable && $state->send_email && $state->color === '#123456');
     check('custom status has its name in every language', !array_diff(array_values($state->name), ['Payée par carte (banc)']));
+
+    // CMI platform: an empty address takes the chosen platform's.
+    $errors = $post(['CMI_CAPTURED_STATE' => (string) $states['paid'], 'CMI_ENVIRONMENT' => 'production', 'CMI_GATEWAY_URL' => '']);
+    check('production platform fills in CMI\'s production payment page', !$errors && Configuration::get('CMI_GATEWAY_URL') === 'https://payment.cmi.co.ma/fim/est3Dgate' && Configuration::get('CMI_ENVIRONMENT') === 'production', implode(' | ', $errors));
+    $errors = $post(['CMI_CAPTURED_STATE' => (string) $states['paid'], 'CMI_ENVIRONMENT' => 'nowhere']);
+    check('an unknown platform is refused', count($errors) === 1, implode(' | ', $errors));
+    $post(['CMI_CAPTURED_STATE' => 'custom', 'CMI_CUSTOM_STATE_NAME' => 'Payée par carte (banc)', 'CMI_CUSTOM_STATE_COLOR' => '#123456']);
 
     // A payment captured now ends in the custom status.
     setting('CMI_GATEWAY_URL', 'http://localhost:8090/fim/est3Dgate');
