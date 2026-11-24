@@ -1,4 +1,5 @@
 <?php
+
 /**
  * CMI payment module for PrestaShop.
  *
@@ -56,6 +57,8 @@ class CmiCancelModuleFrontController extends ModuleFrontController
             $check = '';
             if ($settings->isApiEnabled()) {
                 $check = (string) $services->manager()->sync($transaction)['status'];
+                // The check may have updated the payment.
+                $transaction = $services->repository()->refresh($transaction);
             }
             $allowed = PaymentState::customerCancelAllowed($check)
                 && PaymentState::isAwaitingPayment((string) $transaction->payment_state);

@@ -1,4 +1,5 @@
 <?php
+
 /**
  * CMI payment module for PrestaShop.
  *
@@ -12,7 +13,6 @@ use Cmi\PrestaShop\Model\CmiTransaction;
 use Cmi\PrestaShop\Payment\PaymentState;
 use Cmi\PrestaShop\Protocol\CmiProtocol;
 use Cmi\PrestaShop\Services;
-use Context;
 use Order;
 
 if (!defined('_PS_VERSION_')) {
@@ -32,10 +32,10 @@ class OrderPanel
     private $module;
     /** @var Services */
     private $services;
-    /** @var Context */
+    /** @var \Context */
     private $context;
 
-    public function __construct(\PaymentModule $module, Services $services, Context $context)
+    public function __construct(\PaymentModule $module, Services $services, \Context $context)
     {
         $this->module = $module;
         $this->services = $services;
@@ -43,7 +43,7 @@ class OrderPanel
     }
 
     /** @return array<string, mixed>|null template variables, null when the order was not paid with CMI */
-    public function variables(Order $order): ?array
+    public function variables(\Order $order): ?array
     {
         $transaction = $this->services->repository()->findByOrder($order)
             ?? $this->services->legacy()->forOrder($order, $this->module->name);
@@ -64,6 +64,8 @@ class OrderPanel
             'state_label' => self::stateLabel($state, $this->module),
             'state_class' => self::stateClass($state),
             'legacy' => (bool) $transaction->legacy,
+            // The actions go to CMI's test platform: say so on every order.
+            'test_mode' => $settings->isTestMode(),
             'account' => (string) $transaction->account,
             'client_id' => (string) $transaction->client_id,
             'currency' => (string) $transaction->currency_iso,
@@ -133,23 +135,63 @@ class OrderPanel
     }
 
     /** @return array{type: string, message: string}|null */
+    /**
+     * What the orders list shows for an order in its CMI column: the actions possible now
+     * (Complete Kit). A partial refund stays on the order page: it needs an amount.
+     *
+     * @return array<string, mixed>|null null when CMI has no payment for this order
+     */
+    public function listEntry(\Order $order): ?array
+    {
+        $transaction = $this->services->repository()->findByOrder($order);
+        if (!$transaction) {
+            return null;
+        }
+        $api = $this->services->settings()->isApiEnabled();
+        $state = (string) $transaction->payment_state;
+        $balance = $transaction->balance();
+        $canConfirm = $api && PaymentState::canConfirm($state);
+
+        return [
+            'transaction_id' => (int) $transaction->id,
+            'state_label' => self::stateLabel($state, $this->module),
+            'currency' => (string) $transaction->currency_iso,
+            'charged' => CmiProtocol::formatAmount($balance['total']),
+            'remaining' => CmiProtocol::formatAmount($balance['remaining']),
+            'can_confirm' => $canConfirm,
+            'can_void' => $canConfirm,
+            'can_refund' => $api && PaymentState::canRefund($state) && $transaction->hasKnownAmount() && $balance['remaining'] > 0.001,
+            'can_check' => $api,
+        ];
+    }
+
+    /**
+     * The result of the last action, once (shown by the order panel or the orders list).
+     *
+     * @return array{type: string, message: string}|null
+     */
+    public function flash(): ?array
+    {
+        return $this->takeFlash();
+    }
+
     private function takeFlash(): ?array
     {
         $cookie = $this->context->cookie;
-        $raw = isset($cookie->{self::FLASH_COOKIE}) ? (string) $cookie->{self::FLASH_COOKIE} : '';
+        $raw = $cookie->__isset(self::FLASH_COOKIE) ? (string) $cookie->__get(self::FLASH_COOKIE) : '';
         if ($raw === '') {
             return null;
         }
-        unset($cookie->{self::FLASH_COOKIE});
+        $cookie->__unset(self::FLASH_COOKIE);
         $cookie->write();
         $flash = json_decode($raw, true);
 
         return is_array($flash) && isset($flash['type'], $flash['message']) ? ['type' => (string) $flash['type'], 'message' => (string) $flash['message']] : null;
     }
 
-    public static function setFlash(Context $context, bool $success, string $message): void
+    public static function setFlash(\Context $context, bool $success, string $message): void
     {
-        $context->cookie->{self::FLASH_COOKIE} = (string) json_encode(['type' => $success ? 'success' : 'danger', 'message' => $message]);
+        $context->cookie->__set(self::FLASH_COOKIE, (string) json_encode(['type' => $success ? 'success' : 'danger', 'message' => $message]));
         $context->cookie->write();
     }
 

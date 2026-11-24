@@ -1,4 +1,5 @@
 <?php
+
 /**
  * CMI payment module for PrestaShop.
  *
@@ -29,9 +30,15 @@ class AdminCmiPaymentController extends ModuleAdminController
         parent::__construct();
     }
 
-    /** Whoever may edit orders may manage their CMI payments. */
+    /**
+     * Whoever may edit orders may manage their CMI payments. The parent check comes first:
+     * it validates the back-office token, which protects these actions against CSRF.
+     */
     public function checkAccess()
     {
+        if (!parent::checkAccess()) {
+            return false;
+        }
         $employee = $this->context->employee;
         if (!$employee || !$employee->id) {
             return false;
@@ -53,7 +60,7 @@ class AdminCmiPaymentController extends ModuleAdminController
         }
         if (!$this->canManageShop((int) $transaction->id_shop)) {
             OrderPanel::setFlash($this->context, false, $this->trans('You cannot manage the orders of this shop.', [], 'Modules.Cmi.Admin'));
-            $this->redirectToOrder((int) $transaction->id_order);
+            $this->redirectBack((int) $transaction->id_order);
         }
 
         $manager = $this->module->services()->manager();
@@ -69,7 +76,7 @@ class AdminCmiPaymentController extends ModuleAdminController
                 $amount = $type === 'partial' ? Amounts::parse(Tools::getValue('refund_amount')) : null;
                 if ($type === 'partial' && $amount <= 0) {
                     OrderPanel::setFlash($this->context, false, $this->trans('Enter a valid refund amount.', [], 'Modules.Cmi.Admin'));
-                    $this->redirectToOrder((int) $transaction->id_order);
+                    $this->redirectBack((int) $transaction->id_order);
                 }
                 $reason = substr(trim(strip_tags((string) Tools::getValue('refund_reason'))), 0, 255);
                 $result = $manager->refund($transaction, $amount, $reason);
@@ -78,7 +85,7 @@ class AdminCmiPaymentController extends ModuleAdminController
                 $result = $manager->check($transaction);
         }
         OrderPanel::setFlash($this->context, $result->success, $result->message);
-        $this->redirectToOrder((int) $transaction->id_order);
+        $this->redirectBack((int) $transaction->id_order);
     }
 
     /** Asked when the merchant clicks Confirm: how old the pre-authorization is. */
@@ -98,6 +105,35 @@ class AdminCmiPaymentController extends ModuleAdminController
         $this->ajaxRender((string) json_encode(['days' => $days]));
     }
 
+    /**
+     * The CMI column of the orders list: for each order shown, its CMI payment and the actions
+     * possible now, and the result of the last action made from the list.
+     */
+    public function displayAjaxListActions()
+    {
+        header('Content-Type: application/json');
+        if (!$this->checkToken()) {
+            http_response_code(403);
+            $this->ajaxRender('{"orders":{}}');
+
+            return;
+        }
+        $panel = new OrderPanel($this->module, $this->module->services(), $this->context);
+        $orders = [];
+        $ids = array_slice(array_unique(array_filter(array_map('intval', explode(',', (string) Tools::getValue('ids'))))), 0, 300);
+        foreach ($ids as $idOrder) {
+            $order = new Order($idOrder);
+            if (!Validate::isLoadedObject($order) || $order->module !== $this->module->name || !$this->canManageShop((int) $order->id_shop)) {
+                continue;
+            }
+            $entry = $panel->listEntry($order);
+            if ($entry !== null) {
+                $orders[$idOrder] = $entry;
+            }
+        }
+        $this->ajaxRender((string) json_encode(['orders' => (object) $orders, 'flash' => $panel->flash()]));
+    }
+
     private function canManageShop(int $idShop): bool
     {
         if (!Shop::isFeatureActive() || $this->context->employee->isSuperAdmin()) {
@@ -105,6 +141,15 @@ class AdminCmiPaymentController extends ModuleAdminController
         }
 
         return in_array($idShop, array_map('intval', $this->context->employee->getAssociatedShops()), true);
+    }
+
+    /** Back to where the action was made: the orders list or the order's page. */
+    private function redirectBack(int $idOrder): void
+    {
+        if (Tools::getValue('back') === 'list') {
+            Tools::redirectAdmin($this->context->link->getAdminLink('AdminOrders'));
+        }
+        $this->redirectToOrder($idOrder);
     }
 
     private function redirectToOrder(int $idOrder): void

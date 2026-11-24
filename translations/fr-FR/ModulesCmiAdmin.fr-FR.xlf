@@ -6,6 +6,10 @@
         <source>%source% ignored: it reports %result% (ProcReturnCode %code%) but the payment is already %state%.</source>
         <target>%source% ignoré : il signale %result% (ProcReturnCode %code%) mais le paiement est déjà %state%.</target>
       </trans-unit>
+      <trans-unit id="b2cfbc390ba0727c44a7c98e0d6cef15">
+        <source>%source%: CMI approved the payment in currency %currency%, not in the currency sent (%sent%). The payment was not accepted; check it in the CMI back office.</source>
+        <target>%source% : CMI a approuvé le paiement dans la devise %currency%, et non dans la devise envoyée (%sent%). Le paiement n&apos;a pas été accepté ; vérifiez-le dans le back-office CMI.</target>
+      </trans-unit>
       <trans-unit id="04664d67a4ff661a62a0efd27e35c8b4">
         <source>%source%: payment declined (%error%, ProcReturnCode %code%).</source>
         <target>%source% : paiement refusé (%error%, ProcReturnCode %code%).</target>
@@ -17,10 +21,6 @@
       <trans-unit id="8c9e589e782b4bc53edb08d4a2e86988">
         <source>%source%: the amount approved by CMI (%amount%) is not the amount sent (%sent%). The payment was not accepted; check it in the CMI back office.</source>
         <target>%source% : le montant approuvé par CMI (%amount%) n&apos;est pas le montant envoyé (%sent%). Le paiement n&apos;a pas été accepté ; vérifiez-le dans le back-office CMI.</target>
-      </trans-unit>
-      <trans-unit id="217c01a08bee4c2fa33d59a6ddc69806">
-        <source>3-D Secure</source>
-        <target>3-D Secure</target>
       </trans-unit>
       <trans-unit id="8b30b5646649effe166f8fb0c370ded9">
         <source>A payment was approved after the customer cancelled the order: the order was reopened. Check the stock of its products.</source>
@@ -54,14 +54,6 @@
         <source>Arabic</source>
         <target>Arabe</target>
       </trans-unit>
-      <trans-unit id="b18a2c7fc0fe2dfb30a596e0205e9c1b">
-        <source>Ask the cardholder to authenticate (3-D Secure). Only turn it off if CMI asked you to.</source>
-        <target>Demander au porteur de carte de s&apos;authentifier (3-D Secure). Ne le désactivez que si CMI vous l&apos;a demandé.</target>
-      </trans-unit>
-      <trans-unit id="e8ce5d185fb18a71da9988b80e6835c3">
-        <source>Automatic capture failed: %error% Confirm the payment from this page or the CMI back office.</source>
-        <target>Le débit automatique a échoué : %error% Confirmez le paiement depuis cette page ou le back-office CMI.</target>
-      </trans-unit>
       <trans-unit id="45ddab4914f718601510f75a64c71805">
         <source>Automatic check: CMI could not be reached (%error%).</source>
         <target>Vérification automatique : CMI n&apos;a pas pu être contacté (%error%).</target>
@@ -86,13 +78,13 @@
         <source>Automatic: the payment is captured as soon as the customer pays. Manual: the payment is only pre-authorized; you confirm it later to capture the funds (from the order page with the Complete Kit, otherwise in the CMI back office).</source>
         <target>Automatique : le paiement est débité dès que le client paie. Manuelle : le paiement est seulement pré-autorisé ; vous le confirmez ensuite pour débiter les fonds (depuis la page de la commande avec le Kit Complet, sinon dans le back-office CMI).</target>
       </trans-unit>
+      <trans-unit id="5c6e5e7eead4f336a61c7a850db6d9a5">
+        <source>Awaiting CMI payment</source>
+        <target>En attente de paiement CMI</target>
+      </trans-unit>
       <trans-unit id="ebb8d514f56157d7bd513eefdd9adb63">
         <source>Awaiting payment</source>
         <target>En attente de paiement</target>
-      </trans-unit>
-      <trans-unit id="d1992d5a0d483d4bafbb6ff7798e3efe">
-        <source>Browser return only</source>
-        <target>Retour navigateur uniquement</target>
       </trans-unit>
       <trans-unit id="5efaedb99e7a4140a23f27d28214c895">
         <source>CMI</source>
@@ -122,6 +114,10 @@
         <source>CMI history</source>
         <target>Historique CMI</target>
       </trans-unit>
+      <trans-unit id="012aeac4be5029b998855bd992b1c1e0">
+        <source>CMI is not offered to customers at checkout yet: enter %missing% in &quot;Connection to CMI&quot;, then save.</source>
+        <target>CMI n&apos;est pas encore proposé aux clients lors de la commande : saisissez %missing% dans « Connexion à CMI », puis enregistrez.</target>
+      </trans-unit>
       <trans-unit id="7170d6cb0d0fb8370bcbc209ede286c0">
         <source>CMI kit</source>
         <target>Kit CMI</target>
@@ -129,6 +125,14 @@
       <trans-unit id="89a630c19b5325be1d286bf9f31fb90b">
         <source>CMI payment</source>
         <target>Paiement CMI</target>
+      </trans-unit>
+      <trans-unit id="b9cc55c130949a80182271256af4cb14">
+        <source>CMI payment authorized (to confirm)</source>
+        <target>Paiement CMI autorisé (à confirmer)</target>
+      </trans-unit>
+      <trans-unit id="52a92e1034a500034e381fb54d253f5e">
+        <source>CMI platform</source>
+        <target>Plateforme CMI</target>
       </trans-unit>
       <trans-unit id="4c55bd81f1af7513106fb726bda2c852">
         <source>CMI refused the refund.</source>
@@ -154,9 +158,17 @@
         <source>CMI store</source>
         <target>Boutique CMI</target>
       </trans-unit>
-      <trans-unit id="5202882987afe746a83fc155a59ae4f7">
-        <source>CMI&apos;s payment page, for example https://payment.cmi.co.ma/fim/est3Dgate (test: https://testpayment.cmi.co.ma/fim/est3Dgate).</source>
-        <target>Page de paiement de CMI, par exemple https://payment.cmi.co.ma/fim/est3Dgate (test : https://testpayment.cmi.co.ma/fim/est3Dgate).</target>
+      <trans-unit id="5cf084575335df644b2b7b0f328e0a58">
+        <source>CMI&apos;s payment page: %production% (production) or %test% (test). Change it only if CMI gives you another address.</source>
+        <target>Page de paiement de CMI : %production% (production) ou %test% (test). Ne la modifiez que si CMI vous donne une autre adresse.</target>
+      </trans-unit>
+      <trans-unit id="0e0cc6f7e755c110311d9d0a5809d35a">
+        <source>CMI: no card payment recorded for this customer.</source>
+        <target>CMI : aucun paiement par carte enregistré pour ce client.</target>
+      </trans-unit>
+      <trans-unit id="552092f0a9d9248651073333136e7c46">
+        <source>CMI: the card data of this customer could not be deleted.</source>
+        <target>CMI : les données de carte de ce client n&apos;ont pas pu être supprimées.</target>
       </trans-unit>
       <trans-unit id="83365a2fa5a6d8977b7a1f1475848495">
         <source>Cancelled by the customer</source>
@@ -246,21 +258,21 @@
         <source>Choose a confirmation mode.</source>
         <target>Choisissez un mode de confirmation.</target>
       </trans-unit>
-      <trans-unit id="a98fb034225e1c7abbae6d86bb33403b">
-        <source>Choose how CMI sends the payment result.</source>
-        <target>Choisissez comment CMI envoie le résultat du paiement.</target>
+      <trans-unit id="41e7605badf961b638a98b8cac064ede">
+        <source>Choose the CMI platform: test or production.</source>
+        <target>Choisissez la plateforme CMI : test ou production.</target>
       </trans-unit>
       <trans-unit id="d29031e1058b7abde9119c7555931c16">
         <source>Choose the payment page language.</source>
         <target>Choisissez la langue de la page de paiement.</target>
       </trans-unit>
-      <trans-unit id="ac2e3d0df2590278ca31d13e05294986">
-        <source>Client ID (MAD store)</source>
-        <target>Client ID (boutique MAD)</target>
+      <trans-unit id="76525f0f34b48475e5ca33f71d296f3b">
+        <source>Client ID</source>
+        <target>Client ID</target>
       </trans-unit>
-      <trans-unit id="ea410de2d73fcd6daa501a9342ea2829">
-        <source>Client ID (offshore store)</source>
-        <target>Client ID (boutique offshore)</target>
+      <trans-unit id="991ce837b4b94d44e9ae6efce975a603">
+        <source>Color of the status in the orders list.</source>
+        <target>Couleur du statut dans la liste des commandes.</target>
       </trans-unit>
       <trans-unit id="5a7194c5eb51430dd1b670b5e8928c52">
         <source>Complete Kit (with API: confirm, void, refund, check)</source>
@@ -286,21 +298,29 @@
         <source>Could not verify the payment with CMI, so nothing was sent: %error%</source>
         <target>Impossible de vérifier le paiement auprès de CMI, rien n&apos;a donc été envoyé : %error%</target>
       </trans-unit>
-      <trans-unit id="97c3ed15181343af0267c4704e446473">
-        <source>Currencies of your CMI store</source>
-        <target>Devises de votre boutique CMI</target>
+      <trans-unit id="851debc970e29cf257c358f23f108ec9">
+        <source>Custom status color</source>
+        <target>Couleur du statut personnalisé</target>
       </trans-unit>
-      <trans-unit id="449397651d0505fa62f599ed7cb085e2">
-        <source>Customer return from CMI</source>
-        <target>Retour du client depuis CMI</target>
+      <trans-unit id="6e86c61ec3d26a26adf422a854f06483">
+        <source>Custom status name</source>
+        <target>Nom du statut personnalisé</target>
       </trans-unit>
-      <trans-unit id="d92533874f226dcb3e6a7eac43b0bd9c">
-        <source>Customer return from CMI: payment approved (TransId: %transid%), waiting for CMI&apos;s callback to complete it.</source>
-        <target>Retour du client depuis CMI : paiement approuvé (TransId : %transid%), en attente du callback de CMI pour le finaliser.</target>
+      <trans-unit id="36b11bf123845744d382acac24bc7fdb">
+        <source>Custom: %name%</source>
+        <target>Personnalisé : %name%</target>
+      </trans-unit>
+      <trans-unit id="5bfed9723c4fafb884d7115bc4c88a8c">
+        <source>Custom: create my own status...</source>
+        <target>Personnalisé : créer mon propre statut…</target>
       </trans-unit>
       <trans-unit id="aeb34e8bf442f920b2bd64ba3ba204f3">
         <source>Customer&apos;s language</source>
         <target>Langue du client</target>
+      </trans-unit>
+      <trans-unit id="64b1f1aa7882ac9ece2d558503e81388">
+        <source>Delete all CMI data on uninstall</source>
+        <target>Supprimer toutes les données CMI à la désinstallation</target>
       </trans-unit>
       <trans-unit id="78463a384a5aa4fad5fa73e2f506ecfc">
         <source>English</source>
@@ -318,9 +338,9 @@
         <source>Enter the Client ID of your CMI store (MAD).</source>
         <target>Saisissez le Client ID de votre boutique CMI (MAD).</target>
       </trans-unit>
-      <trans-unit id="ba4e76895560ca4468362bbbeb931832">
-        <source>Enter the Client ID of your offshore CMI store (foreign currencies).</source>
-        <target>Saisissez le Client ID de votre boutique CMI offshore (devises étrangères).</target>
+      <trans-unit id="9e49ff04e5209c2229047359f6dbc075">
+        <source>Enter the name of your custom order status (64 characters at most, without &lt; &gt; = { }).</source>
+        <target>Saisissez le nom de votre statut de commande personnalisé (64 caractères au maximum, sans &lt; &gt; = { }).</target>
       </trans-unit>
       <trans-unit id="9d09397f7e756e85873074063c710bfc">
         <source>Enter the store key (hash key) set in your CMI merchant center.</source>
@@ -329,6 +349,10 @@
       <trans-unit id="d7c8c85bf79bbe1b7188497c32c3b0ca">
         <source>Failed</source>
         <target>Échoué</target>
+      </trans-unit>
+      <trans-unit id="fc1af95be8d11bc74875e635dbd61e02">
+        <source>For a partial refund, open the order.</source>
+        <target>Pour un remboursement partiel, ouvrez la commande.</target>
       </trans-unit>
       <trans-unit id="ad225f707802ba118c22987186dd38e8">
         <source>French</source>
@@ -342,10 +366,6 @@
         <source>HTTPS is not enabled on this shop. CMI requires https:// addresses for the payment return and callback.</source>
         <target>Le HTTPS n&apos;est pas activé sur cette boutique. CMI exige des adresses https:// pour le retour de paiement et le callback.</target>
       </trans-unit>
-      <trans-unit id="27a10e2d145d2b26b1403a0b6d043ce7">
-        <source>In &quot;browser return&quot; mode, automatic confirmation captures payments through the CMI API: choose the Complete Kit, or the manual confirmation mode.</source>
-        <target>En mode « retour navigateur », la confirmation automatique débite les paiements via l&apos;API CMI : choisissez le Kit Complet, ou le mode de confirmation manuelle.</target>
-      </trans-unit>
       <trans-unit id="4e7f26d58027e5f9611cc5fe9d901e06">
         <source>Invalid refund amount.</source>
         <target>Montant de remboursement invalide.</target>
@@ -354,21 +374,21 @@
         <source>Last CMI transaction</source>
         <target>Dernière transaction CMI</target>
       </trans-unit>
-      <trans-unit id="918c27a0fc9da4e1ad95355e1a15ed63">
-        <source>MAD: payments on your standard CMI store, orders in other currencies are converted to MAD with the exchange rates of Localization &gt; Currencies. Other currencies: payments in that currency on your offshore CMI store. Hold Ctrl (Cmd on a Mac) to select several.</source>
-        <target>MAD : paiements sur votre boutique CMI standard ; les commandes dans d&apos;autres devises sont converties en MAD avec les taux de change de International &gt; Localisation &gt; Devises. Autres devises : paiements dans cette devise sur votre boutique CMI offshore. Maintenez Ctrl (Cmd sur Mac) pour en sélectionner plusieurs.</target>
-      </trans-unit>
       <trans-unit id="7dd48f1534714c8c193671d6f84f3b85">
         <source>Manual: pre-authorize, confirm later</source>
         <target>Manuelle : pré-autoriser, confirmer plus tard</target>
       </trans-unit>
-      <trans-unit id="07fac695eb61cc387581793f56323cb3">
-        <source>Merchant Client ID provided by CMI, for example 600XXXXXX.</source>
-        <target>Client ID marchand fourni par CMI, par exemple 600XXXXXX.</target>
+      <trans-unit id="9286aabea9b049328f7bb45790c836d4">
+        <source>Merchant Client ID provided by CMI, for example 600XXXXXX. Payments are made in MAD; orders in other currencies are converted to MAD with the exchange rates of International &gt; Localization &gt; Currencies.</source>
+        <target>Client ID marchand fourni par CMI, par exemple 600XXXXXX. Les paiements se font en MAD ; les commandes dans d&apos;autres devises sont converties en MAD avec les taux de change de International &gt; Localisation &gt; Devises.</target>
       </trans-unit>
       <trans-unit id="0f76c1784216426830db2e7a6a2b8fa2">
         <source>Name of the payment method at checkout. Leave empty for &quot;Pay securely by bank card with CMI&quot;.</source>
         <target>Nom du moyen de paiement au moment de la commande. Laissez vide pour « Payer en toute sécurité par carte bancaire avec CMI ».</target>
+      </trans-unit>
+      <trans-unit id="68fc88a71c1bfaf5688b940ab4f2ec18">
+        <source>Name of your status, for example &quot;Paid by card (CMI)&quot;. It counts as paid, gives an invoice and sends the &quot;payment accepted&quot; e-mail. You can rename it here later.</source>
+        <target>Nom de votre statut, par exemple « Payée par carte (CMI) ». Il compte comme payé, génère une facture et envoie l&apos;e-mail « paiement accepté ». Vous pourrez le renommer ici plus tard.</target>
       </trans-unit>
       <trans-unit id="c4425ac1a5b6be2da0793281d3f8f74c">
         <source>Next automatic check</source>
@@ -377,6 +397,10 @@
       <trans-unit id="bafd7322c6e97d25b6299b5d6fe8920b">
         <source>No</source>
         <target>Non</target>
+      </trans-unit>
+      <trans-unit id="0e6d3c115e03609702e9ffb2b108f191">
+        <source>No (recommended): uninstalling keeps the CMI payment history of your orders and the module&apos;s order statuses, so they are found again if you reinstall the module. Yes: uninstalling also deletes the payment history, the order statuses and every CMI setting. This cannot be undone.</source>
+        <target>Non (recommandé) : la désinstallation conserve l&apos;historique des paiements CMI de vos commandes et les statuts de commande du module, que vous retrouvez si vous réinstallez le module. Oui : la désinstallation supprime aussi l&apos;historique des paiements, les statuts de commande et tous les réglages CMI. Cette opération est irréversible.</target>
       </trans-unit>
       <trans-unit id="b72805cec76c92a801440d80e59db3d3">
         <source>No transaction found on CMI: the customer did not pay.</source>
@@ -397,10 +421,6 @@
       <trans-unit id="81d319464de9fd848f70aed00732a029">
         <source>Only a pre-authorized CMI payment can be voided. A confirmed payment must be refunded.</source>
         <target>Seul un paiement CMI pré-autorisé peut être annulé. Un paiement confirmé doit être remboursé.</target>
-      </trans-unit>
-      <trans-unit id="6440ba8b9802c03923108d95cfd388b4">
-        <source>Only when your CMI store accepts foreign currencies.</source>
-        <target>Uniquement si votre boutique CMI accepte des devises étrangères.</target>
       </trans-unit>
       <trans-unit id="280b217c2daf115b24d825b6040c9269">
         <source>Optional text shown below the title when the customer chooses CMI.</source>
@@ -450,14 +470,6 @@
         <source>Payment page language</source>
         <target>Langue de la page de paiement</target>
       </trans-unit>
-      <trans-unit id="5c28c6ba2964636df568614cdd480495">
-        <source>Payment pre-authorized. Without the Complete Kit it cannot be captured automatically in &quot;browser return&quot; mode: confirm it in the CMI back office.</source>
-        <target>Paiement pré-autorisé. Sans le Kit Complet, il ne peut pas être débité automatiquement en mode « retour navigateur » : confirmez-le dans le back-office CMI.</target>
-      </trans-unit>
-      <trans-unit id="680d75f9122560a05a66159fbfe5b0f9">
-        <source>Payment result</source>
-        <target>Résultat du paiement</target>
-      </trans-unit>
       <trans-unit id="36894941ed1e282d8c001a58c83e11cc">
         <source>Payment setup</source>
         <target>Configuration du paiement</target>
@@ -477,6 +489,10 @@
       <trans-unit id="41adbef7bacb8fab4f1fa76dd332d3a6">
         <source>Pre-authorized, to confirm</source>
         <target>Pré-autorisé, à confirmer</target>
+      </trans-unit>
+      <trans-unit id="86a8dc418b69aef4d94573bc675d7f85">
+        <source>Production (real payments)</source>
+        <target>Production (paiements réels)</target>
       </trans-unit>
       <trans-unit id="11fdb2af01fb96cdd7e5b9ad2ac6c40e">
         <source>Read the payment&apos;s state at CMI and update the order</source>
@@ -522,25 +538,17 @@
         <source>Secret key set in your CMI merchant center. It must not contain the word &quot;SKS&quot;.</source>
         <target>Clé secrète définie dans votre espace marchand CMI. Elle ne doit pas contenir le mot « SKS ».</target>
       </trans-unit>
-      <trans-unit id="3800c2fdb32f9f4ad9e3c22b435f7271">
-        <source>Select at least one currency of your CMI store.</source>
-        <target>Sélectionnez au moins une devise de votre boutique CMI.</target>
-      </trans-unit>
       <trans-unit id="296cf745bf3fea7e1fde76f05c56f9cc">
         <source>Send customers back to the shop as soon as the payment is finished. When off, they stay on CMI&apos;s result page and come back themselves.</source>
         <target>Renvoyer les clients vers la boutique dès la fin du paiement. Si désactivé, ils restent sur la page de résultat de CMI et reviennent d&apos;eux-mêmes.</target>
       </trans-unit>
-      <trans-unit id="12d59c0990568b8e99801e0c30ec6ba1">
-        <source>Server to server (recommended)</source>
-        <target>Serveur à serveur (recommandé)</target>
-      </trans-unit>
-      <trans-unit id="8448e869329a899feff2ca85822b1194">
-        <source>Server to server: CMI calls your shop directly after each payment (recommended; your shop must be reachable from the internet). Browser return only: the result comes back with the customer, for shops CMI cannot reach.</source>
-        <target>Serveur à serveur : CMI appelle directement votre boutique après chaque paiement (recommandé ; votre boutique doit être accessible depuis internet). Retour navigateur uniquement : le résultat revient avec le client, pour les boutiques que CMI ne peut pas joindre.</target>
-      </trans-unit>
       <trans-unit id="9a7e58ee13cb727cb7c4acc68f4cafe5">
         <source>Settings saved.</source>
         <target>Réglages enregistrés.</target>
+      </trans-unit>
+      <trans-unit id="abb49bf7bc62f94e758ad971c18b09f4">
+        <source>Show or hide</source>
+        <target>Afficher ou masquer</target>
       </trans-unit>
       <trans-unit id="0548d89a0e5c72c4aa60248619dc21b7">
         <source>Standard Kit (payment page only)</source>
@@ -554,13 +562,29 @@
         <source>Standard Kit: customers pay on CMI&apos;s page; you manage payments in the CMI back office. Complete Kit: you can also confirm, void, refund and check payments from the order page, and orders left awaiting payment are checked automatically. It needs the API credentials provided by CMI.</source>
         <target>Kit Standard : les clients paient sur la page de CMI ; vous gérez les paiements dans le back-office CMI. Kit Complet : vous pouvez aussi confirmer, annuler, rembourser et vérifier les paiements depuis la page de la commande, et les commandes restées en attente de paiement sont vérifiées automatiquement. Il nécessite les identifiants API fournis par CMI.</target>
       </trans-unit>
-      <trans-unit id="5d653f813093f55fc2321952799405ad">
-        <source>Status given to an order once its payment is captured.</source>
-        <target>Statut donné à une commande une fois son paiement débité.</target>
+      <trans-unit id="b916c1eac19527dfc38b7ee999156bb6">
+        <source>Status given to an order once its payment is captured. Choose &quot;Custom&quot; to create your own status.</source>
+        <target>Statut donné à une commande une fois son paiement débité. Choisissez « Personnalisé » pour créer votre propre statut.</target>
       </trans-unit>
       <trans-unit id="c5994c5be851495b5fae6e9bde5b38d8">
         <source>Store key (hash key)</source>
         <target>Clé de boutique (hash key)</target>
+      </trans-unit>
+      <trans-unit id="c4223d367038913b7d2fe78e8aae8898">
+        <source>Test (no real payment)</source>
+        <target>Test (aucun paiement réel)</target>
+      </trans-unit>
+      <trans-unit id="4245499695408b974322be6f01b0d17a">
+        <source>Test mode</source>
+        <target>Mode test</target>
+      </trans-unit>
+      <trans-unit id="77c817bafac39332dc795eaa685eb8dc">
+        <source>Test mode: payments go to CMI&apos;s test platform and no card is charged. Choose &quot;Production&quot; in &quot;Connection to CMI&quot; before taking real orders.</source>
+        <target>Mode test : les paiements sont envoyés à la plateforme de test de CMI et aucune carte n&apos;est débitée. Choisissez « Production » dans « Connexion à CMI » avant de prendre de vraies commandes.</target>
+      </trans-unit>
+      <trans-unit id="10b4ad5e704b56888a2a4da50d8cf5f1">
+        <source>Test: payments go to CMI&apos;s test platform, with the test credentials and test cards CMI gave you; no card is charged. Production: real payments. Choosing a platform fills in its addresses below.</source>
+        <target>Test : les paiements sont envoyés à la plateforme de test de CMI, avec les identifiants et cartes de test fournis par CMI ; aucune carte n&apos;est débitée. Production : paiements réels. Choisir une plateforme remplit ses adresses ci-dessous.</target>
       </trans-unit>
       <trans-unit id="800668974a8505646d7b772394afed13">
         <source>The CMI API URL is not the payment page URL: it usually ends with /fim/api.</source>
@@ -602,6 +626,14 @@
         <source>The amount charged by CMI was not recorded for this older order: refund it from the CMI back office.</source>
         <target>Le montant débité par CMI n&apos;a pas été enregistré pour cette ancienne commande : remboursez-la depuis le back-office CMI.</target>
       </trans-unit>
+      <trans-unit id="8522e724876950ae44d69d0c26d3a0d5">
+        <source>The color of the custom order status must be like #32CD32.</source>
+        <target>La couleur du statut personnalisé doit être de la forme #32CD32.</target>
+      </trans-unit>
+      <trans-unit id="037973a6b3f5a731103d6fb073547afe">
+        <source>The custom order status could not be saved.</source>
+        <target>Le statut de commande personnalisé n&apos;a pas pu être enregistré.</target>
+      </trans-unit>
       <trans-unit id="3d57f68f7dec0de34778513bbb531c72">
         <source>The customer cancelled the payment on CMI&apos;s payment page: the order was cancelled.</source>
         <target>Le client a annulé le paiement sur la page de paiement de CMI : la commande a été annulée.</target>
@@ -617,6 +649,10 @@
       <trans-unit id="5b3f9b9b5b42f44a51054124f416adda">
         <source>The order was updated to match CMI.</source>
         <target>La commande a été mise à jour pour correspondre à CMI.</target>
+      </trans-unit>
+      <trans-unit id="25d2a6e9c9c8ab2651a9eeaad2499e6f">
+        <source>The payment page URL is the one of CMI&apos;s %url_platform% platform, but the %platform% platform is selected: check &quot;Connection to CMI&quot;.</source>
+        <target>L&apos;URL de la page de paiement est celle de la plateforme de %url_platform% de CMI, mais la plateforme de %platform% est sélectionnée : vérifiez « Connexion à CMI ».</target>
       </trans-unit>
       <trans-unit id="4a1a0d05a4d7932bf7083c29a44fffe8">
         <source>The payment page URL must be a valid https:// address, for example https://payment.cmi.co.ma/fim/est3Dgate.</source>
@@ -658,9 +694,9 @@
         <source>This pre-authorization is %days% days old. Banks may refuse to capture it, and the customer may not expect the charge any more: we advise you to inform the customer first. Confirm anyway?</source>
         <target>Cette pré-autorisation date de %days% jours. Les banques peuvent refuser de la débiter, et le client peut ne plus s&apos;attendre au débit : nous vous conseillons de le prévenir d&apos;abord. Confirmer quand même ?</target>
       </trans-unit>
-      <trans-unit id="96ab914713ddbfe4e864bf624ae332ca">
-        <source>Uninstall the CMI module? Your CMI connection settings will be deleted; orders and their payment history are kept.</source>
-        <target>Désinstaller le module CMI ? Vos réglages de connexion à CMI seront supprimés ; les commandes et leur historique de paiement sont conservés.</target>
+      <trans-unit id="9bd578ff77c8799fe85422c3781923c4">
+        <source>Uninstall the CMI module? Your CMI settings will be deleted. Orders and their CMI payment history are kept, unless &quot;Delete all CMI data on uninstall&quot; is on.</source>
+        <target>Désinstaller le module CMI ? Vos réglages CMI seront supprimés. Les commandes et leur historique de paiement CMI sont conservés, sauf si « Supprimer toutes les données CMI à la désinstallation » est activé.</target>
       </trans-unit>
       <trans-unit id="70ad97a53467ded435281bc04e1ebb50">
         <source>Unknown (click Check CMI)</source>
@@ -726,6 +762,10 @@
         <source>paid with version 1.x</source>
         <target>payée avec la version 1.x</target>
       </trans-unit>
+      <trans-unit id="fd89784e59c72499525556f80289b2c7">
+        <source>production</source>
+        <target>production</target>
+      </trans-unit>
       <trans-unit id="423c987e71bfe06729b4c61c1172f7d1">
         <source>remaining: %amount%</source>
         <target>restant : %amount%</target>
@@ -738,69 +778,21 @@
         <source>standard</source>
         <target>standard</target>
       </trans-unit>
-      <trans-unit id="012aeac4be5029b998855bd992b1c1e0">
-        <source>CMI is not offered to customers at checkout yet: enter %missing% in &quot;Connection to CMI&quot;, then save.</source>
-        <target>CMI n&apos;est pas encore proposé aux clients lors de la commande : saisissez %missing% dans « Connexion à CMI », puis enregistrez.</target>
+      <trans-unit id="098f6bcd4621d373cade4e832627b4f6">
+        <source>test</source>
+        <target>test</target>
       </trans-unit>
       <trans-unit id="df0b8d075515b67867e3b7aa939efb27">
         <source>the Client ID</source>
         <target>le Client ID</target>
       </trans-unit>
-      <trans-unit id="cfcd76eab84d10b072cceaad852ed679">
-        <source>the store key (hash key)</source>
-        <target>la clé de boutique (hash key)</target>
-      </trans-unit>
       <trans-unit id="f11466cc7ae62732f3733880ecf25a6e">
         <source>the payment page URL</source>
         <target>l&apos;URL de la page de paiement</target>
       </trans-unit>
-      <trans-unit id="037973a6b3f5a731103d6fb073547afe">
-        <source>The custom order status could not be saved.</source>
-        <target>Le statut de commande personnalisé n&apos;a pas pu être enregistré.</target>
-      </trans-unit>
-      <trans-unit id="9e49ff04e5209c2229047359f6dbc075">
-        <source>Enter the name of your custom order status (64 characters at most, without &lt; &gt; = { }).</source>
-        <target>Saisissez le nom de votre statut de commande personnalisé (64 caractères au maximum, sans &lt; &gt; = { }).</target>
-      </trans-unit>
-      <trans-unit id="8522e724876950ae44d69d0c26d3a0d5">
-        <source>The color of the custom order status must be like #32CD32.</source>
-        <target>La couleur du statut personnalisé doit être de la forme #32CD32.</target>
-      </trans-unit>
-      <trans-unit id="b916c1eac19527dfc38b7ee999156bb6">
-        <source>Status given to an order once its payment is captured. Choose &quot;Custom&quot; to create your own status.</source>
-        <target>Statut donné à une commande une fois son paiement débité. Choisissez « Personnalisé » pour créer votre propre statut.</target>
-      </trans-unit>
-      <trans-unit id="6e86c61ec3d26a26adf422a854f06483">
-        <source>Custom status name</source>
-        <target>Nom du statut personnalisé</target>
-      </trans-unit>
-      <trans-unit id="68fc88a71c1bfaf5688b940ab4f2ec18">
-        <source>Name of your status, for example &quot;Paid by card (CMI)&quot;. It counts as paid, gives an invoice and sends the &quot;payment accepted&quot; e-mail. You can rename it here later.</source>
-        <target>Nom de votre statut, par exemple « Payée par carte (CMI) ». Il compte comme payé, génère une facture et envoie l&apos;e-mail « paiement accepté ». Vous pourrez le renommer ici plus tard.</target>
-      </trans-unit>
-      <trans-unit id="851debc970e29cf257c358f23f108ec9">
-        <source>Custom status color</source>
-        <target>Couleur du statut personnalisé</target>
-      </trans-unit>
-      <trans-unit id="991ce837b4b94d44e9ae6efce975a603">
-        <source>Color of the status in the orders list.</source>
-        <target>Couleur du statut dans la liste des commandes.</target>
-      </trans-unit>
-      <trans-unit id="76525f0f34b48475e5ca33f71d296f3b">
-        <source>Client ID</source>
-        <target>Client ID</target>
-      </trans-unit>
-      <trans-unit id="9286aabea9b049328f7bb45790c836d4">
-        <source>Merchant Client ID provided by CMI, for example 600XXXXXX. Payments are made in MAD; orders in other currencies are converted to MAD with the exchange rates of International &gt; Localization &gt; Currencies.</source>
-        <target>Client ID marchand fourni par CMI, par exemple 600XXXXXX. Les paiements se font en MAD ; les commandes dans d&apos;autres devises sont converties en MAD avec les taux de change de International &gt; Localisation &gt; Devises.</target>
-      </trans-unit>
-      <trans-unit id="36b11bf123845744d382acac24bc7fdb">
-        <source>Custom: %name%</source>
-        <target>Personnalisé : %name%</target>
-      </trans-unit>
-      <trans-unit id="5bfed9723c4fafb884d7115bc4c88a8c">
-        <source>Custom: create my own status...</source>
-        <target>Personnalisé : créer mon propre statut…</target>
+      <trans-unit id="cfcd76eab84d10b072cceaad852ed679">
+        <source>the store key (hash key)</source>
+        <target>la clé de boutique (hash key)</target>
       </trans-unit>
     </body>
   </file>

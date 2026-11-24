@@ -1,4 +1,5 @@
-# Test bench: PrestaShop 8 (PHP 8.1) and PrestaShop 9 (PHP 8.3) with a mock of CMI
+# Test bench: PrestaShop 8 (PHP 8.1 and, for the oldest versions, 8.0 on PHP 7.2) and
+# PrestaShop 9 (PHP 8.3) with a mock of CMI
 # (payment page + XML API over HTTPS). See tests/e2e/README.md.
 name: cmi-e2e
 
@@ -54,6 +55,21 @@ services:
     volumes:
       - ./mock/caddy-data:/cmi-ca:ro
 
+  # PrestaShop 8.0 on PHP 7.2: the oldest versions this package supports.
+  ps872:
+    image: prestashop/prestashop:8.0.5-7.2-apache
+    depends_on:
+      mysql:
+        condition: service_healthy
+    environment:
+      <<: *ps-env
+      DB_NAME: ps872
+      PS_DOMAIN: localhost:8084
+    ports:
+      - "8084:80"
+    volumes:
+      - ./mock/caddy-data:/cmi-ca:ro
+
   # Mock of CMI: payment page (/fim/est3Dgate) and XML API (/fim/api), plain HTTP inside.
   cmi-app:
     image: php:8.3-cli
@@ -71,7 +87,7 @@ services:
       CMI_API_USER: apiuser
       CMI_API_PASSWORD: apipass
       # The shops as seen from inside the network (callbacks).
-      SHOP_HOSTS: "localhost:8081=ps8:80,localhost:8082=ps9:80"
+      SHOP_HOSTS: "localhost:8081=ps8:80,localhost:8082=ps9:80,localhost:8084=ps872:80"
 
   # HTTPS in front of the mock (the module only calls an https:// API).
   cmi:

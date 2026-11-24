@@ -1,11 +1,12 @@
 # Test bench
 
-Two shops and a mock of CMI, to test the module end to end without CMI credentials:
+Three shops and a mock of CMI, to test the module end to end without CMI credentials:
 
 | Service | Address | |
 | --- | --- | --- |
 | `ps8` | http://localhost:8081 (admin: `/admin-dev`) | PrestaShop 8.2.9, PHP 8.1 |
 | `ps9` | http://localhost:8082 (admin: `/admin-dev`) | PrestaShop 9.2.1, PHP 8.3 |
+| `ps872` | http://localhost:8084 (admin: `/admin-dev`) | PrestaShop 8.0.5, PHP 7.2: the oldest versions this package supports (`./run.sh ps872`) |
 | `cmi-app` | http://localhost:8090/fim/est3Dgate | mock payment page (Approve / Decline / Cancel) |
 | `cmi` | https://cmi.test/fim/api (inside the network) | mock XML API, HTTPS with a local CA the shops trust |
 
@@ -20,7 +21,7 @@ cd tests/e2e
 docker compose up -d          # first start installs both shops (a few minutes)
 ./run.sh                      # deploy the working tree, configure, run every scenario on ps8 (this branch's PrestaShop)
 docker compose exec -u www-data ps8 php /cmi-tests/harness.php manual currency   # some scenarios
-./upgrade.sh ps8              # upgrade test from 1.x (tag prestashop_v8); replaces the shop's module
+./upgrade.sh ps8              # upgrade test from 1.x (commit 93a477f); replaces the shop's module
 CMI_PACKAGE=/path/to/cmi_prestashop_v2.0.0-ps8.zip ./run.sh   # test a release zip instead of the working tree
 docker compose down -v        # remove everything
 ```

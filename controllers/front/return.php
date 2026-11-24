@@ -1,4 +1,5 @@
 <?php
+
 /**
  * CMI payment module for PrestaShop.
  *
@@ -8,6 +9,7 @@
 
 use Cmi\PrestaShop\Front\CmiEndpoint;
 use Cmi\PrestaShop\Payment\PaymentState;
+use Cmi\PrestaShop\Protocol\CmiProtocol;
 
 if (!defined('_PS_VERSION_')) {
     exit;
@@ -16,6 +18,8 @@ if (!defined('_PS_VERSION_')) {
 /**
  * The customer comes back from CMI (okUrl / failUrl, a signed POST), then sees the result:
  * the order confirmation when paid or authorized, otherwise this page with "Pay again".
+ * This page only shows the result: CMI's server callback (or Check CMI, or the automatic
+ * checks) is what updates the payment and the order.
  *
  * The POST carries no session cookie (it comes from CMI's site), so it is only processed and
  * redirected; the page itself is shown on the following GET.
@@ -37,22 +41,31 @@ class CmiReturnModuleFrontController extends ModuleFrontController
 
     private function processReturn(): void
     {
+        $services = $this->module->services();
+        $fields = $this->postFields();
         $transaction = null;
         try {
-            $result = $this->module->services()->callbacks()->handle($this->postFields(), false, (int) $this->context->shop->id);
+            // Only verifies the signature and finds the order: the payment is updated by CMI's
+            // callback, never by the customer's browser.
+            $result = $services->callbacks()->handle($fields, false, (int) $this->context->shop->id);
             $transaction = $result['valid'] ? $result['transaction'] : null;
         } catch (Throwable $e) {
             // The result page still shows the saved state; the server callback updates the order.
             PrestaShopLogger::addLog('CMI browser return failed: ' . $e->getMessage() . ' in ' . $e->getFile() . ':' . $e->getLine(), 3, null, null, null, true);
-            $oid = (string) ($_POST['oid'] ?? '');
-            $transaction = $oid !== '' ? $this->module->services()->repository()->findByOid(preg_replace('/[^A-Za-z0-9_-]/', '', $oid), (int) $this->context->shop->id) : null;
+            // Only a result signed by CMI may lead to the order's page (its link holds the order key).
+            if (CmiProtocol::isValidCallback($fields, $services->settings()->storeKey())) {
+                $oid = CmiProtocol::sanitizeOid((string) ($fields['oid'] ?? ''));
+                $transaction = $oid !== '' ? $services->repository()->findByOid($oid, (int) $this->context->shop->id) : null;
+            }
         }
         $order = $transaction ? new Order((int) $transaction->id_order) : null;
         if (!$order || !Validate::isLoadedObject($order)) {
             $this->errors[] = $this->trans('Your payment result could not be read. If you paid, your order will be updated shortly; otherwise please contact the shop.', [], 'Modules.Cmi.Shop');
             $this->redirectWithNotifications($this->context->link->getPageLink('index', true));
         }
-        Tools::redirect($this->context->link->getModuleLink('cmi', 'return', ['id_order' => (int) $order->id, 'key' => (string) $order->secure_key], true));
+        // What CMI told the cardholder, signed: only used to word the page while CMI's callback is on its way.
+        $outcome = (string) ($fields['ProcReturnCode'] ?? '') === '00' ? 'approved' : 'declined';
+        Tools::redirect($this->context->link->getModuleLink('cmi', 'return', ['id_order' => (int) $order->id, 'key' => (string) $order->secure_key, 'outcome' => $outcome], true));
     }
 
     public function initContent()
@@ -76,8 +89,9 @@ class CmiReturnModuleFrontController extends ModuleFrontController
                 'key' => (string) $order->secure_key,
             ]));
         }
-        $this->context->smarty->assign($this->module->customerResult($transaction, $order));
+        $this->context->smarty->assign($this->module->customerResult($transaction, $order, (string) Tools::getValue('outcome') === 'approved'));
         $this->context->smarty->assign([
+            'cmi_refresh_url' => $this->context->link->getModuleLink('cmi', 'return', ['id_order' => (int) $order->id, 'key' => (string) $order->secure_key], true),
             'cmi_reference' => (string) $order->reference,
             'cmi_history_url' => $this->context->link->getPageLink('history', true),
             'cmi_contact_url' => $this->context->link->getPageLink('contact', true),

@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
 # Deploy the module to the test shops, configure it against the mock CMI and run the scenarios.
-# Usage: tests/e2e/run.sh [ps8] [ps9]   (default: ps8, the shop this branch targets; the bench must be up)
+# Usage: tests/e2e/run.sh [ps8] [ps872] [ps9]   (default: ps8, the shop this branch targets; the bench must be up)
 set -uo pipefail
 export MSYS_NO_PATHCONV=1
 here="$(cd "$(dirname "$0")" && pwd)"

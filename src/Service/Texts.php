@@ -1,4 +1,5 @@
 <?php
+
 /**
  * CMI payment module for PrestaShop.
  *
@@ -8,7 +9,6 @@
 
 namespace Cmi\PrestaShop\Service;
 
-use Configuration;
 use Language;
 
 if (!defined('_PS_VERSION_')) {
@@ -43,8 +43,8 @@ class Texts
     private function defaultLocale(): ?string
     {
         if ($this->defaultLocale === null) {
-            $language = new Language((int) Configuration::get('PS_LANG_DEFAULT'));
-            $this->defaultLocale = (string) ($language->locale ?? '');
+            $language = new \Language((int) \Configuration::get('PS_LANG_DEFAULT'));
+            $this->defaultLocale = (string) $language->locale;
         }
 
         return $this->defaultLocale !== '' ? $this->defaultLocale : null;

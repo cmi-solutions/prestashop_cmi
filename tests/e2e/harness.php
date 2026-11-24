@@ -1,4 +1,5 @@
 <?php
+
 /**
  * Test bench scenarios: real orders, real HTTP calls to the module's controllers, the mock CMI
  * for the payment page, callbacks and API. Run inside a shop container:
@@ -6,6 +7,8 @@
  * Prints one line per check and exits 1 when one fails.
  */
 require __DIR__ . '/bootstrap.php';
+// Results are printed once the run ends: controllers called below may still send HTTP headers.
+ob_start();
 
 use Cmi\PrestaShop\Model\CmiTransaction;
 use Cmi\PrestaShop\Payment\PaymentState;
@@ -147,7 +150,7 @@ function newOrder(string $currencyIso = 'MAD', string $firstname = 'Said', strin
     $cart->add();
     $context->cart = $cart;
     $context->customer = $customer;
-    $product =(int) Db::getInstance()->getValue('SELECT p.id_product FROM ' . _DB_PREFIX_ . 'product p INNER JOIN ' . _DB_PREFIX_ . 'stock_available s ON s.id_product = p.id_product AND s.id_product_attribute = 0 WHERE p.active = 1 AND s.quantity > 5 AND p.price > 10 ORDER BY p.id_product');
+    $product = (int) Db::getInstance()->getValue('SELECT p.id_product FROM ' . _DB_PREFIX_ . 'product p INNER JOIN ' . _DB_PREFIX_ . 'stock_available s ON s.id_product = p.id_product AND s.id_product_attribute = 0 WHERE p.active = 1 AND s.quantity > 5 AND p.price > 10 ORDER BY p.id_product');
     $cart->updateQty(1, $product);
     $context->cart = $cart;
     $context->customer = $customer;
@@ -204,7 +207,6 @@ $scenarios = [];
 
 $scenarios['automatic'] = static function () use ($states) {
     setting('CMI_CONFIRMATION_MODE', 'automatic');
-    setting('CMI_CALLBACK_MODE', 'server');
     $o = newOrder();
     $tx = $o['tx'];
     check('order created awaiting CMI payment', orderState($tx) === $states['awaiting']);
@@ -225,7 +227,7 @@ $scenarios['automatic'] = static function () use ($states) {
 
     $back = browserReturn($paid['state']);
     $result = shop('GET', $back['location']);
-    check('browser return redirects to the order confirmation', $back['status'] === 302 && strpos($result['location'], 'id_module=') !== false && strpos($result['location'], 'id_order=') !== false,$back['status'] . ' ' . $back['location'] . ' -> ' . $result['location']);
+    check('browser return redirects to the order confirmation', $back['status'] === 302 && strpos($result['location'], 'id_module=') !== false && strpos($result['location'], 'id_order=') !== false, $back['status'] . ' ' . $back['location'] . ' -> ' . $result['location']);
 
     $replay = shop('POST', $paid['state']['last_result']['callbackUrl'], $paid['state']['last_result']);
     check('a repeated callback changes nothing', $replay['body'] === 'APPROVED' && orderState(reload($tx)) === $states['paid'], $replay['body']);
@@ -309,29 +311,115 @@ $scenarios['decline'] = static function () use ($states) {
 };
 
 $scenarios['browser-first'] = static function () use ($states) {
+    // Server to server mode: the customer's return only shows the result, CMI's callback updates it.
     $o = newOrder();
     $paid = pay($o['tx'], 'approve', true);
     $back = browserReturn($paid['state']);
     $tx = reload($o['tx']);
-    check('browser return before the callback: authorized, not yet captured', $tx->payment_state === PaymentState::PRE_CONFIRMATION_REQUIRED && orderState($tx) === $states['preauth'], $back['status'] . ' ' . $tx->payment_state);
+    check('browser return before the callback changes nothing (display only)', $tx->payment_state === PaymentState::INITIATED && orderState($tx) === $states['awaiting'], $back['status'] . ' ' . $tx->payment_state);
+    $page = shop('GET', $back['location']);
+    check('...and tells the cardholder the payment is being confirmed, without "Pay again"', $page['status'] === 200 && strpos($back['location'], 'outcome=approved') !== false && strpos($page['body'], 'controller=validation') === false && strpos($page['body'], '/validation?') === false, $back['status'] . ' ' . $back['location']);
+    $forged = $paid['state']['last_result'];
+    $forged['HASH'] = 'forged';
+    $refused = shop('POST', $forged['okUrl'], $forged);
+    check('an unsigned return never leads to the order page', $refused['status'] === 302 && strpos($refused['location'], 'key=') === false, $refused['location']);
     $callback = shop('POST', $paid['state']['last_result']['callbackUrl'], $paid['state']['last_result']);
     $tx = reload($tx);
     check('the late callback then captures it', $callback['body'] === 'ACTION=POSTAUTH' && $tx->payment_state === PaymentState::CONFIRMED && orderState($tx) === $states['paid'], $callback['body']);
 };
 
-$scenarios['browser-mode'] = static function () use ($states) {
-    // "Browser return only": CMI does not call the shop; automatic mode captures via the API.
-    setting('CMI_CALLBACK_MODE', 'browser');
+$scenarios['payment-checks'] = static function () use ($states) {
+    // A callback signed by CMI but in another currency: never accepted.
     $o = newOrder();
-    check('browser mode: no callbackUrl, CallbackResponse=false', !isset($o['fields']['callbackUrl']) && $o['fields']['CallbackResponse'] === 'false');
-    $paid = pay($o['tx'], 'approve');
-    check('browser mode: CMI did not call the shop', $paid['callback'] === null);
-    browserReturn($paid['state']);
+    $paid = pay($o['tx'], 'approve', true);
+    $result = $paid['state']['last_result'];
+    $result['currency'] = '978';
+    $other = signed($result);
+    $answer = shop('POST', $other['callbackUrl'], $other);
     $tx = reload($o['tx']);
-    check('browser mode: captured through the API on return', $tx->payment_state === PaymentState::CONFIRMED && orderState($tx) === $states['paid'], $tx->payment_state);
-    $ops = mock('/mock/state?oid=' . urlencode($tx->oid))['json']['ops'];
-    check('browser mode: CMI shows the capture', $ops[0]['stat'] === 'C');
-    setting('CMI_CALLBACK_MODE', 'server');
+    check('a callback in another currency is refused', $answer['body'] === 'FAILURE' && $tx->payment_state === PaymentState::INITIATED && orderState($tx) === $states['awaiting'], $answer['body'] . ' ' . $tx->payment_state);
+    check('amount check: exact, and 1% for 1.x payments only', CmiProtocol::amountMatches(150.0, 150.0) && !CmiProtocol::amountMatches(150.5, 150.0) && CmiProtocol::amountMatches(150.5, 150.0, true) && !CmiProtocol::amountMatches(152.0, 150.0, true) && !CmiProtocol::amountMatches(10.0, 0.0, true));
+
+    // GDPR: export the customer's payments, then remove their card data.
+    $o2 = newOrder();
+    pay($o2['tx'], 'approve');
+    $module = Module::getInstanceByName('cmi');
+    $customer = ['id' => (int) $o2['order']->id_customer, 'email' => ''];
+    $export = json_decode((string) $module->hookActionExportGDPRData($customer), true);
+    check('GDPR export lists the CMI payment with the masked card', is_array($export) && $export[0]['CMI OrderId'] === $o2['tx']->oid && $export[0]['Card'] === '**** 1111', json_encode($export));
+    $deleted = json_decode((string) $module->hookActionDeleteGDPRCustomer($customer), true);
+    $after = json_decode((string) $module->hookActionExportGDPRData($customer), true);
+    check('GDPR deletion removes the card data, keeps the payment', $deleted === true && $after[0]['Card'] === '' && $after[0]['CMI OrderId'] === $o2['tx']->oid && reload($o2['tx'])->payment_state === PaymentState::CONFIRMED, json_encode($after));
+    check('GDPR hooks registered', $module->isRegisteredInHook('actionExportGDPRData') && $module->isRegisteredInHook('actionDeleteGDPRCustomer') && $module->isRegisteredInHook('registerGDPRConsent'));
+
+    // CMI platform of an address.
+    check('platform of CMI\'s addresses', Cmi\PrestaShop\Config\Settings::environmentOfUrl('https://testpayment.cmi.co.ma/fim/est3Dgate') === 'test'
+        && Cmi\PrestaShop\Config\Settings::environmentOfUrl('https://payment.cmi.co.ma/fim/est3Dgate') === 'production'
+        && Cmi\PrestaShop\Config\Settings::environmentOfUrl('http://localhost:8090/fim/est3Dgate') === null);
+};
+
+$scenarios['admin-token'] = static function () {
+    // The order panel's actions need the back-office token (CSRF), even for a super admin.
+    $context = Context::getContext();
+    $context->employee = new Employee(1);
+    $_GET = ['controller' => 'AdminCmiPayment'];
+    // PrestaShop 9 checks the token through Symfony, which reads the current request.
+    global $kernel;
+    if ($kernel && $kernel->getContainer()->has('request_stack')) {
+        $kernel->getContainer()->get('request_stack')->push(Symfony\Component\HttpFoundation\Request::create('/admin-dev/index.php', 'POST', ['cmi_action' => 'refund']));
+    }
+    require_once _PS_MODULE_DIR_ . 'cmi/controllers/admin/AdminCmiPaymentController.php';
+    $controller = new AdminCmiPaymentController();
+    $_POST = ['cmi_action' => 'refund'];
+    check('admin actions without the token are refused', $controller->checkAccess() === false);
+    $_POST = [];
+    $_GET['token'] = Tools::getAdminToken('AdminCmiPayment' . (int) Tab::getIdFromClassName('AdminCmiPayment') . (int) $context->employee->id);
+    check('admin actions with the token are allowed', $controller->checkAccess() === true);
+    $_GET = [];
+};
+
+$scenarios['list-actions'] = static function () use ($states) {
+    // The CMI column of the orders list: the actions possible for each order (Complete Kit).
+    setting('CMI_CONFIRMATION_MODE', 'manual');
+    $o = newOrder();
+    pay($o['tx'], 'approve');
+    $context = Context::getContext();
+    $context->employee = new Employee(1);
+    $context->cookie = new Cookie('psAdmin');
+    $panel = new Cmi\PrestaShop\Admin\OrderPanel(Module::getInstanceByName('cmi'), services(), $context);
+    $order = new Order((int) $o['tx']->id_order);
+    $entry = $panel->listEntry($order);
+    check('list: a pre-authorization offers Confirm, Void and Check CMI, not Refund', $entry && $entry['can_confirm'] && $entry['can_void'] && $entry['can_check'] && !$entry['can_refund'], json_encode($entry));
+    services()->manager()->confirm(reload($o['tx']));
+    $entry = $panel->listEntry($order);
+    check('list: a captured payment offers Refund (the whole balance) and Check CMI', $entry && $entry['can_refund'] && !$entry['can_confirm'] && $entry['remaining'] === $entry['charged'], json_encode($entry));
+
+    // The list's request, as the browser sends it (with the back-office token).
+    require_once _PS_MODULE_DIR_ . 'cmi/controllers/admin/AdminCmiPaymentController.php';
+    global $kernel;
+    if ($kernel && $kernel->getContainer()->has('request_stack')) {
+        $kernel->getContainer()->get('request_stack')->push(Symfony\Component\HttpFoundation\Request::create('/admin-dev/index.php'));
+    }
+    $_GET = ['controller' => 'AdminCmiPayment'];
+    $controller = new AdminCmiPaymentController();
+    $_GET['token'] = Tools::getAdminToken('AdminCmiPayment' . (int) Tab::getIdFromClassName('AdminCmiPayment') . (int) $context->employee->id);
+    $_GET['ids'] = (int) $order->id . ',999999';
+    ob_start();
+    $controller->displayAjaxListActions();
+    $answer = json_decode((string) ob_get_clean(), true);
+    check('list: the actions of the orders shown, with the token', isset($answer['orders'][(string) $order->id]) && count($answer['orders']) === 1, json_encode($answer));
+    $_GET['token'] = 'wrong';
+    ob_start();
+    $controller->displayAjaxListActions();
+    $refused = json_decode((string) ob_get_clean(), true);
+    check('list: nothing without the token', $refused === ['orders' => []], json_encode($refused));
+    $_GET = [];
+
+    setting('CMI_KIT', 'standard');
+    $entry = $panel->listEntry($order);
+    check('list: no action with the Standard Kit', $entry && !$entry['can_confirm'] && !$entry['can_refund'] && !$entry['can_check']);
+    setting('CMI_KIT', 'complete');
+    setting('CMI_CONFIRMATION_MODE', 'automatic');
 };
 
 $scenarios['cancel'] = static function () use ($states) {
@@ -349,7 +437,7 @@ $scenarios['cancel'] = static function () use ($states) {
     check('cancel link with a wrong key is refused', orderState(reload($tx2)) === $states['paid'] && $forged['status'] === 302);
 };
 
-$scenarios['foreign'] = static function () use ($states) {
+$scenarios['foreign'] = static function () {
     setting('CMI_CONFIRMATION_MODE', 'manual');
     $o = newOrder();
     pay($o['tx'], 'approve', true);
@@ -439,7 +527,7 @@ $scenarios['back-office'] = static function () use ($states) {
     setting('CMI_CONFIRMATION_MODE', 'automatic');
 };
 
-$scenarios['currency'] = static function () use ($states) {
+$scenarios['currency'] = static function () {
     setting('CMI_STORE_CURRENCIES', '504');
     $o = newOrder('EUR');
     $tx = $o['tx'];
@@ -472,14 +560,14 @@ $scenarios['custom-status'] = static function () use ($states) {
     // The settings form, as submitted from the back office.
     $context = Context::getContext();
     $saved = [];
-    foreach (['CMI_GATEWAY_URL', 'CMI_CAPTURED_STATE', 'CMI_KIT', 'CMI_CONFIRMATION_MODE', 'CMI_CALLBACK_MODE', 'CMI_API_URL', 'CMI_API_USERNAME', 'CMI_CLIENT_ID', 'CMI_OID_PREFIX'] as $key) {
+    foreach (['CMI_GATEWAY_URL', 'CMI_CAPTURED_STATE', 'CMI_KIT', 'CMI_CONFIRMATION_MODE', 'CMI_API_URL', 'CMI_API_USERNAME', 'CMI_CLIENT_ID', 'CMI_OID_PREFIX'] as $key) {
         $saved[$key] = (string) Configuration::get($key);
     }
     $post = static function (array $changes) use ($saved): array {
         $_POST = array_merge([
             'submitCmiSettings' => '1',
-            'CMI_KIT' => $saved['CMI_KIT'], 'CMI_CONFIRMATION_MODE' => $saved['CMI_CONFIRMATION_MODE'], 'CMI_CALLBACK_MODE' => $saved['CMI_CALLBACK_MODE'],
-            'CMI_PAYMENT_LANGUAGE' => 'auto', 'CMI_CLIENT_ID' => $saved['CMI_CLIENT_ID'],
+            'CMI_KIT' => $saved['CMI_KIT'], 'CMI_CONFIRMATION_MODE' => $saved['CMI_CONFIRMATION_MODE'],
+            'CMI_PAYMENT_LANGUAGE' => 'auto', 'CMI_CLIENT_ID' => $saved['CMI_CLIENT_ID'], 'CMI_ENVIRONMENT' => 'test',
             // The form only accepts https://: the bench's mock payment page is restored below.
             'CMI_GATEWAY_URL' => 'https://testpayment.cmi.co.ma/fim/est3Dgate',
             'CMI_STORE_KEY' => '', 'CMI_API_URL' => $saved['CMI_API_URL'], 'CMI_API_USERNAME' => $saved['CMI_API_USERNAME'], 'CMI_API_PASSWORD' => '',
@@ -501,6 +589,13 @@ $scenarios['custom-status'] = static function () use ($states) {
     check('custom status saved and chosen', !$errors && $id > 0 && $id === (int) Configuration::getGlobalValue('CMI_OS_CUSTOM_CAPTURED'), implode(' | ', $errors));
     check('custom status counts as paid, with invoice and e-mail', $state->paid && $state->invoice && $state->logable && $state->send_email && $state->color === '#123456');
     check('custom status has its name in every language', !array_diff(array_values($state->name), ['Payée par carte (banc)']));
+
+    // CMI platform: an empty address takes the chosen platform's.
+    $errors = $post(['CMI_CAPTURED_STATE' => (string) $states['paid'], 'CMI_ENVIRONMENT' => 'production', 'CMI_GATEWAY_URL' => '']);
+    check('production platform fills in CMI\'s production payment page', !$errors && Configuration::get('CMI_GATEWAY_URL') === 'https://payment.cmi.co.ma/fim/est3Dgate' && Configuration::get('CMI_ENVIRONMENT') === 'production', implode(' | ', $errors));
+    $errors = $post(['CMI_CAPTURED_STATE' => (string) $states['paid'], 'CMI_ENVIRONMENT' => 'nowhere']);
+    check('an unknown platform is refused', count($errors) === 1, implode(' | ', $errors));
+    $post(['CMI_CAPTURED_STATE' => 'custom', 'CMI_CUSTOM_STATE_NAME' => 'Payée par carte (banc)', 'CMI_CUSTOM_STATE_COLOR' => '#123456']);
 
     // A payment captured now ends in the custom status.
     setting('CMI_GATEWAY_URL', 'http://localhost:8090/fim/est3Dgate');

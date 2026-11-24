@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
 # Copy the module into a test shop, trust the mock CMI's HTTPS certificate, and copy the
-# bench scripts. Usage: tests/e2e/deploy.sh ps8|ps9
+# bench scripts. Usage: tests/e2e/deploy.sh ps8|ps872|ps9
 #   CMI_PACKAGE=path/to/cmi_prestashop_vX.Y.Z.zip  install that release zip, unpacked over the
 #                                                  module folder as "Upload a module" does
 #   (otherwise)                                    copy the working tree
@@ -24,7 +24,8 @@ else
 fi
 
 # The mock's internal CA (Caddy), so the module's https:// API calls are verified for real.
-docker exec "$container" sh -c 'cp /cmi-ca/caddy/pki/authorities/local/root.crt /usr/local/share/ca-certificates/cmi-test.crt && update-ca-certificates >/dev/null 2>&1 || true'
+# Readable by everyone: OpenSSL 1.1.1 (PHP 7.2 images) refuses a CA directory with an unreadable file.
+docker exec "$container" sh -c 'cp /cmi-ca/caddy/pki/authorities/local/root.crt /usr/local/share/ca-certificates/cmi-test.crt && chmod 644 /usr/local/share/ca-certificates/cmi-test.crt && update-ca-certificates >/dev/null 2>&1 || true'
 
 # Bench scripts, through tar too (docker cp needs Windows paths under Git Bash).
 tar -C "$here" -cf - bootstrap.php configure.php harness.php \

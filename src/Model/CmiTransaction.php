@@ -1,4 +1,5 @@
 <?php
+
 /**
  * CMI payment module for PrestaShop.
  *
@@ -10,7 +11,6 @@ namespace Cmi\PrestaShop\Model;
 
 use Cmi\PrestaShop\Payment\Amounts;
 use Cmi\PrestaShop\Payment\TransactionGuard;
-use ObjectModel;
 
 if (!defined('_PS_VERSION_')) {
     exit;
@@ -22,7 +22,7 @@ if (!defined('_PS_VERSION_')) {
  * A cart paid with CMI gives one transaction, shared by every order PrestaShop created for
  * that cart (several carriers give several orders with the same reference).
  */
-class CmiTransaction extends ObjectModel
+class CmiTransaction extends \ObjectModel
 {
     /** @var int */
     public $id_shop;

@@ -1,4 +1,5 @@
 <?php
+
 /**
  * CMI payment module for PrestaShop.
  *
@@ -124,8 +125,8 @@ final class PaymentState
      * "Not found" and in-progress results never do: nothing was paid.
      *
      * @param string $transStat CMI's TRANS_STAT
-     * @param bool   $lastCheck whether no check follows this one
-     * @param string $procCode  CMI's ProcReturnCode ('' when not reported)
+     * @param bool $lastCheck whether no check follows this one
+     * @param string $procCode CMI's ProcReturnCode ('' when not reported)
      */
     public static function pendingCheckApplies(string $transStat, bool $lastCheck = false, string $procCode = ''): bool
     {

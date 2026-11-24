@@ -1,4 +1,5 @@
 <?php
+
 /**
  * CMI payment module for PrestaShop.
  *
@@ -10,12 +11,8 @@ namespace Cmi\PrestaShop\Install;
 
 use Cmi\PrestaShop\Config\Settings;
 use Cmi\PrestaShop\Payment\TransactionGuard;
-use Configuration;
-use Db;
 use Language;
-use OrderState;
 use Tab;
-use Validate;
 
 if (!defined('_PS_VERSION_')) {
     exit;
@@ -38,6 +35,10 @@ class Installer
         'actionOrderGridDefinitionModifier',
         'actionOrderGridQueryBuilderModifier',
         'displayRightColumn',
+        // PrestaShop's GDPR module (psgdpr): consent, export and deletion of customer data.
+        'registerGDPRConsent',
+        'actionExportGDPRData',
+        'actionDeleteGDPRCustomer',
     ];
 
     /** Settings of version 1.x and how they map to 2.0 (null: removed). */
@@ -51,7 +52,8 @@ class Installer
         'redirection_mode' => Settings::AUTO_REDIRECT,
         // Removed: payments always go through 3-D Secure (CMI refuses the others).
         'cardholder_authentication' => null,
-        'callback_mode' => Settings::CALLBACK_MODE,
+        // Removed: CMI always calls the shop (server callback), as in the WooCommerce plugin.
+        'callback_mode' => null,
         'actionslkapi' => Settings::API_URL,
         'usernameapi' => Settings::API_USERNAME,
         'passwordapi' => Settings::API_PASSWORD,
@@ -66,6 +68,12 @@ class Installer
         'views/fonts/fontawesome-webfont.woff', 'views/fonts/fontawesome-webfont.woff2',
         'views/templates/admin/admin.tpl', 'views/templates/front/error_ps17.tpl', 'views/templates/front/payment.tpl',
         'views/templates/front/payment_return.tpl', 'views/templates/hook/confirmation.tpl',
+    ];
+
+    /** Built-in names of the order states (also in translations/*.xlf). */
+    private const STATE_NAMES = [
+        'Awaiting CMI payment' => ['fr' => 'En attente de paiement CMI', 'ar' => 'في انتظار الدفع عبر CMI'],
+        'CMI payment authorized (to confirm)' => ['fr' => 'Paiement CMI autorisé (à confirmer)', 'ar' => 'دفع CMI مُفوَّض (في انتظار التأكيد)'],
     ];
 
     /** @var \Module */
@@ -96,30 +104,56 @@ class Installer
             }
         }
         $ok = $this->install();
-        Db::getInstance()->execute('DROP TABLE IF EXISTS `' . _DB_PREFIX_ . 'bpi_secuaccess`');
+        \Db::getInstance()->execute('DROP TABLE IF EXISTS `' . _DB_PREFIX_ . 'bpi_secuaccess`');
         $this->deleteObsoleteFiles();
 
         return $ok;
     }
 
     /**
-     * Uninstall keeps the transaction tables and order states, so the history of paid orders is
-     * never lost, and removes the connection settings (credentials).
+     * By default, uninstall keeps the payment history (transaction tables), the order states
+     * used by existing orders and the OrderId prefix, so a reinstall finds the payments of past
+     * orders again; it removes the settings, credentials included. With the setting "Delete all
+     * CMI data on uninstall", it removes everything: tables, order states and every setting.
      */
     public function uninstall(): bool
     {
-        $idTab = (int) Tab::getIdFromClassName(self::ADMIN_CONTROLLER);
+        $deleteAll = (bool) \Configuration::get(Settings::DELETE_DATA_ON_UNINSTALL);
+        $idTab = self::tabId(self::ADMIN_CONTROLLER);
         if ($idTab) {
-            $tab = new Tab($idTab);
+            $tab = new \Tab($idTab);
             $tab->delete();
         }
+        $kept = [Settings::OS_AWAITING, Settings::OS_PREAUTHORIZED, Settings::OS_CUSTOM_CAPTURED, Settings::OID_PREFIX];
+        if ($deleteAll) {
+            $this->deleteOrderStates();
+            foreach (['cmi_transaction_log', 'cmi_transaction'] as $table) {
+                \Db::getInstance()->execute('DROP TABLE IF EXISTS `' . _DB_PREFIX_ . $table . '`');
+            }
+            $kept = [];
+        }
         foreach (Settings::ALL_KEYS as $key) {
-            if (!in_array($key, [Settings::OS_AWAITING, Settings::OS_PREAUTHORIZED, Settings::OS_CUSTOM_CAPTURED, Settings::OID_PREFIX], true)) {
-                Configuration::deleteByName($key);
+            if (!in_array($key, $kept, true)) {
+                \Configuration::deleteByName($key);
             }
         }
 
         return true;
+    }
+
+    /**
+     * The module's order states are marked deleted, as PrestaShop does: orders that had them
+     * keep showing their history.
+     */
+    private function deleteOrderStates(): void
+    {
+        foreach ([Settings::OS_AWAITING, Settings::OS_PREAUTHORIZED, Settings::OS_CUSTOM_CAPTURED] as $key) {
+            $state = new \OrderState((int) \Configuration::getGlobalValue($key));
+            if (\Validate::isLoadedObject($state) && !$state->deleted) {
+                $state->deleted = true;
+                $state->save();
+            }
+        }
     }
 
     public function createTables(): bool
@@ -171,7 +205,7 @@ class Installer
             ) ENGINE=' . $engine . ' DEFAULT CHARSET=utf8mb4',
         ];
         foreach ($queries as $query) {
-            if (!Db::getInstance()->execute($query)) {
+            if (!\Db::getInstance()->execute($query)) {
                 return false;
             }
         }
@@ -183,34 +217,42 @@ class Installer
     {
         // Version 1.x created "Waiting for CMI validation" without ever using it: it becomes
         // "Awaiting CMI payment", keeping its ID.
-        $legacyId = (int) Configuration::getGlobalValue('BPI_ID_ORDERSTATE');
-        if (!(int) Configuration::getGlobalValue(Settings::OS_AWAITING) && $legacyId) {
-            Configuration::updateGlobalValue(Settings::OS_AWAITING, $legacyId);
+        $legacyId = (int) \Configuration::getGlobalValue('BPI_ID_ORDERSTATE');
+        if (!(int) \Configuration::getGlobalValue(Settings::OS_AWAITING) && $legacyId) {
+            \Configuration::updateGlobalValue(Settings::OS_AWAITING, $legacyId);
         }
-        Configuration::deleteByName('BPI_ID_ORDERSTATE');
+        \Configuration::deleteByName('BPI_ID_ORDERSTATE');
 
-        return $this->installOrderState(Settings::OS_AWAITING, [
-            'en' => 'Awaiting CMI payment',
-            'fr' => 'En attente de paiement CMI',
-        ], '#4169E1', false)
-            && $this->installOrderState(Settings::OS_PREAUTHORIZED, [
-                'en' => 'CMI payment authorized (to confirm)',
-                'fr' => 'Paiement CMI autorisé (à confirmer)',
-            ], '#FF8C00', true);
+        return $this->installOrderState(Settings::OS_AWAITING, 'Awaiting CMI payment', '#4169E1', false)
+            && $this->installOrderState(Settings::OS_PREAUTHORIZED, 'CMI payment authorized (to confirm)', '#FF8C00', true);
     }
 
     /**
-     * @param array{en: string, fr: string} $names
-     * @param bool                          $logable whether the order counts as a valid sale
+     * Name of an order state in a language: the module's translation (Modules.Cmi.Admin), or the
+     * built-in one when PrestaShop has not loaded the module's translations yet (first install).
+     *
+     * @param array<string, mixed> $language a row of Language::getLanguages()
      */
-    private function installOrderState(string $configKey, array $names, string $color, bool $logable): bool
+    private function stateName(string $english, array $language): string
     {
-        $state = new OrderState((int) Configuration::getGlobalValue($configKey));
-        if (!Validate::isLoadedObject($state) || $state->deleted) {
-            $state = new OrderState();
+        $locale = (string) ($language['locale'] ?? '');
+        $translated = $locale !== '' ? $this->module->getTranslator()->trans($english, [], 'Modules.Cmi.Admin', $locale) : $english;
+        if ($translated !== $english) {
+            return $translated;
         }
-        foreach (Language::getLanguages(false) as $language) {
-            $state->name[(int) $language['id_lang']] = strpos((string) $language['iso_code'], 'fr') === 0 ? $names['fr'] : $names['en'];
+
+        return self::STATE_NAMES[$english][substr((string) $language['iso_code'], 0, 2)] ?? $english;
+    }
+
+    /** @param bool $logable whether the order counts as a valid sale */
+    private function installOrderState(string $configKey, string $name, string $color, bool $logable): bool
+    {
+        $state = new \OrderState((int) \Configuration::getGlobalValue($configKey));
+        if (!\Validate::isLoadedObject($state) || $state->deleted) {
+            $state = new \OrderState();
+        }
+        foreach (\Language::getLanguages(false) as $language) {
+            $state->name[(int) $language['id_lang']] = $this->stateName($name, $language);
         }
         $state->module_name = $this->module->name;
         $state->color = $color;
@@ -228,23 +270,32 @@ class Installer
         if (!$state->save()) {
             return false;
         }
-        Configuration::updateGlobalValue($configKey, (int) $state->id);
+        \Configuration::updateGlobalValue($configKey, (int) $state->id);
 
         return true;
     }
 
+    /** ID of a back-office tab (Tab::getIdFromClassName() is deprecated). */
+    private static function tabId(string $className): int
+    {
+        return (int) \Db::getInstance()->getValue(
+            'SELECT `id_tab` FROM `' . _DB_PREFIX_ . 'tab` WHERE `class_name` = \'' . pSQL($className) . '\''
+        );
+    }
+
     public function installTab(): bool
     {
-        if (Tab::getIdFromClassName(self::ADMIN_CONTROLLER)) {
+        if (self::tabId(self::ADMIN_CONTROLLER)) {
             return true;
         }
-        $tab = new Tab();
+        $tab = new \Tab();
         $tab->class_name = self::ADMIN_CONTROLLER;
         $tab->module = $this->module->name;
-        $tab->id_parent = (int) Tab::getIdFromClassName('AdminParentOrders');
+        $tab->id_parent = self::tabId('AdminParentOrders');
         // Not shown in the menu: it only runs the actions of the order page's CMI panel.
         $tab->active = false;
-        foreach (Language::getLanguages(false) as $language) {
+        foreach (\Language::getLanguages(false) as $language) {
+            // The brand name, the same in every language.
             $tab->name[(int) $language['id_lang']] = 'CMI';
         }
 
@@ -267,18 +318,23 @@ class Installer
         $defaults = [
             Settings::KIT => Settings::KIT_STANDARD,
             Settings::CONFIRMATION_MODE => Settings::MODE_AUTOMATIC,
-            Settings::CALLBACK_MODE => Settings::CALLBACK_SERVER,
             Settings::AUTO_REDIRECT => '1',
             Settings::PAYMENT_LANGUAGE => 'auto',
             Settings::STORE_CURRENCIES => '504',
-            Settings::CAPTURED_STATE => (string) (int) Configuration::get('PS_OS_PAYMENT'),
+            Settings::CAPTURED_STATE => (string) (int) \Configuration::get('PS_OS_PAYMENT'),
             // A unique prefix keeps this shop's OrderIds apart from any other website using the
             // same CMI account. Only set once: a prefix the merchant changed or emptied is kept.
             Settings::OID_PREFIX => TransactionGuard::generateOidPrefix(),
             Settings::CRON_TOKEN => bin2hex(random_bytes(16)),
         ];
+        // A new shop starts on CMI's test platform. A shop upgraded from 1.x keeps its payment
+        // page URL, and its platform follows that URL (Settings::environment()).
+        if ((string) \Configuration::get(Settings::GATEWAY_URL) === '') {
+            $defaults[Settings::ENVIRONMENT] = Settings::ENV_TEST;
+            $defaults[Settings::GATEWAY_URL] = Settings::PLATFORM_URLS[Settings::ENV_TEST]['gateway'];
+        }
         foreach ($defaults as $key => $value) {
-            if (!Configuration::hasKey($key) && !Configuration::updateValue($key, $value)) {
+            if (!\Configuration::hasKey($key) && !\Configuration::updateValue($key, $value)) {
                 return false;
             }
         }
@@ -290,7 +346,7 @@ class Installer
     public function migrateLegacySettings(): void
     {
         $names = array_map('pSQL', array_keys(self::LEGACY_KEYS));
-        $rows = Db::getInstance()->executeS(
+        $rows = \Db::getInstance()->executeS(
             'SELECT `name`, `value`, `id_shop_group`, `id_shop` FROM `' . _DB_PREFIX_ . 'configuration`'
             . ' WHERE `name` IN (\'' . implode('\',\'', $names) . '\')'
         ) ?: [];
@@ -304,18 +360,18 @@ class Installer
             $value = $this->legacyValue($row['name'], (string) $row['value']);
             $group = $row['id_shop_group'] !== null ? (int) $row['id_shop_group'] : null;
             $shop = $row['id_shop'] !== null ? (int) $row['id_shop'] : null;
-            Configuration::updateValue($target, $value, false, $group, $shop);
+            \Configuration::updateValue($target, $value, false, $group, $shop);
             if (in_array($row['name'], ['actionslkapi', 'usernameapi', 'passwordapi'], true) && trim($value) !== '') {
                 $scope = $group . '-' . $shop;
                 $hasApi[$scope] = ($hasApi[$scope] ?? 0) + 1;
                 if ($hasApi[$scope] === 3) {
                     // 1.x used the API whenever its credentials were set: keep doing so.
-                    Configuration::updateValue(Settings::KIT, Settings::KIT_COMPLETE, false, $group, $shop);
+                    \Configuration::updateValue(Settings::KIT, Settings::KIT_COMPLETE, false, $group, $shop);
                 }
             }
         }
         foreach (array_keys(self::LEGACY_KEYS) as $legacy) {
-            Configuration::deleteByName($legacy);
+            \Configuration::deleteByName($legacy);
         }
     }
 
@@ -327,9 +383,6 @@ class Installer
                 return $value === '2' ? Settings::MODE_MANUAL : Settings::MODE_AUTOMATIC;
             case 'redirection_mode':
                 return $value === '1' ? '1' : '0';
-            case 'callback_mode':
-                // 1 = "Redirection automatique": CMI only returned the result through the browser.
-                return $value === '1' ? Settings::CALLBACK_BROWSER : Settings::CALLBACK_SERVER;
             case 'currency_store':
                 return implode(',', array_filter(array_map('trim', explode('|', $value))));
         }

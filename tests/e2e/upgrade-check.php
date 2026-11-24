@@ -1,4 +1,5 @@
 <?php
+
 /**
  * Test bench: upgrade from version 1.1.0.
  *   php upgrade-check.php before   with 1.1.0 installed: write 1.x settings and a 1.x-style paid order
@@ -77,7 +78,7 @@ check('client ID moved', Configuration::get('CMI_CLIENT_ID') === '600000001');
 check('store key moved', Configuration::get('CMI_STORE_KEY') === 'TEST_store_key_2026');
 check('payment page URL moved', Configuration::get('CMI_GATEWAY_URL') === 'http://localhost:8090/fim/est3Dgate');
 check('manual confirmation kept', Configuration::get('CMI_CONFIRMATION_MODE') === 'manual');
-check('server callback kept', Configuration::get('CMI_CALLBACK_MODE') === 'server');
+check('1.x callback setting dropped (CMI always calls the shop now)', !Configuration::hasKey('CMI_CALLBACK_MODE') && !Configuration::hasKey('callback_mode'));
 check('automatic redirect kept', Configuration::get('CMI_AUTO_REDIRECT') === '1');
 check('1.x 3-D Secure setting dropped (always 3-D Secure now)', !Configuration::hasKey('CMI_3D_SECURE') && !Configuration::hasKey('cardholder_authentication'));
 check('API credentials moved, Complete Kit chosen', Configuration::get('CMI_API_USERNAME') === 'apiuser' && Configuration::get('CMI_KIT') === 'complete');
