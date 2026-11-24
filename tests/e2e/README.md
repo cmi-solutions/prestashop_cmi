@@ -21,7 +21,7 @@ cd tests/e2e
 docker compose up -d          # first start installs both shops (a few minutes)
 ./run.sh                      # deploy the working tree, configure, run every scenario on ps9 (this branch's PrestaShop)
 docker compose exec -u www-data ps9 php /cmi-tests/harness.php manual currency   # some scenarios
-./upgrade.sh ps9              # upgrade test from 1.1.0 (tag prestashop_v9); replaces the shop's module
+./upgrade.sh ps9              # upgrade test from 1.1.0 (commit 147b552); replaces the shop's module
 CMI_PACKAGE=/path/to/cmi_prestashop_v2.0.0-ps9.zip ./run.sh   # test a release zip instead of the working tree
 docker compose down -v        # remove everything
 ```
