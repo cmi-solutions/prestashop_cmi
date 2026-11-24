@@ -31,15 +31,17 @@ The configuration, the order statuses and the payment management are described i
 ## Features (2.0.0)
 
 - Secure hosted payment on CMI's 3-D Secure page; automatic capture, or pre-authorization confirmed later.
-- Confirm, void, refund (full or partial) and check payments from the order page (Complete Kit), after checking with CMI that the payment belongs to the order.
+- Test and Production platforms, with a "Test mode" warning and badge.
+- Confirm, void, refund (full or partial) and check payments from the order page or the orders list (Complete Kit), after checking with CMI that the payment belongs to the order.
+- CMI calls the shop after each payment (server callback); every result is checked: signature, amount and currency.
 - Payments in MAD; orders in other currencies converted to MAD, refunded with the rate applied at payment.
 - Order status after capture of your choice, including a status of your own.
-- Sync with the CMI back office, automatic status checks of unpaid orders, "Pay again" for customers.
-- English and French; multistore.
+- Sync with the CMI back office, automatic status checks of unpaid orders, "Pay again" for cardholders.
+- GDPR (PrestaShop's GDPR module); English, French and Arabic; multistore.
 
 ## Older versions
 
-Version 1.x is no longer maintained. Its code remains available in the releases [Prestashop version 9](https://github.com/cmi-solutions/prestashop_cmi/releases/tag/prestashop_v9) and [Prestashop version 8](https://github.com/cmi-solutions/prestashop_cmi/releases/tag/prestashop_v8).
+Version 1.x is no longer maintained and has no release any more. Its code stays in the history of the branches: [1.x for PrestaShop 9](https://github.com/cmi-solutions/prestashop_cmi/tree/147b552) (commit `147b552`) and [1.x for PrestaShop 8](https://github.com/cmi-solutions/prestashop_cmi/tree/93a477f) (commit `93a477f`, module in its `cmi/` folder).
 
 ## For developers
 
