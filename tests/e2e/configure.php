@@ -1,12 +1,13 @@
 <?php
+
 /**
  * Test bench: install the module and configure it against the mock CMI.
  * Run inside a shop container: php /cmi-tests/configure.php [key=value ...]
- *   mode=automatic|manual  callback=server|browser  kit=complete|standard  currencies=504,978
+ *   mode=automatic|manual  kit=complete|standard  currencies=504,978
  */
 require __DIR__ . '/bootstrap.php';
 
-$options = ['mode' => 'automatic', 'callback' => 'server', 'kit' => 'complete', 'currencies' => '504', 'install' => '1'];
+$options = ['mode' => 'automatic', 'kit' => 'complete', 'currencies' => '504', 'install' => '1'];
 foreach (array_slice($argv, 1) as $argument) {
     [$key, $value] = array_pad(explode('=', $argument, 2), 2, '');
     $options[$key] = $value;
@@ -44,7 +45,7 @@ Shop::setContext(Shop::CONTEXT_ALL);
 $module = Module::getInstanceByName('cmi');
 if ($options['install'] === '1' && !Module::isInstalled('cmi')) {
     if (!$module->install()) {
-        fwrite(STDERR, "install failed: " . implode(', ', $module->getErrors()) . "\n");
+        fwrite(STDERR, 'install failed: ' . implode(', ', $module->getErrors()) . "\n");
         exit(1);
     }
     echo "module installed\n";
@@ -75,7 +76,6 @@ foreach ([
     'CMI_API_PASSWORD' => 'apipass',
     'CMI_KIT' => $options['kit'],
     'CMI_CONFIRMATION_MODE' => $options['mode'],
-    'CMI_CALLBACK_MODE' => $options['callback'],
     'CMI_STORE_CURRENCIES' => $options['currencies'],
     // The scenarios expect captured orders in "Payment accepted", whatever was chosen by hand.
     'CMI_CAPTURED_STATE' => (string) (int) Configuration::get('PS_OS_PAYMENT'),

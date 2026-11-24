@@ -1,4 +1,5 @@
 <?php
+
 /**
  * Unit tests of the module's PrestaShop-independent rules.
  *
@@ -147,7 +148,7 @@ $inline = ApiResponseParser::parse('<CC5Response><Response>Approved</Response><P
 same('parser: TRANS_STAT from ORDERSTATUS text', 'A', $inline['TRANS_STAT']);
 same('parser: amount from ORDERSTATUS text', '15000', $inline['ORIG_TRANS_AMT']);
 same('parser: TransId from ORDERSTATUS text', 'ABC123', $inline['TransId']);
-$broken = ApiResponseParser::parse("garbage<Response>Declined</Response><ProcReturnCode>99</ProcReturnCode><ErrMsg>Order not found</ErrMsg>");
+$broken = ApiResponseParser::parse('garbage<Response>Declined</Response><ProcReturnCode>99</ProcReturnCode><ErrMsg>Order not found</ErrMsg>');
 same('parser: tag fallback on broken XML', '99', $broken['ProcReturnCode']);
 foreach (['' => 'empty_response', '<html><body>Login</body></html>' => 'html_response', '<x>nothing</x>' => 'invalid_response'] as $body => $reason) {
     try {

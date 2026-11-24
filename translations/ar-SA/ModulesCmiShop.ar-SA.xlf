@@ -1,0 +1,151 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<xliff xmlns="urn:oasis:names:tc:xliff:document:1.2" version="1.2">
+  <file original="modules/cmi" source-language="en-US" target-language="ar-SA" datatype="plaintext">
+    <body>
+      <trans-unit id="fe165795a83ef61843e63d4f07db0125">
+        <source>Amount charged by CMI: %amount%.</source>
+        <target>المبلغ المقتطع من طرف CMI: %amount%.</target>
+      </trans-unit>
+      <trans-unit id="ebb8d514f56157d7bd513eefdd9adb63">
+        <source>Awaiting payment</source>
+        <target>في انتظار الدفع</target>
+      </trans-unit>
+      <trans-unit id="f1e03421cd699172bff8e29beb1e9ce0">
+        <source>CMI accepted your card payment and is confirming it to the shop. Your order will be updated in a few moments and you will receive an e-mail. Please do not pay again.</source>
+        <target>قبل CMI الدفع ببطاقتك ويقوم بتأكيده للمتجر. سيتم تحديث طلبك خلال لحظات وستتلقى رسالة بالبريد الإلكتروني. يرجى عدم الدفع مرة أخرى.</target>
+      </trans-unit>
+      <trans-unit id="b5499072316a366352f5e01353daf7a8">
+        <source>Cancel the order</source>
+        <target>إلغاء الطلب</target>
+      </trans-unit>
+      <trans-unit id="e6ab68d6a5fc3f7469ee4e25f7ba1fac">
+        <source>Card payment (CMI)</source>
+        <target>الدفع بالبطاقة (CMI)</target>
+      </trans-unit>
+      <trans-unit id="e90b40168cbde89b52cd93b12468b847">
+        <source>Card payment in %currency% is temporarily unavailable. Please choose another currency or contact the shop.</source>
+        <target>الدفع بالبطاقة بعملة %currency% غير متاح مؤقتًا. يرجى اختيار عملة أخرى أو التواصل مع المتجر.</target>
+      </trans-unit>
+      <trans-unit id="cfad9bfc4a4276a6b827fdbc4b3fb4b7">
+        <source>Click the button to continue to the payment page.</source>
+        <target>انقر على الزر للمتابعة إلى صفحة الدفع.</target>
+      </trans-unit>
+      <trans-unit id="8cdc99a8a39dc80bf40066e98e5e5917">
+        <source>Contact the shop</source>
+        <target>التواصل مع المتجر</target>
+      </trans-unit>
+      <trans-unit id="00cd7d0890cd975da95799c32764c9ce">
+        <source>Order reference: %reference%</source>
+        <target>مرجع الطلب: %reference%</target>
+      </trans-unit>
+      <trans-unit id="0c5235b40a3bd3ab41f86bfa784b738c">
+        <source>Pay again by card</source>
+        <target>الدفع مرة أخرى بالبطاقة</target>
+      </trans-unit>
+      <trans-unit id="4d7aa1fd96d73f3818ac4030dc12fc24">
+        <source>Pay now by card</source>
+        <target>الدفع الآن بالبطاقة</target>
+      </trans-unit>
+      <trans-unit id="6c7b4bd8189c3230f4d2c43abd654416">
+        <source>Pay securely by bank card with CMI</source>
+        <target>ادفع بأمان بالبطاقة البنكية عبر CMI</target>
+      </trans-unit>
+      <trans-unit id="856373a658d03c6795f4de20dffa2f5a">
+        <source>Pay with CMI</source>
+        <target>الدفع عبر CMI</target>
+      </trans-unit>
+      <trans-unit id="7e7faa3b1b620dd21b3886f46d36f1e6">
+        <source>Payment authorized</source>
+        <target>تم تفويض الدفع</target>
+      </trans-unit>
+      <trans-unit id="365ede146ac823435c7b93adae3300e9">
+        <source>Payment being confirmed</source>
+        <target>جارٍ تأكيد الدفع</target>
+      </trans-unit>
+      <trans-unit id="d27600e8af517a19b8f17713e91e4c8b">
+        <source>Payment cancelled</source>
+        <target>تم إلغاء الدفع</target>
+      </trans-unit>
+      <trans-unit id="f8fdac7d16330c74036ef848d4353376">
+        <source>Payment not completed</source>
+        <target>لم يكتمل الدفع</target>
+      </trans-unit>
+      <trans-unit id="38a4d6de8ac44592dfe6e0138b8d28c1">
+        <source>Payment refunded</source>
+        <target>تم استرداد المبلغ</target>
+      </trans-unit>
+      <trans-unit id="f95da1c548338c3b25654b98a1b9779f">
+        <source>Payment successful</source>
+        <target>تم الدفع بنجاح</target>
+      </trans-unit>
+      <trans-unit id="73599829475522b89e9f8266cbe73e0e">
+        <source>Redirecting to CMI</source>
+        <target>جارٍ التحويل إلى CMI</target>
+      </trans-unit>
+      <trans-unit id="63a6a88c066880c5ac42394a22803ca6">
+        <source>Refresh</source>
+        <target>تحديث</target>
+      </trans-unit>
+      <trans-unit id="61d1b29c63271fe171035c33f74ea7c4">
+        <source>See my orders</source>
+        <target>عرض طلباتي</target>
+      </trans-unit>
+      <trans-unit id="4db1eb44f13c863fceb895b49be2b9e7">
+        <source>Thank you for your order %reference%. You are being redirected to CMI&apos;s secure payment page.</source>
+        <target>شكرًا على طلبك %reference%. جارٍ تحويلك إلى صفحة الدفع الآمنة لـ CMI.</target>
+      </trans-unit>
+      <trans-unit id="7312f86d20265b0f242240283590295f">
+        <source>The card payment was not accepted. You can try again.</source>
+        <target>لم يتم قبول الدفع بالبطاقة. يمكنك المحاولة مرة أخرى.</target>
+      </trans-unit>
+      <trans-unit id="b0a5f486d01f6f509a30cef8f92cd0f2">
+        <source>The shop cancelled this payment. You were not charged.</source>
+        <target>ألغى المتجر هذا الدفع. لم يتم اقتطاع أي مبلغ منك.</target>
+      </trans-unit>
+      <trans-unit id="e2b7dec8fa4b498156dfee6e4c84b156">
+        <source>This payment method is not available.</source>
+        <target>وسيلة الدفع هذه غير متاحة.</target>
+      </trans-unit>
+      <trans-unit id="7a1c1919346c8d9d1c3b2c4e2663dafe">
+        <source>This payment was refunded.</source>
+        <target>تم استرداد مبلغ هذا الدفع.</target>
+      </trans-unit>
+      <trans-unit id="d13f52e370a6b69f1d3394c213329ca3">
+        <source>To pay by card with CMI, please enter your first and last name in Latin letters in your invoice address (for example: Mohamed Alami).</source>
+        <target>للدفع بالبطاقة عبر CMI، يرجى إدخال اسمك الشخصي والعائلي بالحروف اللاتينية في عنوان الفوترة (مثال: Mohamed Alami).</target>
+      </trans-unit>
+      <trans-unit id="de34a9d893285386dd49d7bcff74de5f">
+        <source>We have not received the result of your card payment yet.</source>
+        <target>لم نتوصل بعد بنتيجة الدفع ببطاقتك.</target>
+      </trans-unit>
+      <trans-unit id="85f1df88582dc5620cecbe3109c42c8a">
+        <source>You cancelled the payment.</source>
+        <target>لقد ألغيت الدفع.</target>
+      </trans-unit>
+      <trans-unit id="774c11e95baae946138f0c974e6449a6">
+        <source>You will be redirected to the secure payment page of CMI to enter your card details.</source>
+        <target>سيتم تحويلك إلى صفحة الدفع الآمنة لـ CMI لإدخال بيانات بطاقتك.</target>
+      </trans-unit>
+      <trans-unit id="81c545584cd4593c46371fe0124007b6">
+        <source>Your card payment was accepted.</source>
+        <target>تم قبول الدفع ببطاقتك.</target>
+      </trans-unit>
+      <trans-unit id="0d5904e0f9dae86e54a9b2a599ad2e5d">
+        <source>Your order could not be created. Please try again.</source>
+        <target>تعذر إنشاء طلبك. يرجى المحاولة مرة أخرى.</target>
+      </trans-unit>
+      <trans-unit id="70e6d24aa1a23fc9cc2706ce6d73436e">
+        <source>Your payment result could not be read. If you paid, your order will be updated shortly; otherwise please contact the shop.</source>
+        <target>تعذرت قراءة نتيجة الدفع. إذا كنت قد دفعت، فسيتم تحديث طلبك قريبًا؛ وإلا يرجى التواصل مع المتجر.</target>
+      </trans-unit>
+      <trans-unit id="4f87e521481ef26474d7c65d93f1cf5c">
+        <source>Your payment was authorized. The amount will be charged when the shop confirms your order.</source>
+        <target>تم تفويض الدفع. سيتم اقتطاع المبلغ عندما يؤكد المتجر طلبك.</target>
+      </trans-unit>
+      <trans-unit id="63bd72685152f610bf27d50d03a88ea0">
+        <source>Your session has expired. Please choose the payment method again.</source>
+        <target>انتهت صلاحية جلستك. يرجى اختيار وسيلة الدفع مرة أخرى.</target>
+      </trans-unit>
+    </body>
+  </file>
+</xliff>

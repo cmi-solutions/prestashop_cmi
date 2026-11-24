@@ -1,0 +1,799 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<xliff xmlns="urn:oasis:names:tc:xliff:document:1.2" version="1.2">
+  <file original="modules/cmi" source-language="en-US" target-language="ar-SA" datatype="plaintext">
+    <body>
+      <trans-unit id="009dea16e03a9b761e2953aacd14fb0a">
+        <source>%source% ignored: it reports %result% (ProcReturnCode %code%) but the payment is already %state%.</source>
+        <target>تم تجاهل %source%: يشير إلى %result% (ProcReturnCode %code%) لكن الدفع في الحالة %state% مسبقًا.</target>
+      </trans-unit>
+      <trans-unit id="b2cfbc390ba0727c44a7c98e0d6cef15">
+        <source>%source%: CMI approved the payment in currency %currency%, not in the currency sent (%sent%). The payment was not accepted; check it in the CMI back office.</source>
+        <target>%source%: وافق CMI على الدفع بالعملة %currency% وليس بالعملة المرسلة (%sent%). لم يتم قبول الدفع؛ تحقق منه في الواجهة الخلفية لـ CMI.</target>
+      </trans-unit>
+      <trans-unit id="04664d67a4ff661a62a0efd27e35c8b4">
+        <source>%source%: payment declined (%error%, ProcReturnCode %code%).</source>
+        <target>%source%: تم رفض الدفع (%error%، ProcReturnCode %code%).</target>
+      </trans-unit>
+      <trans-unit id="2828d424c6900eacfdafb5c64d7eaf2b">
+        <source>%source%: payment pre-authorized (TransId: %transid%). Confirm it to capture the funds.</source>
+        <target>%source%: تم التفويض المسبق للدفع (TransId: %transid%). أكّده لتحصيل المبلغ.</target>
+      </trans-unit>
+      <trans-unit id="8c9e589e782b4bc53edb08d4a2e86988">
+        <source>%source%: the amount approved by CMI (%amount%) is not the amount sent (%sent%). The payment was not accepted; check it in the CMI back office.</source>
+        <target>%source%: المبلغ الذي وافق عليه CMI (%amount%) ليس المبلغ المرسل (%sent%). لم يتم قبول الدفع؛ تحقق منه في الواجهة الخلفية لـ CMI.</target>
+      </trans-unit>
+      <trans-unit id="8b30b5646649effe166f8fb0c370ded9">
+        <source>A payment was approved after the customer cancelled the order: the order was reopened. Check the stock of its products.</source>
+        <target>تمت الموافقة على دفع بعد أن ألغى حامل البطاقة الطلب: أُعيد فتح الطلب. تحقق من مخزون منتجاته.</target>
+      </trans-unit>
+      <trans-unit id="3738514ac9cba4a48105a88b429d4544">
+        <source>A value is saved: leave the field empty to keep it.</source>
+        <target>توجد قيمة محفوظة: اترك الحقل فارغًا للاحتفاظ بها.</target>
+      </trans-unit>
+      <trans-unit id="89d01259fb4b245ac65cf2a0b3598039">
+        <source>API credentials (Complete Kit)</source>
+        <target>بيانات الدخول إلى API (العُدّة الكاملة)</target>
+      </trans-unit>
+      <trans-unit id="37e31370e4ab230ff6fba12cc6390aff">
+        <source>API password</source>
+        <target>كلمة مرور API</target>
+      </trans-unit>
+      <trans-unit id="266ba5df48aed68af0cce5f735035291">
+        <source>API username</source>
+        <target>اسم مستخدم API</target>
+      </trans-unit>
+      <trans-unit id="b2f40690858b404ed10e62bdf422c704">
+        <source>Amount</source>
+        <target>المبلغ</target>
+      </trans-unit>
+      <trans-unit id="bf7d4bda8c64c2029eac8c7bd562a920">
+        <source>Another operation is in progress on this payment. Please try again in a moment.</source>
+        <target>توجد عملية أخرى جارية على هذا الدفع. يرجى المحاولة بعد لحظات.</target>
+      </trans-unit>
+      <trans-unit id="272ccb8592bafde0baf1dedce0fd3ac2">
+        <source>Arabic</source>
+        <target>العربية</target>
+      </trans-unit>
+      <trans-unit id="45ddab4914f718601510f75a64c71805">
+        <source>Automatic check: CMI could not be reached (%error%).</source>
+        <target>تحقق تلقائي: تعذر الاتصال بـ CMI (%error%).</target>
+      </trans-unit>
+      <trans-unit id="f1ffae70742e8d593220ca7d789e8138">
+        <source>Automatic check: still no payment on CMI hours after the customer was sent there. The order was cancelled.</source>
+        <target>تحقق تلقائي: لا يوجد أي دفع لدى CMI بعد ساعات من تحويل حامل البطاقة إليه. تم إلغاء الطلب.</target>
+      </trans-unit>
+      <trans-unit id="8062eeaee79dd712f2ccb3d90b7b9516">
+        <source>Automatic checks</source>
+        <target>التحققات التلقائية</target>
+      </trans-unit>
+      <trans-unit id="3174c03c8d78801eb6d3a9be98305508">
+        <source>Automatic redirect</source>
+        <target>التحويل التلقائي</target>
+      </trans-unit>
+      <trans-unit id="4c06d900a59e4b4bcf87120fe2f9bdae">
+        <source>Automatic: capture immediately</source>
+        <target>تلقائي: التحصيل فورًا</target>
+      </trans-unit>
+      <trans-unit id="a44f92c38b20d28f42ad0214db511f21">
+        <source>Automatic: the payment is captured as soon as the customer pays. Manual: the payment is only pre-authorized; you confirm it later to capture the funds (from the order page with the Complete Kit, otherwise in the CMI back office).</source>
+        <target>تلقائي: يتم تحصيل المبلغ بمجرد أن يدفع حامل البطاقة. يدوي: يتم التفويض المسبق للدفع فقط، وتؤكده لاحقًا لتحصيل المبلغ (من صفحة الطلب مع العُدّة الكاملة، وإلا من الواجهة الخلفية لـ CMI).</target>
+      </trans-unit>
+      <trans-unit id="5c6e5e7eead4f336a61c7a850db6d9a5">
+        <source>Awaiting CMI payment</source>
+        <target>في انتظار الدفع عبر CMI</target>
+      </trans-unit>
+      <trans-unit id="ebb8d514f56157d7bd513eefdd9adb63">
+        <source>Awaiting payment</source>
+        <target>في انتظار الدفع</target>
+      </trans-unit>
+      <trans-unit id="5efaedb99e7a4140a23f27d28214c895">
+        <source>CMI</source>
+        <target>CMI</target>
+      </trans-unit>
+      <trans-unit id="743f7d07982a3cc923de9952e8368bf1">
+        <source>CMI API URL</source>
+        <target>عنوان API لـ CMI</target>
+      </trans-unit>
+      <trans-unit id="425553b9e32ac172b75ce859aa1909e7">
+        <source>CMI OrderId</source>
+        <target>OrderId لدى CMI</target>
+      </trans-unit>
+      <trans-unit id="08a12f0eccaa709aacf28f43e7e9d10d">
+        <source>CMI callback</source>
+        <target>إشعار CMI (callback)</target>
+      </trans-unit>
+      <trans-unit id="f079778beb97b1e64ba4690737901999">
+        <source>CMI callback: payment approved and captured (TransId: %transid%).</source>
+        <target>إشعار CMI: تمت الموافقة على الدفع وتحصيله (TransId: %transid%).</target>
+      </trans-unit>
+      <trans-unit id="b96dce1be6eb70c88bbd3da2d32edf43">
+        <source>CMI did not report the payment state, so nothing was sent. Please check the order in the CMI back office.</source>
+        <target>لم يُبلغ CMI عن حالة الدفع، لذلك لم يتم إرسال أي شيء. يرجى التحقق من الطلب في الواجهة الخلفية لـ CMI.</target>
+      </trans-unit>
+      <trans-unit id="48462ec8705bd25940263c51bfa75e78">
+        <source>CMI history</source>
+        <target>سجل CMI</target>
+      </trans-unit>
+      <trans-unit id="012aeac4be5029b998855bd992b1c1e0">
+        <source>CMI is not offered to customers at checkout yet: enter %missing% in &quot;Connection to CMI&quot;, then save.</source>
+        <target>لا يُعرض CMI بعد على الزبناء عند إتمام الطلب: أدخل %missing% في «الاتصال بـ CMI»، ثم احفظ.</target>
+      </trans-unit>
+      <trans-unit id="7170d6cb0d0fb8370bcbc209ede286c0">
+        <source>CMI kit</source>
+        <target>عُدّة CMI</target>
+      </trans-unit>
+      <trans-unit id="89a630c19b5325be1d286bf9f31fb90b">
+        <source>CMI payment</source>
+        <target>الدفع عبر CMI</target>
+      </trans-unit>
+      <trans-unit id="b9cc55c130949a80182271256af4cb14">
+        <source>CMI payment authorized (to confirm)</source>
+        <target>دفع CMI مُفوَّض (في انتظار التأكيد)</target>
+      </trans-unit>
+      <trans-unit id="52a92e1034a500034e381fb54d253f5e">
+        <source>CMI platform</source>
+        <target>منصة CMI</target>
+      </trans-unit>
+      <trans-unit id="4c55bd81f1af7513106fb726bda2c852">
+        <source>CMI refused the refund.</source>
+        <target>رفض CMI الاسترداد.</target>
+      </trans-unit>
+      <trans-unit id="7e34d1974bb975ccf19bdebee848f2e4">
+        <source>CMI refused to confirm the payment.</source>
+        <target>رفض CMI تأكيد الدفع.</target>
+      </trans-unit>
+      <trans-unit id="f696101df85fdf3da26433f9f5b3ddfc">
+        <source>CMI refused to void the payment.</source>
+        <target>رفض CMI إبطال الدفع.</target>
+      </trans-unit>
+      <trans-unit id="7954a4319da8bedc597b28580a4f4494">
+        <source>CMI shows %cmi% %currency% already refunded, but only %recorded% %currency% is recorded here: a refund was probably made in the CMI back office. Click Check CMI to update the order, then refund the remaining balance.</source>
+        <target>يُظهر CMI أن %cmi% %currency% قد استُرد مسبقًا، بينما المسجل هنا %recorded% %currency% فقط: ربما تم استرداد من الواجهة الخلفية لـ CMI. انقر على «التحقق لدى CMI» لتحديث الطلب، ثم استرد الرصيد المتبقي.</target>
+      </trans-unit>
+      <trans-unit id="b4e90b0f0f3b3f601d35254722377de9">
+        <source>CMI shows no active pre-authorization for this order, so it cannot be confirmed or voided.</source>
+        <target>لا يُظهر CMI أي تفويض مسبق نشط لهذا الطلب، لذلك لا يمكن تأكيده أو إبطاله.</target>
+      </trans-unit>
+      <trans-unit id="6c475748ef5d03d5ee8aee607fe35e4f">
+        <source>CMI store</source>
+        <target>متجر CMI</target>
+      </trans-unit>
+      <trans-unit id="5cf084575335df644b2b7b0f328e0a58">
+        <source>CMI&apos;s payment page: %production% (production) or %test% (test). Change it only if CMI gives you another address.</source>
+        <target>صفحة الدفع لـ CMI: %production% (الإنتاج) أو %test% (الاختبار). لا تغيّرها إلا إذا زودك CMI بعنوان آخر.</target>
+      </trans-unit>
+      <trans-unit id="0e0cc6f7e755c110311d9d0a5809d35a">
+        <source>CMI: no card payment recorded for this customer.</source>
+        <target>CMI: لا يوجد أي دفع بالبطاقة مسجل لهذا الزبون.</target>
+      </trans-unit>
+      <trans-unit id="552092f0a9d9248651073333136e7c46">
+        <source>CMI: the card data of this customer could not be deleted.</source>
+        <target>CMI: تعذر حذف بيانات بطاقة هذا الزبون.</target>
+      </trans-unit>
+      <trans-unit id="83365a2fa5a6d8977b7a1f1475848495">
+        <source>Cancelled by the customer</source>
+        <target>ألغاه حامل البطاقة</target>
+      </trans-unit>
+      <trans-unit id="b8786828a1c422c20e2ce788075a732a">
+        <source>Captured</source>
+        <target>تم التحصيل</target>
+      </trans-unit>
+      <trans-unit id="28ca78240fc037a446efb12cd06f8604">
+        <source>Card payments with CMI (Morocco): hosted payment page, and confirm, void, refund and check payments from the order page.</source>
+        <target>الدفع بالبطاقة عبر CMI (المغرب): صفحة دفع مستضافة، مع تأكيد المدفوعات وإبطالها واستردادها والتحقق منها من صفحة الطلب.</target>
+      </trans-unit>
+      <trans-unit id="0296ba18077078c8a583dc7877916b15">
+        <source>Charged by CMI</source>
+        <target>المبلغ المقتطع من طرف CMI</target>
+      </trans-unit>
+      <trans-unit id="0a15cd1ee31773e266fcac8d5950573f">
+        <source>Check CMI</source>
+        <target>التحقق لدى CMI</target>
+      </trans-unit>
+      <trans-unit id="06761ece07dc992bb9a3753a2c6fd4e6">
+        <source>Check CMI: CMI did not report the payment state. Nothing was changed; please check the CMI back office.</source>
+        <target>التحقق لدى CMI: لم يُبلغ CMI عن حالة الدفع. لم يتم تغيير أي شيء؛ يرجى التحقق من الواجهة الخلفية لـ CMI.</target>
+      </trans-unit>
+      <trans-unit id="5ca0114b16071f0414d5bd8d384d60e8">
+        <source>Check CMI: CMI reports a reversal is required (R).</source>
+        <target>التحقق لدى CMI: يشير CMI إلى ضرورة إجراء عكس للعملية (R).</target>
+      </trans-unit>
+      <trans-unit id="89a65e2607415f7719a1cc0c678e5200">
+        <source>Check CMI: a refund of %amount% %currency% made in the CMI back office was recorded.</source>
+        <target>التحقق لدى CMI: تم تسجيل استرداد بقيمة %amount% %currency% أُجري من الواجهة الخلفية لـ CMI.</target>
+      </trans-unit>
+      <trans-unit id="c6d73366b17ab4f558478689769b50cf">
+        <source>Check CMI: no transaction found on CMI for this order (the customer did not pay).</source>
+        <target>التحقق لدى CMI: لم يُعثر على أي معاملة لدى CMI لهذا الطلب (لم يدفع حامل البطاقة).</target>
+      </trans-unit>
+      <trans-unit id="f55f48e2fb05dc5d8a1d07266127cbe8">
+        <source>Check CMI: the payment is %label% on CMI (AuthCode: %authcode%, TransId: %transid%). The order can be shipped.</source>
+        <target>التحقق لدى CMI: الدفع في الحالة %label% لدى CMI (AuthCode: %authcode%، TransId: %transid%). يمكن شحن الطلب.</target>
+      </trans-unit>
+      <trans-unit id="40bab7eec207fd6c41037a4ef5775c1e">
+        <source>Check CMI: the payment is fully refunded on CMI (TransId: %transid%).</source>
+        <target>التحقق لدى CMI: تم استرداد الدفع بالكامل لدى CMI (TransId: %transid%).</target>
+      </trans-unit>
+      <trans-unit id="5ffa113182cff0c78cdbbd3c1e4c9372">
+        <source>Check CMI: the payment is in progress on CMI (NW).</source>
+        <target>التحقق لدى CMI: الدفع قيد المعالجة لدى CMI (NW).</target>
+      </trans-unit>
+      <trans-unit id="bf3acdfaeddf506400e892b004a98270">
+        <source>Check CMI: the payment is partly refunded on CMI (%refunded% of %total% %currency%).</source>
+        <target>التحقق لدى CMI: تم استرداد جزء من الدفع لدى CMI (%refunded% من %total% %currency%).</target>
+      </trans-unit>
+      <trans-unit id="104e01c65412260eed68caba12fcb167">
+        <source>Check CMI: the payment is pre-authorized on CMI (AuthCode: %authcode%, TransId: %transid%). Confirm it to capture the funds; do not ship before.</source>
+        <target>التحقق لدى CMI: الدفع مُفوَّض مسبقًا لدى CMI (AuthCode: %authcode%، TransId: %transid%). أكّده لتحصيل المبلغ؛ لا تشحن قبل ذلك.</target>
+      </trans-unit>
+      <trans-unit id="05f21df4665dc487cba33f16caa2f2aa">
+        <source>Check CMI: the payment is voided on CMI (TransId: %transid%).</source>
+        <target>التحقق لدى CMI: تم إبطال الدفع لدى CMI (TransId: %transid%).</target>
+      </trans-unit>
+      <trans-unit id="8617cd077dad6d98a1cea00181df85db">
+        <source>Check CMI: the payment waits for the bank&apos;s confirmation (PN).</source>
+        <target>التحقق لدى CMI: الدفع في انتظار تأكيد البنك (PN).</target>
+      </trans-unit>
+      <trans-unit id="fbc1ddf22acae85d9e3caf819c82dc27">
+        <source>Check CMI: the payment was declined (ProcReturnCode: %code%, %error%).</source>
+        <target>التحقق لدى CMI: تم رفض الدفع (ProcReturnCode: %code%، %error%).</target>
+      </trans-unit>
+      <trans-unit id="9246ac54c7363836895134fc8f2d702f">
+        <source>Check CMI: unexpected answer from CMI (%answer%).</source>
+        <target>التحقق لدى CMI: جواب غير متوقع من CMI (%answer%).</target>
+      </trans-unit>
+      <trans-unit id="6ff063fbc860a79759a7369ac32cee22">
+        <source>Checkout</source>
+        <target>إتمام الطلب</target>
+      </trans-unit>
+      <trans-unit id="f0a4dcdf3a8bf68964513fc465ed4299">
+        <source>Choose a &quot;paid&quot; order status for captured payments.</source>
+        <target>اختر حالة طلب «مدفوع» للمدفوعات المحصّلة.</target>
+      </trans-unit>
+      <trans-unit id="30cfdc41cec761bced64a167f1ec8f3a">
+        <source>Choose a CMI kit.</source>
+        <target>اختر عُدّة CMI.</target>
+      </trans-unit>
+      <trans-unit id="c27da288cc6f487c1772ae5ded3234be">
+        <source>Choose a confirmation mode.</source>
+        <target>اختر طريقة التأكيد.</target>
+      </trans-unit>
+      <trans-unit id="41e7605badf961b638a98b8cac064ede">
+        <source>Choose the CMI platform: test or production.</source>
+        <target>اختر منصة CMI: الاختبار أو الإنتاج.</target>
+      </trans-unit>
+      <trans-unit id="d29031e1058b7abde9119c7555931c16">
+        <source>Choose the payment page language.</source>
+        <target>اختر لغة صفحة الدفع.</target>
+      </trans-unit>
+      <trans-unit id="76525f0f34b48475e5ca33f71d296f3b">
+        <source>Client ID</source>
+        <target>معرّف التاجر (Client ID)</target>
+      </trans-unit>
+      <trans-unit id="991ce837b4b94d44e9ae6efce975a603">
+        <source>Color of the status in the orders list.</source>
+        <target>لون الحالة في قائمة الطلبات.</target>
+      </trans-unit>
+      <trans-unit id="5a7194c5eb51430dd1b670b5e8928c52">
+        <source>Complete Kit (with API: confirm, void, refund, check)</source>
+        <target>العُدّة الكاملة (مع API: التأكيد، الإبطال، الاسترداد، التحقق)</target>
+      </trans-unit>
+      <trans-unit id="70d9be9b139893aa6c69b5e77e614311">
+        <source>Confirm</source>
+        <target>تأكيد</target>
+      </trans-unit>
+      <trans-unit id="f3fa81042beb8668a68f76098c5b6adf">
+        <source>Confirm this payment and capture %amount% %currency%?</source>
+        <target>تأكيد هذا الدفع وتحصيل %amount% %currency%؟</target>
+      </trans-unit>
+      <trans-unit id="4577e9404d3ba26ea59dff2b614e5d0b">
+        <source>Connection to CMI</source>
+        <target>الاتصال بـ CMI</target>
+      </trans-unit>
+      <trans-unit id="a25b0064ce1dc4568e2c1e20e83b31fa">
+        <source>Could not check the payment with CMI: %error%</source>
+        <target>تعذر التحقق من الدفع لدى CMI: %error%</target>
+      </trans-unit>
+      <trans-unit id="3584ea791b95038f707e8fe04a4f8c23">
+        <source>Could not verify the payment with CMI, so nothing was sent: %error%</source>
+        <target>تعذر التحقق من الدفع لدى CMI، لذلك لم يتم إرسال أي شيء: %error%</target>
+      </trans-unit>
+      <trans-unit id="851debc970e29cf257c358f23f108ec9">
+        <source>Custom status color</source>
+        <target>لون الحالة المخصصة</target>
+      </trans-unit>
+      <trans-unit id="6e86c61ec3d26a26adf422a854f06483">
+        <source>Custom status name</source>
+        <target>اسم الحالة المخصصة</target>
+      </trans-unit>
+      <trans-unit id="36b11bf123845744d382acac24bc7fdb">
+        <source>Custom: %name%</source>
+        <target>مخصصة: %name%</target>
+      </trans-unit>
+      <trans-unit id="5bfed9723c4fafb884d7115bc4c88a8c">
+        <source>Custom: create my own status...</source>
+        <target>مخصصة: إنشاء حالتي الخاصة...</target>
+      </trans-unit>
+      <trans-unit id="aeb34e8bf442f920b2bd64ba3ba204f3">
+        <source>Customer&apos;s language</source>
+        <target>لغة الزبون</target>
+      </trans-unit>
+      <trans-unit id="64b1f1aa7882ac9ece2d558503e81388">
+        <source>Delete all CMI data on uninstall</source>
+        <target>حذف جميع بيانات CMI عند إلغاء التثبيت</target>
+      </trans-unit>
+      <trans-unit id="78463a384a5aa4fad5fa73e2f506ecfc">
+        <source>English</source>
+        <target>الإنجليزية</target>
+      </trans-unit>
+      <trans-unit id="cf5c3884b77e84b4565e1bb0b430b74f">
+        <source>Enter a valid refund amount.</source>
+        <target>أدخل مبلغ استرداد صالحًا.</target>
+      </trans-unit>
+      <trans-unit id="37c4d6bc9373eabfed5cc0ad89b28233">
+        <source>Enter an amount between 0.01 and %max%.</source>
+        <target>أدخل مبلغًا بين 0.01 و%max%.</target>
+      </trans-unit>
+      <trans-unit id="439927530959b8a275b62089e918dbee">
+        <source>Enter the Client ID of your CMI store (MAD).</source>
+        <target>أدخل معرّف التاجر (Client ID) لمتجرك لدى CMI (بالدرهم).</target>
+      </trans-unit>
+      <trans-unit id="9e49ff04e5209c2229047359f6dbc075">
+        <source>Enter the name of your custom order status (64 characters at most, without &lt; &gt; = { }).</source>
+        <target>أدخل اسم حالة الطلب المخصصة (64 حرفًا كحد أقصى، بدون &lt; &gt; = { }).</target>
+      </trans-unit>
+      <trans-unit id="9d09397f7e756e85873074063c710bfc">
+        <source>Enter the store key (hash key) set in your CMI merchant center.</source>
+        <target>أدخل مفتاح المتجر (hash key) المحدد في فضاء التاجر لدى CMI.</target>
+      </trans-unit>
+      <trans-unit id="d7c8c85bf79bbe1b7188497c32c3b0ca">
+        <source>Failed</source>
+        <target>فشل</target>
+      </trans-unit>
+      <trans-unit id="fc1af95be8d11bc74875e635dbd61e02">
+        <source>For a partial refund, open the order.</source>
+        <target>للاسترداد الجزئي، افتح الطلب.</target>
+      </trans-unit>
+      <trans-unit id="ad225f707802ba118c22987186dd38e8">
+        <source>French</source>
+        <target>الفرنسية</target>
+      </trans-unit>
+      <trans-unit id="641f4789606bbc72427bcea697ea6005">
+        <source>Full: %amount% %currency%</source>
+        <target>كامل: %amount% %currency%</target>
+      </trans-unit>
+      <trans-unit id="53e709001d05d53e8cad58a755b5d0ef">
+        <source>HTTPS is not enabled on this shop. CMI requires https:// addresses for the payment return and callback.</source>
+        <target>بروتوكول HTTPS غير مفعّل في هذا المتجر. يتطلب CMI عناوين https:// للعودة من الدفع وللإشعار.</target>
+      </trans-unit>
+      <trans-unit id="4e7f26d58027e5f9611cc5fe9d901e06">
+        <source>Invalid refund amount.</source>
+        <target>مبلغ الاسترداد غير صالح.</target>
+      </trans-unit>
+      <trans-unit id="eaf82be1f0d7c67e9abbd21446815262">
+        <source>Last CMI transaction</source>
+        <target>آخر معاملة لدى CMI</target>
+      </trans-unit>
+      <trans-unit id="7dd48f1534714c8c193671d6f84f3b85">
+        <source>Manual: pre-authorize, confirm later</source>
+        <target>يدوي: تفويض مسبق، ثم التأكيد لاحقًا</target>
+      </trans-unit>
+      <trans-unit id="9286aabea9b049328f7bb45790c836d4">
+        <source>Merchant Client ID provided by CMI, for example 600XXXXXX. Payments are made in MAD; orders in other currencies are converted to MAD with the exchange rates of International &gt; Localization &gt; Currencies.</source>
+        <target>معرّف التاجر الذي يزودك به CMI، مثال: 600XXXXXX. تتم المدفوعات بالدرهم؛ وتُحوَّل الطلبات بعملات أخرى إلى الدرهم بأسعار الصرف المحددة في دولي &gt; التوطين &gt; العملات.</target>
+      </trans-unit>
+      <trans-unit id="0f76c1784216426830db2e7a6a2b8fa2">
+        <source>Name of the payment method at checkout. Leave empty for &quot;Pay securely by bank card with CMI&quot;.</source>
+        <target>اسم وسيلة الدفع عند إتمام الطلب. اتركه فارغًا لعرض «ادفع بأمان بالبطاقة البنكية عبر CMI».</target>
+      </trans-unit>
+      <trans-unit id="68fc88a71c1bfaf5688b940ab4f2ec18">
+        <source>Name of your status, for example &quot;Paid by card (CMI)&quot;. It counts as paid, gives an invoice and sends the &quot;payment accepted&quot; e-mail. You can rename it here later.</source>
+        <target>اسم حالتك، مثال: «مدفوع بالبطاقة (CMI)». تُعتبر مدفوعة، وتُنشئ فاتورة وترسل رسالة «تم قبول الدفع». يمكنك إعادة تسميتها هنا لاحقًا.</target>
+      </trans-unit>
+      <trans-unit id="c4425ac1a5b6be2da0793281d3f8f74c">
+        <source>Next automatic check</source>
+        <target>التحقق التلقائي التالي</target>
+      </trans-unit>
+      <trans-unit id="bafd7322c6e97d25b6299b5d6fe8920b">
+        <source>No</source>
+        <target>لا</target>
+      </trans-unit>
+      <trans-unit id="0e6d3c115e03609702e9ffb2b108f191">
+        <source>No (recommended): uninstalling keeps the CMI payment history of your orders and the module&apos;s order statuses, so they are found again if you reinstall the module. Yes: uninstalling also deletes the payment history, the order statuses and every CMI setting. This cannot be undone.</source>
+        <target>لا (موصى به): يحتفظ إلغاء التثبيت بسجل مدفوعات CMI لطلباتك وبحالات الطلب الخاصة بالوحدة، فتجدها مجددًا إذا أعدت تثبيت الوحدة. نعم: يحذف إلغاء التثبيت أيضًا سجل المدفوعات وحالات الطلب وجميع إعدادات CMI. لا يمكن التراجع عن ذلك.</target>
+      </trans-unit>
+      <trans-unit id="b72805cec76c92a801440d80e59db3d3">
+        <source>No transaction found on CMI: the customer did not pay.</source>
+        <target>لم يُعثر على أي معاملة لدى CMI: لم يدفع حامل البطاقة.</target>
+      </trans-unit>
+      <trans-unit id="4c440acf60f21e0d574fc68b7881a026">
+        <source>Not recorded (order paid in another currency with version 1.x)</source>
+        <target>غير مسجل (طلب مدفوع بعملة أخرى مع الإصدار 1.x)</target>
+      </trans-unit>
+      <trans-unit id="acddf41b982c589699b1687530bb87cf">
+        <source>Only a confirmed CMI payment can be refunded. A pre-authorization must be voided.</source>
+        <target>لا يمكن استرداد إلا دفع CMI مؤكد. يجب إبطال التفويض المسبق.</target>
+      </trans-unit>
+      <trans-unit id="fb58398bf1b25966a9bd0e52dc013170">
+        <source>Only a pre-authorized CMI payment can be confirmed.</source>
+        <target>لا يمكن تأكيد إلا دفع CMI مُفوَّض مسبقًا.</target>
+      </trans-unit>
+      <trans-unit id="81d319464de9fd848f70aed00732a029">
+        <source>Only a pre-authorized CMI payment can be voided. A confirmed payment must be refunded.</source>
+        <target>لا يمكن إبطال إلا دفع CMI مُفوَّض مسبقًا. يجب استرداد الدفع المؤكد.</target>
+      </trans-unit>
+      <trans-unit id="280b217c2daf115b24d825b6040c9269">
+        <source>Optional text shown below the title when the customer chooses CMI.</source>
+        <target>نص اختياري يظهر تحت العنوان عندما يختار الزبون CMI.</target>
+      </trans-unit>
+      <trans-unit id="1bb13a107d5d9246f738f26a23e20f96">
+        <source>Order ID prefix</source>
+        <target>بادئة معرّف الطلب</target>
+      </trans-unit>
+      <trans-unit id="29d076a4319c4ed2bcf4446a48198b9b">
+        <source>Order status after capture</source>
+        <target>حالة الطلب بعد التحصيل</target>
+      </trans-unit>
+      <trans-unit id="c86a4229fbba8869edc1120dcf053e79">
+        <source>Order: %amount% %currency%, 1 %currency% = %rate% %charged_currency%</source>
+        <target>الطلب: %amount% %currency%، 1 %currency% = %rate% %charged_currency%</target>
+      </trans-unit>
+      <trans-unit id="53a6d80fe16386b31d25aab9e8f48b15">
+        <source>OrderId %oid% was not found in the CMI back office. Nothing was sent to CMI.</source>
+        <target>لم يُعثر على OrderId %oid% في الواجهة الخلفية لـ CMI. لم يتم إرسال أي شيء إلى CMI.</target>
+      </trans-unit>
+      <trans-unit id="8ece243cb92d479ead909ae624f21630">
+        <source>Orders appear in the CMI back office as this prefix followed by the order reference, for example %example%. It keeps this shop&apos;s orders apart from any other website using the same CMI account; give each website a different prefix. Letters, digits, - and _ only. Orders already sent keep their ID.</source>
+        <target>تظهر الطلبات في الواجهة الخلفية لـ CMI بهذه البادئة متبوعة بمرجع الطلب، مثال: %example%. تفصل طلبات هذا المتجر عن أي موقع آخر يستخدم حساب CMI نفسه؛ امنح كل موقع بادئة مختلفة. حروف وأرقام و- و_ فقط. تحتفظ الطلبات المرسلة سابقًا بمعرّفها.</target>
+      </trans-unit>
+      <trans-unit id="44ffd38a6dea695cbe2b34efdcc6cf27">
+        <source>Partial</source>
+        <target>جزئي</target>
+      </trans-unit>
+      <trans-unit id="56eb980ab12503c9454a6380be53e34a">
+        <source>Payment captured through the CMI API (automatic confirmation, TransId: %transid%).</source>
+        <target>تم تحصيل الدفع عبر API لـ CMI (تأكيد تلقائي، TransId: %transid%).</target>
+      </trans-unit>
+      <trans-unit id="bf5914f1d90be1298863aa286b6bab1b">
+        <source>Payment confirmation</source>
+        <target>تأكيد الدفع</target>
+      </trans-unit>
+      <trans-unit id="961b9a68822e8a47a046b0ef80bb8196">
+        <source>Payment description</source>
+        <target>وصف الدفع</target>
+      </trans-unit>
+      <trans-unit id="9deb4807a73db0f73c602248395ebca3">
+        <source>Payment page URL</source>
+        <target>عنوان صفحة الدفع</target>
+      </trans-unit>
+      <trans-unit id="b06a811ad93e946df2e97045fae16ffa">
+        <source>Payment page language</source>
+        <target>لغة صفحة الدفع</target>
+      </trans-unit>
+      <trans-unit id="36894941ed1e282d8c001a58c83e11cc">
+        <source>Payment setup</source>
+        <target>إعداد الدفع</target>
+      </trans-unit>
+      <trans-unit id="9bef61e8236e3ff822fa415c6299a9ff">
+        <source>Payment title</source>
+        <target>عنوان الدفع</target>
+      </trans-unit>
+      <trans-unit id="ac053e8f1e48e9c38b18da4ed753e070">
+        <source>Pre-authorization confirmed and captured on CMI (TransId: %transid%).</source>
+        <target>تم تأكيد التفويض المسبق وتحصيله لدى CMI (TransId: %transid%).</target>
+      </trans-unit>
+      <trans-unit id="c203b189f40b8e4ad8e843cc39a38f1f">
+        <source>Pre-authorization voided on CMI (TransId: %transid%).</source>
+        <target>تم إبطال التفويض المسبق لدى CMI (TransId: %transid%).</target>
+      </trans-unit>
+      <trans-unit id="41adbef7bacb8fab4f1fa76dd332d3a6">
+        <source>Pre-authorized, to confirm</source>
+        <target>مُفوَّض مسبقًا، في انتظار التأكيد</target>
+      </trans-unit>
+      <trans-unit id="86a8dc418b69aef4d94573bc675d7f85">
+        <source>Production (real payments)</source>
+        <target>الإنتاج (مدفوعات حقيقية)</target>
+      </trans-unit>
+      <trans-unit id="11fdb2af01fb96cdd7e5b9ad2ac6c40e">
+        <source>Read the payment&apos;s state at CMI and update the order</source>
+        <target>قراءة حالة الدفع لدى CMI وتحديث الطلب</target>
+      </trans-unit>
+      <trans-unit id="170556ec5afd4fec2fb4116ddc669ffb">
+        <source>Reason (optional)</source>
+        <target>السبب (اختياري)</target>
+      </trans-unit>
+      <trans-unit id="414821f7d0917bfdd1222cc03cb32a27">
+        <source>Reason: %reason%</source>
+        <target>السبب: %reason%</target>
+      </trans-unit>
+      <trans-unit id="76f0ed934de85cc7131910b32ede7714">
+        <source>Refund</source>
+        <target>استرداد</target>
+      </trans-unit>
+      <trans-unit id="aed966b3553862db8976cbc8bb37570d">
+        <source>Refund %amount% %currency% to the customer&apos;s card?</source>
+        <target>استرداد %amount% %currency% إلى بطاقة حامل البطاقة؟</target>
+      </trans-unit>
+      <trans-unit id="d303adb02e3c1cb4d6eb42cd99fe5bde">
+        <source>Refund of %amount% %currency%%order_amount% made on CMI (TransId: %transid%). Refunded in total: %refunded% of %total% %currency%.%reason%</source>
+        <target>تم استرداد %amount% %currency%%order_amount% لدى CMI (TransId: %transid%). إجمالي المسترد: %refunded% من %total% %currency%.%reason%</target>
+      </trans-unit>
+      <trans-unit id="1b924a29b15159a2b7bc84f0e122fa28">
+        <source>Refund via CMI</source>
+        <target>الاسترداد عبر CMI</target>
+      </trans-unit>
+      <trans-unit id="cc61945cbbf46721a053467c395c666f">
+        <source>Refunded</source>
+        <target>مسترد</target>
+      </trans-unit>
+      <trans-unit id="a8f144bb6aaa3daabf2b244ab9296836">
+        <source>Refunded on CMI</source>
+        <target>المسترد لدى CMI</target>
+      </trans-unit>
+      <trans-unit id="c9cc8cce247e49bae79f15173ce97354">
+        <source>Save</source>
+        <target>حفظ</target>
+      </trans-unit>
+      <trans-unit id="c141d57956ccb3a03cae8ab16e5f99e0">
+        <source>Secret key set in your CMI merchant center. It must not contain the word &quot;SKS&quot;.</source>
+        <target>المفتاح السري المحدد في فضاء التاجر لدى CMI. يجب ألا يحتوي على الكلمة «SKS».</target>
+      </trans-unit>
+      <trans-unit id="296cf745bf3fea7e1fde76f05c56f9cc">
+        <source>Send customers back to the shop as soon as the payment is finished. When off, they stay on CMI&apos;s result page and come back themselves.</source>
+        <target>إعادة الزبناء إلى المتجر بمجرد انتهاء الدفع. عند التعطيل، يبقون في صفحة نتيجة CMI ويعودون بأنفسهم.</target>
+      </trans-unit>
+      <trans-unit id="9a7e58ee13cb727cb7c4acc68f4cafe5">
+        <source>Settings saved.</source>
+        <target>تم حفظ الإعدادات.</target>
+      </trans-unit>
+      <trans-unit id="abb49bf7bc62f94e758ad971c18b09f4">
+        <source>Show or hide</source>
+        <target>إظهار أو إخفاء</target>
+      </trans-unit>
+      <trans-unit id="0548d89a0e5c72c4aa60248619dc21b7">
+        <source>Standard Kit (payment page only)</source>
+        <target>العُدّة القياسية (صفحة الدفع فقط)</target>
+      </trans-unit>
+      <trans-unit id="fe9289dc0954b61239e62f31f8726230">
+        <source>Standard Kit: confirm, void and refund this payment in the CMI back office. With the Complete Kit (API credentials in the module settings) you can do it here.</source>
+        <target>العُدّة القياسية: أكّد هذا الدفع أو أبطله أو استرده من الواجهة الخلفية لـ CMI. مع العُدّة الكاملة (بيانات الدخول إلى API في إعدادات الوحدة) يمكنك القيام بذلك هنا.</target>
+      </trans-unit>
+      <trans-unit id="7a7acb196f93be85e7f2ba1827bc704d">
+        <source>Standard Kit: customers pay on CMI&apos;s page; you manage payments in the CMI back office. Complete Kit: you can also confirm, void, refund and check payments from the order page, and orders left awaiting payment are checked automatically. It needs the API credentials provided by CMI.</source>
+        <target>العُدّة القياسية: يدفع الزبناء في صفحة CMI، وتدير المدفوعات من الواجهة الخلفية لـ CMI. العُدّة الكاملة: يمكنك أيضًا تأكيد المدفوعات وإبطالها واستردادها والتحقق منها من صفحة الطلب، ويتم التحقق تلقائيًا من الطلبات العالقة في انتظار الدفع. تتطلب بيانات الدخول إلى API التي يزودك بها CMI.</target>
+      </trans-unit>
+      <trans-unit id="b916c1eac19527dfc38b7ee999156bb6">
+        <source>Status given to an order once its payment is captured. Choose &quot;Custom&quot; to create your own status.</source>
+        <target>الحالة الممنوحة للطلب بعد تحصيل الدفع. اختر «مخصصة» لإنشاء حالتك الخاصة.</target>
+      </trans-unit>
+      <trans-unit id="c5994c5be851495b5fae6e9bde5b38d8">
+        <source>Store key (hash key)</source>
+        <target>مفتاح المتجر (hash key)</target>
+      </trans-unit>
+      <trans-unit id="c4223d367038913b7d2fe78e8aae8898">
+        <source>Test (no real payment)</source>
+        <target>الاختبار (بدون دفع حقيقي)</target>
+      </trans-unit>
+      <trans-unit id="4245499695408b974322be6f01b0d17a">
+        <source>Test mode</source>
+        <target>وضع الاختبار</target>
+      </trans-unit>
+      <trans-unit id="77c817bafac39332dc795eaa685eb8dc">
+        <source>Test mode: payments go to CMI&apos;s test platform and no card is charged. Choose &quot;Production&quot; in &quot;Connection to CMI&quot; before taking real orders.</source>
+        <target>وضع الاختبار: تُرسل المدفوعات إلى منصة الاختبار لـ CMI ولا يتم اقتطاع أي مبلغ من أي بطاقة. اختر «الإنتاج» في «الاتصال بـ CMI» قبل استقبال طلبات حقيقية.</target>
+      </trans-unit>
+      <trans-unit id="10b4ad5e704b56888a2a4da50d8cf5f1">
+        <source>Test: payments go to CMI&apos;s test platform, with the test credentials and test cards CMI gave you; no card is charged. Production: real payments. Choosing a platform fills in its addresses below.</source>
+        <target>الاختبار: تُرسل المدفوعات إلى منصة الاختبار لـ CMI، باستخدام بيانات الدخول وبطاقات الاختبار التي زودك بها CMI؛ لا يتم اقتطاع أي مبلغ. الإنتاج: مدفوعات حقيقية. اختيار منصة يملأ عناوينها أدناه.</target>
+      </trans-unit>
+      <trans-unit id="800668974a8505646d7b772394afed13">
+        <source>The CMI API URL is not the payment page URL: it usually ends with /fim/api.</source>
+        <target>عنوان API لـ CMI ليس عنوان صفحة الدفع: ينتهي عادةً بـ /fim/api.</target>
+      </trans-unit>
+      <trans-unit id="bb3739fcf5a4934f41a1dadae184bd73">
+        <source>The CMI API could not be reached, nothing was changed: %error%</source>
+        <target>تعذر الوصول إلى API لـ CMI، لم يتم تغيير أي شيء: %error%</target>
+      </trans-unit>
+      <trans-unit id="e0975d80c304a94266dfce814641cfde">
+        <source>The CMI API is not configured (Complete Kit with API URL, username and password).</source>
+        <target>API لـ CMI غير مُعدّ (العُدّة الكاملة مع عنوان API واسم المستخدم وكلمة المرور).</target>
+      </trans-unit>
+      <trans-unit id="d88ea37f2835c921ff11bd5eef11624a">
+        <source>The CMI transaction of OrderId %oid% cannot be matched to this order (no payment confirmation or amount was recorded). Nothing was sent to CMI; please manage it from the CMI back office.</source>
+        <target>لا يمكن ربط معاملة CMI ذات OrderId %oid% بهذا الطلب (لم يُسجَّل أي تأكيد دفع أو مبلغ). لم يتم إرسال أي شيء إلى CMI؛ يرجى إدارتها من الواجهة الخلفية لـ CMI.</target>
+      </trans-unit>
+      <trans-unit id="54d9a07e4e519e013d4deae0d988cd46">
+        <source>The Complete Kit is selected but the API credentials are missing: the module works like the Standard Kit until they are entered.</source>
+        <target>تم اختيار العُدّة الكاملة لكن بيانات الدخول إلى API ناقصة: تعمل الوحدة كالعُدّة القياسية إلى أن يتم إدخالها.</target>
+      </trans-unit>
+      <trans-unit id="ce5fe4dfe58487ec8ca90f4e7d3806c4">
+        <source>The Complete Kit needs the API credentials provided by CMI: API URL (https://), username and password.</source>
+        <target>تتطلب العُدّة الكاملة بيانات الدخول إلى API التي يزودك بها CMI: عنوان API (https://) واسم المستخدم وكلمة المرور.</target>
+      </trans-unit>
+      <trans-unit id="3604281cfc38a5c34e94a2d8834adfbd">
+        <source>The Moroccan dirham (MAD) is not installed in Localization &gt; Currencies: orders in other currencies cannot be converted, so CMI is not offered for them.</source>
+        <target>الدرهم المغربي (MAD) غير مثبت في التوطين &gt; العملات: لا يمكن تحويل الطلبات بعملات أخرى، لذلك لا يُعرض CMI لها.</target>
+      </trans-unit>
+      <trans-unit id="d8885d44c901aa3987858af88e9ecfc1">
+        <source>The PHP cURL extension is required.</source>
+        <target>امتداد PHP cURL مطلوب.</target>
+      </trans-unit>
+      <trans-unit id="8a992b6b38dacebdd0841d91227cd6d2">
+        <source>The amount charged by CMI was not recorded for this older order, so the refund cannot be calculated. Please refund it from the CMI back office.</source>
+        <target>لم يُسجَّل المبلغ المقتطع من طرف CMI لهذا الطلب القديم، لذلك لا يمكن حساب الاسترداد. يرجى استرداده من الواجهة الخلفية لـ CMI.</target>
+      </trans-unit>
+      <trans-unit id="2c40a81d82af98e467c7134b63424b79">
+        <source>The amount charged by CMI was not recorded for this older order: refund it from the CMI back office.</source>
+        <target>لم يُسجَّل المبلغ المقتطع من طرف CMI لهذا الطلب القديم: استرده من الواجهة الخلفية لـ CMI.</target>
+      </trans-unit>
+      <trans-unit id="8522e724876950ae44d69d0c26d3a0d5">
+        <source>The color of the custom order status must be like #32CD32.</source>
+        <target>يجب أن يكون لون حالة الطلب المخصصة على شكل #32CD32.</target>
+      </trans-unit>
+      <trans-unit id="037973a6b3f5a731103d6fb073547afe">
+        <source>The custom order status could not be saved.</source>
+        <target>تعذر حفظ حالة الطلب المخصصة.</target>
+      </trans-unit>
+      <trans-unit id="3d57f68f7dec0de34778513bbb531c72">
+        <source>The customer cancelled the payment on CMI&apos;s payment page: the order was cancelled.</source>
+        <target>ألغى حامل البطاقة الدفع في صفحة الدفع لـ CMI: تم إلغاء الطلب.</target>
+      </trans-unit>
+      <trans-unit id="7a761b5442787ef293e5c42ca6b5fedf">
+        <source>The customer clicked Cancel on CMI&apos;s payment page, but the order has a payment on CMI or its status could not be checked (%status%). The order was not cancelled; if the customer wants to cancel, void or refund the payment.</source>
+        <target>نقر حامل البطاقة على «إلغاء» في صفحة الدفع لـ CMI، لكن للطلب دفعًا لدى CMI أو تعذر التحقق من حالته (%status%). لم يُلغَ الطلب؛ إذا أراد حامل البطاقة الإلغاء، فأبطل الدفع أو استرده.</target>
+      </trans-unit>
+      <trans-unit id="6cd83f54d9ed8be9d070b749e74436d0">
+        <source>The customer tried to pay again.</source>
+        <target>حاول حامل البطاقة الدفع مرة أخرى.</target>
+      </trans-unit>
+      <trans-unit id="5b3f9b9b5b42f44a51054124f416adda">
+        <source>The order was updated to match CMI.</source>
+        <target>تم تحديث الطلب ليطابق CMI.</target>
+      </trans-unit>
+      <trans-unit id="25d2a6e9c9c8ab2651a9eeaad2499e6f">
+        <source>The payment page URL is the one of CMI&apos;s %url_platform% platform, but the %platform% platform is selected: check &quot;Connection to CMI&quot;.</source>
+        <target>عنوان صفحة الدفع هو عنوان منصة %url_platform% لـ CMI، لكن منصة %platform% هي المختارة: تحقق من «الاتصال بـ CMI».</target>
+      </trans-unit>
+      <trans-unit id="4a1a0d05a4d7932bf7083c29a44fffe8">
+        <source>The payment page URL must be a valid https:// address, for example https://payment.cmi.co.ma/fim/est3Dgate.</source>
+        <target>يجب أن يكون عنوان صفحة الدفع عنوان https:// صالحًا، مثال: https://payment.cmi.co.ma/fim/est3Dgate.</target>
+      </trans-unit>
+      <trans-unit id="4c393c0b2d49a71a34cb2335ec50e850">
+        <source>The refund (%amount% %currency%) is more than the remaining balance (%remaining% %currency%).</source>
+        <target>الاسترداد (%amount% %currency%) أكبر من الرصيد المتبقي (%remaining% %currency%).</target>
+      </trans-unit>
+      <trans-unit id="dd6b7d188df29aaa434ea49bd4b7ac49">
+        <source>The refund is sent to CMI in the currency it charged. No credit slip is created in PrestaShop; create one if you need it for your accounting (without refunding again).</source>
+        <target>يُرسل الاسترداد إلى CMI بالعملة التي اقتطع بها. لا يتم إنشاء إشعار دائن في PrestaShop؛ أنشئه إذا احتجت إليه في محاسبتك (دون استرداد مرة أخرى).</target>
+      </trans-unit>
+      <trans-unit id="0a74190974500f3351d25867704fde47">
+        <source>The store key must not contain the word &quot;SKS&quot;. Ask CMI for a new key.</source>
+        <target>يجب ألا يحتوي مفتاح المتجر على الكلمة «SKS». اطلب مفتاحًا جديدًا من CMI.</target>
+      </trans-unit>
+      <trans-unit id="35bcc96f37d5d6d5f02bb43ec92e8ecf">
+        <source>This payment is already cancelled.</source>
+        <target>هذا الدفع ملغى مسبقًا.</target>
+      </trans-unit>
+      <trans-unit id="958dedb345c1180fa3a2a138192fc976">
+        <source>This payment is already captured on CMI. Refund it instead.</source>
+        <target>تم تحصيل هذا الدفع مسبقًا لدى CMI. استرده بدلًا من ذلك.</target>
+      </trans-unit>
+      <trans-unit id="504767161745055b3c3bce2678c95054">
+        <source>This payment is already confirmed.</source>
+        <target>هذا الدفع مؤكد مسبقًا.</target>
+      </trans-unit>
+      <trans-unit id="df7be6861ca6b80a179b72c459176f15">
+        <source>This payment is already voided on CMI.</source>
+        <target>تم إبطال هذا الدفع مسبقًا لدى CMI.</target>
+      </trans-unit>
+      <trans-unit id="b4443c60e9ca1e9d4c5cef6292450328">
+        <source>This payment is not captured on CMI, so it cannot be refunded. Void the pre-authorization instead.</source>
+        <target>لم يتم تحصيل هذا الدفع لدى CMI، لذلك لا يمكن استرداده. أبطل التفويض المسبق بدلًا من ذلك.</target>
+      </trans-unit>
+      <trans-unit id="e7857b03bac7dfe9c6bb1170001a6ff0">
+        <source>This pre-authorization is %days% days old. Banks may refuse to capture it, and the customer may not expect the charge any more: we advise you to inform the customer first. Confirm anyway?</source>
+        <target>مضى على هذا التفويض المسبق %days% يومًا. قد ترفض البنوك تحصيله، وقد لا يتوقع حامل البطاقة الاقتطاع بعد الآن: ننصحك بإبلاغه أولًا. هل تريد التأكيد رغم ذلك؟</target>
+      </trans-unit>
+      <trans-unit id="9bd578ff77c8799fe85422c3781923c4">
+        <source>Uninstall the CMI module? Your CMI settings will be deleted. Orders and their CMI payment history are kept, unless &quot;Delete all CMI data on uninstall&quot; is on.</source>
+        <target>إلغاء تثبيت وحدة CMI؟ سيتم حذف إعدادات CMI. يتم الاحتفاظ بالطلبات وسجل مدفوعاتها لدى CMI، إلا إذا كان خيار «حذف جميع بيانات CMI عند إلغاء التثبيت» مفعّلًا.</target>
+      </trans-unit>
+      <trans-unit id="70ad97a53467ded435281bc04e1ebb50">
+        <source>Unknown (click Check CMI)</source>
+        <target>غير معروف (انقر على «التحقق لدى CMI»)</target>
+      </trans-unit>
+      <trans-unit id="81ceb48a978444906d80119200aa358d">
+        <source>Void</source>
+        <target>إبطال</target>
+      </trans-unit>
+      <trans-unit id="9c8746ae94796d1d87dc2a8fe0603db9">
+        <source>Void this pre-authorization? The customer will not be charged and the order will be cancelled.</source>
+        <target>إبطال هذا التفويض المسبق؟ لن يتم اقتطاع أي مبلغ من حامل البطاقة وسيُلغى الطلب.</target>
+      </trans-unit>
+      <trans-unit id="fbd8a56b7556bf3a2fd8c1905a5c0f9c">
+        <source>Voided</source>
+        <target>مُبطَل</target>
+      </trans-unit>
+      <trans-unit id="b24880a0c7fe1d56bb06cad20dfc3c6b">
+        <source>With the Complete Kit, orders left awaiting payment are checked with CMI about 15 minutes, 1 h 15 and 7 h 15 after the customer was sent to CMI. Ask your host to call this address every 5 minutes (cron job), or use the &quot;Cron tasks manager&quot; module:</source>
+        <target>مع العُدّة الكاملة، يتم التحقق لدى CMI من الطلبات العالقة في انتظار الدفع بعد حوالي 15 دقيقة وساعة و15 دقيقة و7 ساعات و15 دقيقة من تحويل حامل البطاقة إلى CMI. اطلب من مزود الاستضافة استدعاء هذا العنوان كل 5 دقائق (مهمة cron)، أو استخدم وحدة «Cron tasks manager»:</target>
+      </trans-unit>
+      <trans-unit id="cbdec809e056e3c53642fe043f4ffdac">
+        <source>XML API address provided by CMI, for example https://payment.cmi.co.ma/fim/api. It is not the payment page URL.</source>
+        <target>عنوان XML API الذي يزودك به CMI، مثال: https://payment.cmi.co.ma/fim/api. ليس عنوان صفحة الدفع.</target>
+      </trans-unit>
+      <trans-unit id="93cba07454f06a4a960172bbd6e2a435">
+        <source>Yes</source>
+        <target>نعم</target>
+      </trans-unit>
+      <trans-unit id="4d7f56a5c0667e38bbf2f93924d29206">
+        <source>You cannot manage the orders of this shop.</source>
+        <target>لا يمكنك إدارة طلبات هذا المتجر.</target>
+      </trans-unit>
+      <trans-unit id="12bc90726bb1f49ce3ffe214f4fb1946">
+        <source>a failure</source>
+        <target>فشلًا</target>
+      </trans-unit>
+      <trans-unit id="c52d679adf2a38f30a2ab45327be9fd1">
+        <source>an approval</source>
+        <target>موافقة</target>
+      </trans-unit>
+      <trans-unit id="05fe43677f27e791952bb546ca453b93">
+        <source>authorization %code%</source>
+        <target>التفويض %code%</target>
+      </trans-unit>
+      <trans-unit id="2f77656f4c6180990cee5ce65bdefe74">
+        <source>captured</source>
+        <target>محصَّل</target>
+      </trans-unit>
+      <trans-unit id="59e6b9e272eca41f44360ca9b264e57e">
+        <source>declined</source>
+        <target>مرفوض</target>
+      </trans-unit>
+      <trans-unit id="274b68192b056e268f128ff63bfcd4a4">
+        <source>n/a</source>
+        <target>غير متوفر</target>
+      </trans-unit>
+      <trans-unit id="1368ff471addcee1b3ce850e9fcdc7c0">
+        <source>offshore</source>
+        <target>offshore</target>
+      </trans-unit>
+      <trans-unit id="0afc802dfeb4a7906d68d1188a583613">
+        <source>paid with version 1.x</source>
+        <target>مدفوع بالإصدار 1.x</target>
+      </trans-unit>
+      <trans-unit id="fd89784e59c72499525556f80289b2c7">
+        <source>production</source>
+        <target>الإنتاج</target>
+      </trans-unit>
+      <trans-unit id="423c987e71bfe06729b4c61c1172f7d1">
+        <source>remaining: %amount%</source>
+        <target>المتبقي: %amount%</target>
+      </trans-unit>
+      <trans-unit id="28df85f497214ee95b87c9eae6680a5c">
+        <source>settled</source>
+        <target>مسوّى</target>
+      </trans-unit>
+      <trans-unit id="c00f0c4675b91fb8b918e4079a0b1bac">
+        <source>standard</source>
+        <target>قياسي</target>
+      </trans-unit>
+      <trans-unit id="098f6bcd4621d373cade4e832627b4f6">
+        <source>test</source>
+        <target>الاختبار</target>
+      </trans-unit>
+      <trans-unit id="df0b8d075515b67867e3b7aa939efb27">
+        <source>the Client ID</source>
+        <target>معرّف التاجر (Client ID)</target>
+      </trans-unit>
+      <trans-unit id="f11466cc7ae62732f3733880ecf25a6e">
+        <source>the payment page URL</source>
+        <target>عنوان صفحة الدفع</target>
+      </trans-unit>
+      <trans-unit id="cfcd76eab84d10b072cceaad852ed679">
+        <source>the store key (hash key)</source>
+        <target>مفتاح المتجر (hash key)</target>
+      </trans-unit>
+    </body>
+  </file>
+</xliff>

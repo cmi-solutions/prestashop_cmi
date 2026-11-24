@@ -11,6 +11,7 @@
     <h3 class="card-header-title">
       {l s='CMI payment' d='Modules.Cmi.Admin'}
       <span class="badge badge-{$cmi.state_class|escape:'html':'UTF-8'} ml-2">{$cmi.state_label|escape:'html':'UTF-8'}</span>
+      {if $cmi.test_mode}<span class="badge badge-warning ml-1">{l s='Test mode' d='Modules.Cmi.Admin'}</span>{/if}
     </h3>
   </div>
   <div class="card-body">

@@ -1,4 +1,5 @@
 <?php
+
 /**
  * CMI payment module for PrestaShop.
  *
@@ -17,8 +18,6 @@ use Cmi\PrestaShop\Payment\TransactionGuard;
 use Cmi\PrestaShop\Protocol\ApiException;
 use Cmi\PrestaShop\Protocol\CmiProtocol;
 use Cmi\PrestaShop\Repository\TransactionRepository as Repo;
-use Configuration;
-use PrestaShopLogger;
 
 if (!defined('_PS_VERSION_')) {
     exit;
@@ -94,7 +93,7 @@ class TransactionManager
             }
             $transaction->addOwnIds($answer);
             $this->setPaymentState($transaction, PaymentState::VOIDED, $answer);
-            $this->orders->setState($transaction, (int) Configuration::get('PS_OS_CANCELED'));
+            $this->orders->setState($transaction, (int) \Configuration::get('PS_OS_CANCELED'));
             $message = $this->t('Pre-authorization voided on CMI (TransId: %transid%).', ['%transid%' => $this->na($answer['TransId'] ?? '')]);
             $this->repository->log($transaction, Repo::LOG_INFO, $message);
 
@@ -158,7 +157,7 @@ class TransactionManager
             $full = $split['full'] || $after['remaining'] <= 0.001;
             $this->setPaymentState($transaction, $full ? PaymentState::REFUNDED : PaymentState::CONFIRMED, $answer);
             if ($full) {
-                $this->orders->setState($transaction, (int) Configuration::get('PS_OS_REFUND'));
+                $this->orders->setState($transaction, (int) \Configuration::get('PS_OS_REFUND'));
             }
             $message = $this->t('Refund of %amount% %currency%%order_amount% made on CMI (TransId: %transid%). Refunded in total: %refunded% of %total% %currency%.%reason%', [
                 '%amount%' => CmiProtocol::formatAmount($split['charged']),
@@ -290,9 +289,9 @@ class TransactionManager
         $authCode = $this->na((string) $status['AuthCode']);
         $transaction->trans_stat = substr($transStat, 0, 8);
         $states = [
-            'canceled' => (int) Configuration::get('PS_OS_CANCELED'),
-            'refund' => (int) Configuration::get('PS_OS_REFUND'),
-            'error' => (int) Configuration::get('PS_OS_ERROR'),
+            'canceled' => (int) \Configuration::get('PS_OS_CANCELED'),
+            'refund' => (int) \Configuration::get('PS_OS_REFUND'),
+            'error' => (int) \Configuration::get('PS_OS_ERROR'),
             'awaiting' => $this->settings->awaitingStateId(),
             'preauth' => $this->settings->preauthorizedStateId(),
         ];
@@ -417,7 +416,7 @@ class TransactionManager
             $message = $verdict === TransactionGuard::UNVERIFIED
                 ? $this->t('The CMI transaction of OrderId %oid% cannot be matched to this order (no payment confirmation or amount was recorded). Nothing was sent to CMI; please manage it from the CMI back office.', ['%oid%' => $transaction->oid])
                 : $this->t('OrderId %oid% exists in the CMI back office but belongs to another payment, not to this order. Nothing was sent to CMI.', ['%oid%' => $transaction->oid]);
-            PrestaShopLogger::addLog('CMI ownership check failed for OrderId ' . $transaction->oid, 2, null, 'Cart', (int) $transaction->id_cart, true);
+            \PrestaShopLogger::addLog('CMI ownership check failed for OrderId ' . $transaction->oid, 2, null, 'Cart', (int) $transaction->id_cart, true);
             $this->repository->log($transaction, Repo::LOG_WARNING, $message);
 
             return ActionResult::error($message, $verdict === TransactionGuard::UNVERIFIED ? 'unverified' : 'foreign');

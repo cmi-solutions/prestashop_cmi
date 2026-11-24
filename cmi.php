@@ -1,4 +1,5 @@
 <?php
+
 /**
  * CMI payment module for PrestaShop.
  *
@@ -31,6 +32,7 @@ use Cmi\PrestaShop\Config\Settings;
 use Cmi\PrestaShop\Install\Installer;
 use Cmi\PrestaShop\Payment\AccountResolver;
 use Cmi\PrestaShop\Payment\PaymentState;
+use Cmi\PrestaShop\Service\GdprData;
 use Cmi\PrestaShop\Services;
 use PrestaShop\PrestaShop\Core\Payment\PaymentOption;
 
@@ -59,7 +61,7 @@ class Cmi extends PaymentModule
 
         $this->displayName = $this->trans('CMI', [], 'Modules.Cmi.Admin');
         $this->description = $this->trans('Card payments with CMI (Morocco): hosted payment page, and confirm, void, refund and check payments from the order page.', [], 'Modules.Cmi.Admin');
-        $this->confirmUninstall = $this->trans('Uninstall the CMI module? Your CMI connection settings will be deleted; orders and their payment history are kept.', [], 'Modules.Cmi.Admin');
+        $this->confirmUninstall = $this->trans('Uninstall the CMI module? Your CMI settings will be deleted. Orders and their CMI payment history are kept, unless "Delete all CMI data on uninstall" is on.', [], 'Modules.Cmi.Admin');
     }
 
     public function isUsingNewTranslationSystem()
@@ -131,6 +133,16 @@ class Cmi extends PaymentModule
                 $missing[] = $this->trans('the payment page URL', [], 'Modules.Cmi.Admin');
             }
             $warnings[] = $this->trans('CMI is not offered to customers at checkout yet: enter %missing% in "Connection to CMI", then save.', ['%missing%' => implode(', ', $missing)], 'Modules.Cmi.Admin');
+        }
+        if ($settings->isTestMode()) {
+            $warnings[] = $this->trans('Test mode: payments go to CMI\'s test platform and no card is charged. Choose "Production" in "Connection to CMI" before taking real orders.', [], 'Modules.Cmi.Admin');
+        }
+        $urlPlatform = Settings::environmentOfUrl($settings->gatewayUrl());
+        if ($urlPlatform !== null && $urlPlatform !== $settings->environment()) {
+            $warnings[] = $this->trans('The payment page URL is the one of CMI\'s %url_platform% platform, but the %platform% platform is selected: check "Connection to CMI".', [
+                '%url_platform%' => $urlPlatform === Settings::ENV_TEST ? $this->trans('test', [], 'Modules.Cmi.Admin') : $this->trans('production', [], 'Modules.Cmi.Admin'),
+                '%platform%' => $settings->isTestMode() ? $this->trans('test', [], 'Modules.Cmi.Admin') : $this->trans('production', [], 'Modules.Cmi.Admin'),
+            ], 'Modules.Cmi.Admin');
         }
         if (in_array(AccountResolver::MAD_NUMERIC, $settings->storeCurrencies(), true) && !Currency::getIdByIsoCode(AccountResolver::MAD)) {
             $warnings[] = $this->trans('The Moroccan dirham (MAD) is not installed in Localization > Currencies: orders in other currencies cannot be converted, so CMI is not offered for them.', [], 'Modules.Cmi.Admin');
@@ -225,7 +237,11 @@ class Cmi extends PaymentModule
     }
 
     /** @return array<string, mixed> */
-    public function customerResult(Cmi\PrestaShop\Model\CmiTransaction $transaction, Order $order): array
+    /**
+     * @param bool $approvedByCmi CMI's signed return said "approved", but its callback has not
+     *                            updated the payment yet: say so, and don't offer to pay again
+     */
+    public function customerResult(Cmi\PrestaShop\Model\CmiTransaction $transaction, Order $order, bool $approvedByCmi = false): array
     {
         $texts = [
             PaymentState::CONFIRMED => [$this->trans('Payment successful', [], 'Modules.Cmi.Shop'), $this->trans('Your card payment was accepted.', [], 'Modules.Cmi.Shop')],
@@ -238,10 +254,16 @@ class Cmi extends PaymentModule
         ];
         $state = (string) $transaction->payment_state;
         [$label, $message] = $texts[$state] ?? $texts[PaymentState::INITIATED];
-        $retry = PaymentState::isAwaitingPayment($state)
+        $confirming = $approvedByCmi && in_array($state, ['', PaymentState::INITIATED], true);
+        if ($confirming) {
+            $label = $this->trans('Payment being confirmed', [], 'Modules.Cmi.Shop');
+            $message = $this->trans('CMI accepted your card payment and is confirming it to the shop. Your order will be updated in a few moments and you will receive an e-mail. Please do not pay again.', [], 'Modules.Cmi.Shop');
+        }
+        $retry = !$confirming && PaymentState::isAwaitingPayment($state)
             && in_array((int) $order->getCurrentState(), [$this->services()->settings()->awaitingStateId(), (int) Configuration::get('PS_OS_ERROR')], true);
 
         return [
+            'cmi_confirming' => $confirming,
             'cmi_state' => $state,
             'cmi_label' => $label,
             'cmi_message' => $message,
@@ -273,9 +295,31 @@ class Cmi extends PaymentModule
         $name = isset($controller->controller_name) ? (string) $controller->controller_name : (string) Tools::getValue('controller');
         if ($name === 'AdminOrders') {
             $controller->addCSS($this->_path . 'views/css/admin.css');
+            if ($this->services()->settings()->isApiEnabled()) {
+                // The orders list: Confirm, Void, Refund and Check CMI in the CMI column.
+                $translator = $this->getTranslator();
+                Media::addJsDef(['cmiOrderList' => [
+                    'url' => $this->context->link->getAdminLink('AdminCmiPayment', true),
+                    'texts' => [
+                        'confirm' => $translator->trans('Confirm', [], 'Modules.Cmi.Admin'),
+                        'void' => $translator->trans('Void', [], 'Modules.Cmi.Admin'),
+                        'refund' => $translator->trans('Refund', [], 'Modules.Cmi.Admin'),
+                        'check' => $translator->trans('Check CMI', [], 'Modules.Cmi.Admin'),
+                        'confirm_question' => $translator->trans('Confirm this payment and capture %amount% %currency%?', ['%amount%' => '%amount%', '%currency%' => '%currency%'], 'Modules.Cmi.Admin'),
+                        'confirm_old' => $translator->trans('This pre-authorization is %days% days old. Banks may refuse to capture it, and the customer may not expect the charge any more: we advise you to inform the customer first. Confirm anyway?', ['%days%' => '%days%'], 'Modules.Cmi.Admin'),
+                        'void_question' => $translator->trans('Void this pre-authorization? The customer will not be charged and the order will be cancelled.', [], 'Modules.Cmi.Admin'),
+                        'refund_question' => $translator->trans('Refund %amount% %currency% to the customer\'s card?', ['%amount%' => '%amount%', '%currency%' => '%currency%'], 'Modules.Cmi.Admin'),
+                        'partial' => $translator->trans('For a partial refund, open the order.', [], 'Modules.Cmi.Admin'),
+                    ],
+                ]]);
+            }
             $controller->addJS($this->_path . 'views/js/admin-order.js');
         } elseif ($name === 'AdminModules' && Tools::getValue('configure') === $this->name) {
             $controller->addCSS($this->_path . 'views/css/admin.css');
+            Media::addJsDef(['cmiSettings' => [
+                'platforms' => Settings::PLATFORM_URLS,
+                'texts' => ['reveal' => $this->trans('Show or hide', [], 'Modules.Cmi.Admin')],
+            ]]);
             $controller->addJS($this->_path . 'views/js/admin-settings.js');
         }
     }
@@ -292,6 +336,30 @@ class Cmi extends PaymentModule
         if (isset($params['search_query_builder'])) {
             OrderGrid::modifyQuery($params['search_query_builder'], $this);
         }
+    }
+
+    // ── GDPR (psgdpr) ────────────────────────────────────────────────────────
+
+    /** Registered so the module is listed in the GDPR module's consent settings. */
+    public function hookRegisterGDPRConsent($params)
+    {
+        return true;
+    }
+
+    /** The customer's CMI payments, for the GDPR module's data export. */
+    public function hookActionExportGDPRData($customer)
+    {
+        $rows = (new GdprData())->export((int) ($customer['id'] ?? 0));
+
+        return json_encode($rows ?: $this->trans('CMI: no card payment recorded for this customer.', [], 'Modules.Cmi.Admin'));
+    }
+
+    /** Removes the card data of the customer's CMI payments; the payments stay for accounting. */
+    public function hookActionDeleteGDPRCustomer($customer)
+    {
+        return json_encode((new GdprData())->anonymize((int) ($customer['id'] ?? 0))
+            ? true
+            : $this->trans('CMI: the card data of this customer could not be deleted.', [], 'Modules.Cmi.Admin'));
     }
 
     // ── Front office ─────────────────────────────────────────────────────────

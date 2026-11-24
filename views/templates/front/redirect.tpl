@@ -26,29 +26,4 @@
       <a class="btn btn-link" href="{$cmi_cancel_url|escape:'html':'UTF-8'}">{l s='Cancel the order' d='Modules.Cmi.Shop'}</a>
     </form>
   </section>
-  <script>
-    (function () {
-      var form = document.getElementById('cmi-payment-form');
-      if (!form) {
-        return;
-      }
-      // CMI checks the signature against every field it receives. Some modules add hidden
-      // fields to every form (anti-spam, translation...): remove each field this module did not
-      // sign, then send the form without a "submit" event, so nothing is added back.
-      var signed = (form.getAttribute('data-signed') || '').split(',');
-      var send = function () {
-        Array.prototype.slice.call(form.elements).forEach(function (field) {
-          if (field.name && signed.indexOf(field.name) === -1) {
-            field.parentNode.removeChild(field);
-          }
-        });
-        HTMLFormElement.prototype.submit.call(form);
-      };
-      form.addEventListener('submit', function (event) {
-        event.preventDefault();
-        setTimeout(send, 0);
-      });
-      send();
-    })();
-  </script>
 {/block}

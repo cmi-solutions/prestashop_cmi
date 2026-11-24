@@ -1,11 +1,12 @@
 #!/usr/bin/env bash
-# Upgrade test: install version 1.1.0 (git tag/branch given, default the 1.x release for PrestaShop 9, "prestashop_v9"), give it 1.x settings
+# Upgrade test: install version 1.1.0 (git commit given, default 147b552: the 1.x release for PrestaShop 9), give it 1.x settings
 # and a 1.x order, upgrade to the working tree, and check the result.
 # Usage: tests/e2e/upgrade.sh ps8|ps9 [git-ref]. It replaces the module installed in that shop.
 set -euo pipefail
 export MSYS_NO_PATHCONV=1
 service="${1:?ps8 or ps9}"
-ref="${2:-prestashop_v9}"
+# 1.x release for PrestaShop 9 (147b552) and for PrestaShop 8 (93a477f): in this branch's history.
+ref="${2:-147b552}"
 here="$(cd "$(dirname "$0")" && pwd)"
 root="$(cd "$here/../.." && pwd)"
 container="$(cd "$here" && docker compose ps -q "$service")"
@@ -13,7 +14,7 @@ console() { docker exec -u www-data "$container" sh -c "cd /var/www/html && php 
 
 console uninstall || true
 docker exec "$container" rm -rf /var/www/html/modules/cmi /var/www/html/var/cache/prod /var/www/html/var/cache/dev
-# Some 1.x releases (prestashop_v8) keep the module in a cmi/ subfolder, others at the root.
+# Some 1.x releases (93a477f, for PrestaShop 8) keep the module in a cmi/ subfolder, others at the root.
 tree="$ref"
 if (cd "$root" && git cat-file -e "$ref:cmi/cmi.php" 2>/dev/null); then tree="$ref:cmi"; fi
 (cd "$root" && git archive "$tree") | docker exec -i "$container" sh -c 'mkdir -p /var/www/html/modules/cmi && tar -C /var/www/html/modules/cmi -xf - && chown -R www-data:www-data /var/www/html/modules/cmi'

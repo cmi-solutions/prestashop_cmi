@@ -1,6 +1,6 @@
 {
     "name": "cmi-solutions/prestashop-cmi",
-    "description": "CMI (Morocco) card payment module for PrestaShop 8 and 9",
+    "description": "CMI (Morocco) card payment module for PrestaShop 9",
     "type": "prestashop-module",
     "license": "AFL-3.0",
     "authors": [
@@ -13,6 +13,11 @@
         "ext-curl": "*",
         "ext-simplexml": "*"
     },
+    "require-dev": {
+        "prestashop/php-dev-tools": "^5.0",
+        "phpstan/phpstan": "^1.12",
+        "friendsofphp/php-cs-fixer": "^3.64"
+    },
     "autoload": {
         "psr-4": {
             "Cmi\\PrestaShop\\": "src/"
@@ -22,6 +27,10 @@
         "prepend-autoloader": false
     },
     "scripts": {
-        "test": "php tests/run-tests.php"
+        "test": "php tests/run-tests.php",
+        "i18n": "php tools/i18n-check.php",
+        "cs": "php-cs-fixer fix --dry-run --diff",
+        "cs-fix": "php-cs-fixer fix",
+        "phpstan": "phpstan analyse --no-progress"
     }
 }

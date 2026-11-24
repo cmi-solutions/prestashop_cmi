@@ -10,6 +10,10 @@
         <source>Awaiting payment</source>
         <target>En attente de paiement</target>
       </trans-unit>
+      <trans-unit id="f1e03421cd699172bff8e29beb1e9ce0">
+        <source>CMI accepted your card payment and is confirming it to the shop. Your order will be updated in a few moments and you will receive an e-mail. Please do not pay again.</source>
+        <target>CMI a accepté votre paiement par carte et le confirme à la boutique. Votre commande sera mise à jour dans quelques instants et vous recevrez un e-mail. Merci de ne pas payer une seconde fois.</target>
+      </trans-unit>
       <trans-unit id="b5499072316a366352f5e01353daf7a8">
         <source>Cancel the order</source>
         <target>Annuler la commande</target>
@@ -54,6 +58,10 @@
         <source>Payment authorized</source>
         <target>Paiement autorisé</target>
       </trans-unit>
+      <trans-unit id="365ede146ac823435c7b93adae3300e9">
+        <source>Payment being confirmed</source>
+        <target>Paiement en cours de confirmation</target>
+      </trans-unit>
       <trans-unit id="d27600e8af517a19b8f17713e91e4c8b">
         <source>Payment cancelled</source>
         <target>Paiement annulé</target>
@@ -73,6 +81,10 @@
       <trans-unit id="73599829475522b89e9f8266cbe73e0e">
         <source>Redirecting to CMI</source>
         <target>Redirection vers CMI</target>
+      </trans-unit>
+      <trans-unit id="63a6a88c066880c5ac42394a22803ca6">
+        <source>Refresh</source>
+        <target>Actualiser</target>
       </trans-unit>
       <trans-unit id="61d1b29c63271fe171035c33f74ea7c4">
         <source>See my orders</source>

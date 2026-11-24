@@ -1,4 +1,5 @@
 <?php
+
 /**
  * CMI payment module for PrestaShop.
  *
@@ -66,17 +67,31 @@ class CmiValidationModuleFrontController extends ModuleFrontController
             $this->fail($this->chargeError($charge, (string) $currency->iso_code));
         }
 
-        $this->module->validateOrder(
-            (int) $cart->id,
-            $this->module->services()->settings()->awaitingStateId(),
-            $total,
-            $this->module->displayName,
-            null,
-            [],
-            (int) $currency->id,
-            false,
-            $customer->secure_key
-        );
+        // Sent twice (double click, two tabs, back button from CMI's page): the order of this
+        // cart already exists, so show it (with "Pay again") instead of creating another one.
+        if ($cart->orderExists()) {
+            $this->showExistingOrder((int) $cart->id);
+        }
+        try {
+            $this->module->validateOrder(
+                (int) $cart->id,
+                $this->module->services()->settings()->awaitingStateId(),
+                $total,
+                $this->module->displayName,
+                null,
+                [],
+                (int) $currency->id,
+                false,
+                $customer->secure_key
+            );
+        } catch (PrestaShopException $e) {
+            if ((new Cart((int) $cart->id))->orderExists()) {
+                // The other request created the order at the same moment.
+                $this->showExistingOrder((int) $cart->id);
+            }
+            PrestaShopLogger::addLog('CMI could not create the order of cart ' . (int) $cart->id . ': ' . $e->getMessage(), 3, null, 'Cart', (int) $cart->id, true);
+            $this->fail($this->trans('Your order could not be created. Please try again.', [], 'Modules.Cmi.Shop'));
+        }
         $orders = $this->ordersOfCart((int) $cart->id);
         if (!$orders) {
             $this->fail($this->trans('Your order could not be created. Please try again.', [], 'Modules.Cmi.Shop'));
@@ -153,6 +168,8 @@ class CmiValidationModuleFrontController extends ModuleFrontController
             'cmi_cancel_url' => $fields['shopurl'],
             'cmi_reference' => (string) $order->reference,
         ]);
+        // Sends the form to CMI (views/js, not inline: compatible with a Content-Security-Policy).
+        $this->registerJavascript('module-cmi-redirect', 'modules/' . $this->module->name . '/views/js/redirect.js', ['position' => 'bottom', 'priority' => 200]);
         $this->setTemplate('module:cmi/views/templates/front/redirect.tpl');
     }
 
@@ -173,13 +190,18 @@ class CmiValidationModuleFrontController extends ModuleFrontController
     {
         $orders = [];
         $reference = (string) $this->module->currentOrderReference;
+        /** @var Order $order */
         foreach ($reference !== '' ? Order::getByReference($reference) : [] as $order) {
             if ((int) $order->id_cart === $idCart) {
                 $orders[(int) $order->id] = $order;
             }
         }
-        if (!$orders && ($order = Order::getByCartId($idCart)) && Validate::isLoadedObject($order)) {
-            $orders[(int) $order->id] = $order;
+        if (!$orders) {
+            /** @var Order|null $order */
+            $order = Order::getByCartId($idCart);
+            if ($order && Validate::isLoadedObject($order)) {
+                $orders[(int) $order->id] = $order;
+            }
         }
         ksort($orders);
 
@@ -201,6 +223,17 @@ class CmiValidationModuleFrontController extends ModuleFrontController
     }
 
     /** Back to the checkout (or the order's result page) with an error message. */
+    /** The cart already has its order: show its result page (it offers "Pay again" when unpaid). */
+    private function showExistingOrder(int $idCart): void
+    {
+        $order = Order::getByCartId($idCart);
+        if (!$order || !Validate::isLoadedObject($order) || $order->module !== $this->module->name
+            || (int) $order->id_customer !== (int) $this->context->cart->id_customer) {
+            Tools::redirect($this->context->link->getPageLink('history', true));
+        }
+        Tools::redirect($this->context->link->getModuleLink('cmi', 'return', ['id_order' => (int) $order->id, 'key' => (string) $order->secure_key], true));
+    }
+
     private function fail(string $message, ?Order $order = null): void
     {
         $this->errors[] = $message;

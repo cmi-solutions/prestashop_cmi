@@ -1,4 +1,5 @@
 <?php
+
 /**
  * CMI payment module for PrestaShop.
  *
@@ -9,7 +10,6 @@
 namespace Cmi\PrestaShop\Repository;
 
 use Cmi\PrestaShop\Model\CmiTransaction;
-use Db;
 
 if (!defined('_PS_VERSION_')) {
     exit;
@@ -40,7 +40,7 @@ class TransactionRepository
 
     public function findByOid(string $oid, int $idShop): ?CmiTransaction
     {
-        $id = (int) Db::getInstance()->getValue(
+        $id = (int) \Db::getInstance()->getValue(
             'SELECT `id_cmi_transaction` FROM `' . self::table() . '`'
             . ' WHERE `oid` = \'' . pSQL($oid) . '\' AND `id_shop` = ' . (int) $idShop
             . ' ORDER BY `id_cmi_transaction` DESC'
@@ -51,7 +51,7 @@ class TransactionRepository
 
     public function findByCart(int $idCart): ?CmiTransaction
     {
-        $id = (int) Db::getInstance()->getValue(
+        $id = (int) \Db::getInstance()->getValue(
             'SELECT `id_cmi_transaction` FROM `' . self::table() . '` WHERE `id_cart` = ' . (int) $idCart
             . ' ORDER BY `id_cmi_transaction` DESC'
         );
@@ -61,7 +61,7 @@ class TransactionRepository
 
     public function findByOrder(\Order $order): ?CmiTransaction
     {
-        $id = (int) Db::getInstance()->getValue(
+        $id = (int) \Db::getInstance()->getValue(
             'SELECT `id_cmi_transaction` FROM `' . self::table() . '`'
             . ' WHERE `id_cart` = ' . (int) $order->id_cart . ' AND `id_shop` = ' . (int) $order->id_shop
             . ' ORDER BY `id_cmi_transaction` DESC'
@@ -77,7 +77,7 @@ class TransactionRepository
      */
     public function findDueChecks(int $now, int $limit, int $idShop): array
     {
-        $rows = Db::getInstance()->executeS(
+        $rows = \Db::getInstance()->executeS(
             'SELECT `id_cmi_transaction` FROM `' . self::table() . '`'
             . ' WHERE `next_check_at` > 0 AND `next_check_at` <= ' . (int) $now . ' AND `id_shop` = ' . (int) $idShop
             . ' ORDER BY `next_check_at` ASC LIMIT ' . max(1, (int) $limit)
@@ -100,12 +100,12 @@ class TransactionRepository
     public function acquireLock(CmiTransaction $transaction): bool
     {
         $now = time();
-        $done = Db::getInstance()->execute(
+        $done = \Db::getInstance()->execute(
             'UPDATE `' . self::table() . '` SET `lock_until` = ' . ($now + self::LOCK_SECONDS)
             . ' WHERE `id_cmi_transaction` = ' . (int) $transaction->id
             . ' AND `lock_until` < ' . $now
         );
-        if (!$done || Db::getInstance()->Affected_Rows() !== 1) {
+        if (!$done || \Db::getInstance()->Affected_Rows() !== 1) {
             return false;
         }
         $transaction->lock_until = $now + self::LOCK_SECONDS;
@@ -129,7 +129,7 @@ class TransactionRepository
 
     public function releaseLock(CmiTransaction $transaction): void
     {
-        Db::getInstance()->execute(
+        \Db::getInstance()->execute(
             'UPDATE `' . self::table() . '` SET `lock_until` = 0 WHERE `id_cmi_transaction` = ' . (int) $transaction->id
         );
         $transaction->lock_until = 0;
@@ -148,7 +148,7 @@ class TransactionRepository
 
     public function log(CmiTransaction $transaction, string $level, string $message): void
     {
-        Db::getInstance()->insert('cmi_transaction_log', [
+        \Db::getInstance()->insert('cmi_transaction_log', [
             'id_cmi_transaction' => (int) $transaction->id,
             'level' => pSQL($level),
             'message' => pSQL(substr($message, 0, 2000)),
@@ -159,7 +159,7 @@ class TransactionRepository
     /** @return array<int, array{level: string, message: string, date_add: string}> */
     public function logs(CmiTransaction $transaction, int $limit = 50): array
     {
-        return Db::getInstance()->executeS(
+        return \Db::getInstance()->executeS(
             'SELECT `level`, `message`, `date_add` FROM `' . self::logTable() . '`'
             . ' WHERE `id_cmi_transaction` = ' . (int) $transaction->id
             . ' ORDER BY `id_cmi_transaction_log` DESC LIMIT ' . max(1, (int) $limit)
