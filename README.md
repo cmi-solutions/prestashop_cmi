@@ -16,16 +16,6 @@ There is one package per PrestaShop version. Download the one matching your shop
 
 This branch is the **PrestaShop 9** package.
 
-## Requirements
-
-| Component | Supported | Tested |
-| --- | --- | --- |
-| PrestaShop | 9.0 to 9.x | 9.2.1 |
-| PHP | 8.1 to 8.4 (the versions PrestaShop 9 supports) | 8.3 and 8.4 |
-| PHP extensions | cURL, SimpleXML | |
-| Shop | HTTPS (**Shop Parameters > General > Enable SSL**), the Moroccan dirham (MAD) installed | |
-| CMI | A CMI merchant account: Client ID and store key; for the Complete Kit, the API credentials | |
-
 ## Features
 
 - **Secure hosted payment:** cardholders enter their card details on CMI's 3-D Secure page, never on your shop.
@@ -83,7 +73,7 @@ In **Modules > Module Manager**, find **CMI** and click **Configure**. A new ins
 | Order status after capture | Status given to an order once its payment is captured (default: Payment accepted). Choose **Custom** to create your own status: give it a name and a color; it counts as paid, gives an invoice and sends the "payment accepted" e-mail. Choose **Custom** again to rename it. |
 | Automatic redirect | Sends cardholders back to the shop as soon as the payment is finished. |
 | Payment page language | The customer's language, or always French, English or Arabic. |
-| Order ID prefix | Generated at installation. See [Order number](#order-number). |
+| Order ID prefix | Generated at installation. Orders appear in the CMI back office as this prefix followed by the order reference, for example `PS7F3A-XKBKNABJK`; if several websites use the same CMI account, give each a different prefix. |
 | Delete all CMI data on uninstall | Off by default. See [Uninstallation](#uninstallation). |
 
 ### Connection to CMI
@@ -131,43 +121,6 @@ Replace `<your-shop>` with your shop's address. With several languages the addre
 
 For the callback to work, your shop must use **HTTPS** and be **reachable from the internet** (not only from your office network, nor behind a login or an IP filter). The callback, return and cron addresses stay open in maintenance mode. If CMI cannot reach your shop, orders stay **Awaiting CMI payment** until **Check CMI** or the [automatic checks](#automatic-checks) (Complete Kit) update them: ask CMI which addresses they need you to allow.
 
-## How orders and payments work
-
-When the cardholder chooses CMI, the order is created with the status **Awaiting CMI payment** and the cardholder is sent to CMI's page. Then:
-
-| What happens | Automatic confirmation | Manual confirmation |
-| --- | --- | --- |
-| Payment approved | **Payment accepted** (or the status you chose): CMI captured it | **CMI payment authorized (to confirm)**: confirm it to capture the funds, or void it |
-| Payment declined | **Payment error**; the cardholder can pay again | same |
-| Cardholder clicks Cancel on CMI's page | **Canceled**, only if CMI shows no payment | same |
-| No result from CMI | stays **Awaiting CMI payment**; the automatic checks (Complete Kit) update it | same |
-
-Only CMI's callback, **Check CMI** or the automatic checks update the order: the page the cardholder comes back to only shows the result. If the cardholder comes back before the callback has arrived, the page says the payment is being confirmed, and doesn't offer to pay again.
-
-The order page shows a **CMI payment** panel with the OrderId known by CMI, the amount CMI charged, the refunds, the payment's history, and, with the Complete Kit, the **Confirm**, **Void**, **Refund** and **Check CMI** buttons. With the Complete Kit, the **CMI** column of **Orders > Orders** shows the same buttons for each order (**Refund** there refunds the whole remaining balance; for a partial refund, open the order).
-
-- **Confirm** captures a pre-authorization. If it is older than 5 days, you're advised to inform the cardholder first.
-- **Void** cancels a pre-authorization: the cardholder is not charged and the order is cancelled.
-- **Refund** returns all or part of a captured payment to the cardholder's card. The amount is in the currency CMI charged. No credit slip is created; create one in PrestaShop if your accounting needs it, without refunding again.
-- **Check CMI** reads the payment's state at CMI and updates the order, including refunds made in the CMI back office.
-
-Before any of these, the module checks with CMI that the payment belongs to this order. Refunds made from PrestaShop's own **Partial refund** or **Return products** buttons are not sent to CMI: use the panel's **Refund** button.
-
-Every result from CMI is checked before it changes an order: its signature (made with your store key), its amount and its currency must match what the shop sent.
-
-### Order number
-
-Orders are sent to CMI as the **Order ID prefix** followed by the order reference, for example `PS7F3A-XKBKNABJK`, and appear this way in the CMI back office. If several websites use the same CMI account, give each a different prefix. Changing the prefix only affects new orders. To find an order from the OrderId shown in the CMI back office, type the part after the prefix (the order reference) in the **Reference** filter of the orders list. Orders paid with version 1.x keep their old OrderId (the cart number).
-
-### Other currencies
-
-CMI charges in MAD. Payments always go through CMI's 3-D Secure page.
-
-- **MAD orders** are charged as they are.
-- **Orders in another currency** are converted to MAD with PrestaShop's exchange rates (**International > Localization > Currencies**); CMI's page shows both amounts. The rate is saved with the order, and refunds use it. If the rate is missing, or still set to 1, CMI is not offered for that currency.
-
-You are responsible for the accuracy of the exchange rates.
-
 ## Automatic checks
 
 With the Complete Kit, an order left **Awaiting CMI payment** (the CMI callback failed, or the cardholder was declined and left) is checked with CMI about 15 minutes, 1 h 15 and 7 h 15 after the cardholder was sent to CMI. A pre-authorized payment moves the order to **CMI payment authorized (to confirm)**, a captured one marks it paid, a payment still declined at the last check marks it **Payment error**, and an order with no payment at all at the last check is cancelled. These checks only read CMI's records: they never confirm, void or refund.
@@ -198,10 +151,6 @@ By default, uninstalling deletes the module's settings (credentials included) an
 To delete everything, turn on **Delete all CMI data on uninstall** in **Payment setup** and save before uninstalling: the payment history and every CMI setting are deleted, and the order statuses are marked deleted (orders that had them keep their history). This cannot be undone.
 
 Orders themselves always stay in PrestaShop.
-
-## Changelog
-
-See [CHANGELOG.md](CHANGELOG.md) for what changed in each version.
 
 ## Support
 
